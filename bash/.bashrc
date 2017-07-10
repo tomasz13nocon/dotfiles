@@ -6,9 +6,7 @@ export TERM=xterm-256color
 export LESS='-R -z3'
 export PAGER='less'
 export EDITOR='vim'
-
 export wfdeps='/opt/wildfly/standalone/deployments'
-
 export LS_COLORS=$(ls_colors_generator)
 run_ls() {
 	ls-i --color=auto -w $(tput cols) "$@"
