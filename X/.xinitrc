@@ -31,7 +31,7 @@ fi
 #gnome-keyring-daemon --start # for deepin
 export SSH_AUTH_SOCK
 
-export QT_STYLE_OVERRIDE=gtk2
+export QT_QPA_PLATFORMTHEME=gtk2
 
 # turn off bell sound
 xset b off
@@ -39,5 +39,6 @@ xset b off
 xbindkeys
 ksuperkey
 setxkbmap -option caps:escape
-tilda &
+sleep 8 && tilda &
+compton &
 exec startxfce4

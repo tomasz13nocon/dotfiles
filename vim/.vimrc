@@ -55,6 +55,8 @@ autocmd FileType css,scss,sass setlocal iskeyword+=-
 "set completeopt+=noselect
 " Slightly improve performance
 "set lazyredraw
+
+autocmd FileType c setlocal path+=/usr/lib/gcc/x86_64-pc-linux-gnu/7.1.1/include
 """}}}
 
 """INDENTATION"""{{{
@@ -82,7 +84,11 @@ Plug 'JazzCore/ctrlp-cmatcher'
 Plug 'SirVer/ultisnips'
 Plug 'jceb/emmet.snippets'
 "Plug 'vim-scripts/AutoComplPop'
-Plug 'Valloric/YouCompleteMe'
+if has('nvim')
+	Plug 'Shougo/deoplete.nvim'
+else
+	Plug 'Valloric/YouCompleteMe'
+endif
 Plug 'ervandew/supertab'
 Plug 'scrooloose/nerdtree'
 "Plug 'terryma/vim-expand-region'
@@ -109,8 +115,8 @@ let g:ctrlp_working_path_mode = '0'
 let g:ctrlp_match_func = {'match' : 'matcher#cmatch' }
 """ULTISNIPS"""
 let g:UltiSnipsExpandTrigger='<Tab>'
-let g:UltiSnipsJumpForwardTrigger='<Tab>'
-let g:UltiSnipsJumpBackwardTrigger='<S-Tab>'
+let g:UltiSnipsJumpForwardTrigger='<C-n>'
+let g:UltiSnipsJumpBackwardTrigger='<C-p>'
 let g:UltiSnipsSnippetsDir='~/.vim/UltiSnips'
 """YOUCOMPLETEME"""
 " Close documentation window after completion
@@ -135,6 +141,8 @@ let g:ycm_always_populate_location_list = 1
 let g:ycm_error_symbol = '>'
 let g:ycm_warning_symbol = '>'
 let g:ycm_enable_diagnostic_signs = 0
+"""DEOPLETE"""
+let g:deoplete#enable_at_startup = 1
 """SUPERTAB"""
 " Reverse the order of scrolling through completion list (tab moves downward)
 let g:SuperTabDefaultCompletionType = '<C-n>'
@@ -147,7 +155,7 @@ let g:airline_right_sep=''
 " term, ravenpower, raven, powerlineish, murmur, wombat, kalisi, kolor,
 " distinguished, dark
 "let g:airline_theme='term'
-let g:airline_theme='murmur'
+let g:airline_theme='murmur2'
 "let g:airline_theme='gruvbox'
 "let g:airline_theme='dark'
 """NERDCOMMENTER"""
@@ -235,6 +243,13 @@ nnoremap <leader><CR> :YcmCompleter FixIt<CR>:ccl<CR>
 "nnoremap <leader>f :silent :set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
 nnoremap <leader>f :ls<CR>:b<Space>
 nnoremap <C-n> :CtrlPBuffer<CR>
+nnoremap <C-j> :join<CR>
+nnoremap J 4j
+nnoremap K 4k
+
+inoremap } }<ESC>mr=%`ra
+
+inoremap <C-z> <ESC>ui
 """}}}
 
 """OTHER"""{{{
@@ -268,5 +283,13 @@ endif
 
 command! Wsudo :w !sudo tee %
 abbreviate wsudo Wsudo
+
+abbreviate q qa
 """}}}
 
+"""NEOVIM"""{{{
+""""""""""""
+if has('nvim')
+	set guicursor=a:block-blinkon1
+endif
+"""}}}

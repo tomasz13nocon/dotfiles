@@ -22,6 +22,7 @@ alias dir="run_dir"
 alias vdir="run_vdir"
 alias ls='ls -l --color=auto --group-directories-first'
 alias lsh='ls --block-size=h'
+alias lsa='ls -A'
 cl() {
 	cd $1 && ls
 }
@@ -41,6 +42,10 @@ alias yt2mp3='youtube-dl -x --audio-format=mp3'
 alias htop='htop -d 8'
 alias mpvtty='mpv -vo=drm'
 alias stow='stow -v'
+alias clip='xclip -selection clipboard'
+alias echopath='echo $PATH | tr ":" "\n"'
+alias clearswap='sudo swapoff -a && sudo swapon -a'
+#alias vim='nvim'
 
 alias gs='git status'
 alias gc='git commit'
@@ -52,6 +57,8 @@ alias ga='git add'
 alias gch='git checkout'
 alias gl='git log'
 alias glo='git log --oneline'
+alias gch='git checkout'
+alias gb='git branch'
 
 # disable Ctrl-S stopping terminal output
 stty -ixon
