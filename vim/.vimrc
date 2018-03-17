@@ -42,6 +42,7 @@ set laststatus=2
 set foldmethod=marker
 " Display long lines that don't fit on the screen
 set display+=lastline
+set listchars+=tab:▶‒,trail:·
 " For YCM to work with html ctags in css files.
 " Unfortunately too many things break
 "autocmd FileType css set filetype=html.css | set syntax=css
@@ -87,10 +88,11 @@ Plug 'jceb/emmet.snippets'
 if has('nvim')
 	Plug 'Shougo/deoplete.nvim'
 else
-	Plug 'Valloric/YouCompleteMe'
+	Plug 'Valloric/YouCompleteMe', { 'on': [] }
+	"Plug 'Valloric/YouCompleteMe', { 'for': 'css' }
 endif
 Plug 'ervandew/supertab'
-Plug 'scrooloose/nerdtree'
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 "Plug 'terryma/vim-expand-region'
 Plug 'MichaelRFairhurst/angular-dep.vim'
 Plug 'henrik/vim-indexed-search'
@@ -102,6 +104,10 @@ Plug 'Raimondi/delimitMate'
 Plug 'ryanoasis/vim-devicons'
 Plug 'morhetz/gruvbox'
 Plug 'maksimr/vim-jsbeautify'
+Plug 'Kazark/vim-SimpleSmoothScroll'
+Plug 'tpope/vim-surround'
+
+Plug 'drewtempelmeyer/palenight.vim'
 call plug#end()
 """}}}
 
@@ -119,6 +125,9 @@ let g:UltiSnipsJumpForwardTrigger='<C-n>'
 let g:UltiSnipsJumpBackwardTrigger='<C-p>'
 let g:UltiSnipsSnippetsDir='~/.vim/UltiSnips'
 """YOUCOMPLETEME"""
+" Lazy load
+"command! Loadycm call plug#load('YouCompleteMe') | call youcompleteme#Enable() | Loadycm
+command! Loadycm call plug#load('YouCompleteMe') | call youcompleteme#Enable()
 " Close documentation window after completion
 let g:ycm_autoclose_preview_window_after_completion = 1
 "" Don't show annoying messages ("User defiend completion, pattern not found")
@@ -180,7 +189,8 @@ set termguicolors
 " Color scheme
 "colorscheme Tomorrow-Night-Bright
 "colorscheme oceanictext
-colorscheme base16-oceanicnext
+"colorscheme base16-oceanicnext
+colorscheme palenight
 "colorscheme gruvbox
 "set background=dark
 "let g:gruvbox_italic = 0
@@ -193,6 +203,8 @@ highlight Normal ctermbg=none
 """"""""""""""""""
 " Set the leader key
 let mapleader=" "
+" Load YouCompleteMe
+nnoremap <leader>y :Loadycm<CR>
 " Turn off search result highlighting until the next search
 nnoremap <leader>h :nohlsearch<CR>
 " Show buffer list and prepare :b for buffer switch
@@ -244,8 +256,8 @@ nnoremap <leader><CR> :YcmCompleter FixIt<CR>:ccl<CR>
 nnoremap <leader>f :ls<CR>:b<Space>
 nnoremap <C-n> :CtrlPBuffer<CR>
 nnoremap <C-j> :join<CR>
-nnoremap J 4j
-nnoremap K 4k
+noremap J 4j
+noremap K 4k
 
 inoremap } }<ESC>mr=%`ra
 

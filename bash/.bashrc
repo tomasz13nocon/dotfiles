@@ -34,6 +34,7 @@ alias pym='python -m'
 alias py2='python2'
 alias rnet='systemctl restart NetworkManager'
 #alias feh='feh -x --auto-zoom'
+alias feh='feh --scale-down'
 alias grep='grep --color=auto -P'
 alias rgrep='grep -rIn'
 alias rgrep2='rgrep --exclude-dir=vendors --exclude-dir=plugins --exclude-dir=WEB-INF --exclude-dir=css'
@@ -46,6 +47,11 @@ alias clip='xclip -selection clipboard'
 alias echopath='echo $PATH | tr ":" "\n"'
 alias clearswap='sudo swapoff -a && sudo swapon -a'
 #alias vim='nvim'
+alias bim='vim'
+alias netdown='ip link set enp2s0 down'
+alias netup='ip link set enp2s0 up'
+alias netrestart='netdown && netup'
+alias ds='df -h |grep /dev/sda\|Avail'
 
 alias gs='git status'
 alias gc='git commit'
@@ -62,6 +68,9 @@ alias gb='git branch'
 
 # disable Ctrl-S stopping terminal output
 stty -ixon
+
+# case insensitive glob
+shopt -s nocaseglob
 
 reset=$(tput sgr0)
 bold=$(tput bold)

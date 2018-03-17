@@ -33,12 +33,31 @@ export SSH_AUTH_SOCK
 
 export QT_QPA_PLATFORMTHEME=gtk2
 
+# wine fix
+export STAGING_WRITECOPY=1
+# wine fonts
+FREETYPE_PROPERTIES="truetype:interpreter-version=35"
+
 # turn off bell sound
 xset b off
 
+export TERMINAL=termite
+
+redshift-gtk -l 50.25:17.25 &
+
 xbindkeys
-ksuperkey
 setxkbmap -option caps:escape
-sleep 8 && tilda &
+sleep 15 && tilda &
+
+# XFCE
+ksuperkey
 compton &
+nm-applet &
 exec startxfce4
+
+# DEEPIN
+#export DESKTOP_SESSION=gnome
+#exec startdde
+
+# I3
+#exec i3
