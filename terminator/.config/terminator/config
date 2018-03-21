@@ -1,0 +1,65 @@
+[global_config]
+  always_split_with_profile = True
+  enabled_plugins = LaunchpadCodeURLHandler, APTURLHandler, LaunchpadBugURLHandler
+  handle_size = 3
+  inactive_color_offset = 1.0
+  scroll_tabbar = True
+  suppress_multiple_term_dialog = True
+  tab_position = hidden
+  title_font = P052 10
+  title_transmit_bg_color = "#ba2729"
+[keybindings]
+  cycle_next = <Primary><Shift><Alt>q
+  cycle_prev = <Primary><Shift><Alt>w
+  go_down = <Alt>j
+  go_left = <Alt>h
+  go_right = <Alt>l
+  go_up = <Alt>k
+  layout_launcher = <Primary><Shift><Alt>p
+  move_tab_left = <Primary><Shift><Alt>Tab
+  move_tab_right = <Primary><Alt>Tab
+  next_tab = <Primary>Tab
+  prev_tab = <Primary><Shift>Tab
+  resize_down = <Primary><Shift>Down
+  resize_left = <Primary><Shift>Left
+  resize_right = <Primary><Shift>Right
+  resize_up = <Primary><Shift>Up
+  split_horiz = <Primary><Shift>h
+  split_vert = <Primary><Shift>j
+  zoom_in = <Primary>equal
+[layouts]
+  [[default]]
+    [[[child1]]]
+      parent = window0
+      profile = default
+      type = Terminal
+    [[[window0]]]
+      parent = ""
+      size = 800, 460
+      type = Window
+[plugins]
+[profiles]
+  [[default]]
+    background_color = "#152735"
+    background_darkness = 1.0
+    background_type = transparent
+    cursor_color = "#ffffff"
+    font = Dina 8
+    foreground_color = "#eeeeee"
+    palette = "#1b2b34:#ec5f67:#99c794:#fac863:#6699cc:#c594c5:#5fb3b3:#c0c5ce:#65737e:#ec5f67:#99c794:#fac863:#6699cc:#c594c5:#5fb3b3:#d8dee9"
+    scrollback_lines = 10000
+    scrollbar_position = hidden
+    show_titlebar = False
+    use_system_font = False
+  [[defaultold]]
+    allow_bold = False
+    background_color = "#0c0c0c"
+    background_darkness = 0.87
+    background_type = transparent
+    cursor_color = "#ffffff"
+    font = MesloLGSDZ Nerd Font Bold 9
+    foreground_color = "#ffffff"
+    scrollback_lines = 1000
+    scrollbar_position = hidden
+    show_titlebar = False
+    use_system_font = False
