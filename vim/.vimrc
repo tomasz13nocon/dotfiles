@@ -94,7 +94,7 @@ Plug 'jceb/emmet.snippets'
 if has('nvim')
 	Plug 'Shougo/deoplete.nvim'
 else
-	Plug 'Valloric/YouCompleteMe', { 'on': [] }
+	"Plug 'Valloric/YouCompleteMe', { 'on': [] }
 	"Plug 'Valloric/YouCompleteMe', { 'for': 'css' }
 endif
 Plug 'ervandew/supertab'
@@ -170,7 +170,7 @@ let g:airline_right_sep=''
 " term, ravenpower, raven, powerlineish, murmur, wombat, kalisi, kolor,
 " distinguished, dark
 "let g:airline_theme='term'
-let g:airline_theme='murmur2'
+let g:airline_theme='murmur'
 "let g:airline_theme='gruvbox'
 "let g:airline_theme='dark'
 """NERDCOMMENTER"""
