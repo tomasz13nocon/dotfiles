@@ -7,19 +7,21 @@ export LESS='-R -z3'
 export PAGER='less'
 export EDITOR='vim'
 export wfdeps='/opt/wildfly/standalone/deployments'
-export LS_COLORS=$(ls_colors_generator)
-run_ls() {
-	ls-i --color=auto -w $(tput cols) "$@"
-}
-run_dir() {
-	dir-i --color=auto -w $(tput cols) "$@"
-}
-run_vdir() {
-	vdir-i --color=auto -w $(tput cols) "$@"
-}
-alias ls="run_ls"
-alias dir="run_dir"
-alias vdir="run_vdir"
+if command -v ls_colors_generator ; then
+	export LS_COLORS=$(ls_colors_generator)
+	run_ls() {
+		ls-i --color=auto -w $(tput cols) "$@"
+	}
+	run_dir() {
+		dir-i --color=auto -w $(tput cols) "$@"
+	}
+	run_vdir() {
+		vdir-i --color=auto -w $(tput cols) "$@"
+	}
+	alias ls="run_ls"
+	alias dir="run_dir"
+	alias vdir="run_vdir"
+fi
 alias ls='ls -l --color=auto --group-directories-first'
 alias lsh='ls --block-size=h'
 alias lsa='ls -A'
