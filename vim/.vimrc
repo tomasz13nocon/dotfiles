@@ -92,7 +92,7 @@ Plug 'SirVer/ultisnips'
 Plug 'jceb/emmet.snippets'
 "Plug 'vim-scripts/AutoComplPop'
 if has('nvim')
-	Plug 'Shougo/deoplete.nvim'
+	"Plug 'Shougo/deoplete.nvim'
 else
 	"Plug 'Valloric/YouCompleteMe', { 'on': [] }
 	"Plug 'Valloric/YouCompleteMe', { 'for': 'css' }
@@ -100,7 +100,7 @@ endif
 Plug 'ervandew/supertab'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 "Plug 'terryma/vim-expand-region'
-Plug 'MichaelRFairhurst/angular-dep.vim'
+"Plug 'MichaelRFairhurst/angular-dep.vim'
 Plug 'henrik/vim-indexed-search'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -108,11 +108,11 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'Raimondi/delimitMate'
 "Plug 'Valloric/ListToggle'
 Plug 'ryanoasis/vim-devicons'
-Plug 'morhetz/gruvbox'
 Plug 'maksimr/vim-jsbeautify'
 Plug 'Kazark/vim-SimpleSmoothScroll'
 Plug 'tpope/vim-surround'
 
+"Plug 'morhetz/gruvbox'
 Plug 'drewtempelmeyer/palenight.vim'
 call plug#end()
 """}}}
@@ -247,7 +247,6 @@ nnoremap <leader>R :source ~/.vimrc<CR>
 nnoremap <leader>n :NERDTreeToggle<CR>
 nnoremap <leader>g :YcmCompleter GoTo<CR>
 nnoremap <leader>d "_d
-"nnoremap <leader>c "_c
 nnoremap <leader>x "_x
 " Show syntax highlighting groups for word under cursor
 function! <SID>SynStack()
