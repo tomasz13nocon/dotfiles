@@ -1,0 +1,10 @@
+blocks:
+  - permission
+  - size
+  - date
+  - name
+date: relative
+#dereference: true
+sorting:
+  dir-grouping: first
+#total-size: true
