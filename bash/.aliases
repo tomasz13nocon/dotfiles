@@ -10,6 +10,8 @@ alias gl='git log'
 alias glo='git log --oneline'
 alias gch='git checkout'
 alias gb='git branch'
+alias gpl='git pull'
+alias gps='git push'
 
 #alias ls='ls -l --color=auto --group-directories-first'
 alias ls='lsd -l'

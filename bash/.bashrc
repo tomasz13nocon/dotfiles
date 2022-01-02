@@ -10,7 +10,7 @@ export EDITOR='vim'
 #. /usr/share/LS_COLORS/dircolors.sh
 export LS_COLORS="$(vivid generate ayu)"
 
-source .aliases
+source ~/.aliases
 
 # disable Ctrl-S stopping terminal output
 stty -ixon
