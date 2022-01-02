@@ -6,60 +6,11 @@ export PATH=$PATH:~/.local/bin:~/bin
 export LESS='-R -z3'
 export PAGER='less'
 export EDITOR='vim'
-#alias ls='ls -l --color=auto --group-directories-first'
-alias ls='lsd -l'
-alias lsh='ls --block-size=h'
-alias lsa='ls -A'
-alias lss='ls --total-size'
-cl() {
-	cd $@ && ls
-}
+
 #. /usr/share/LS_COLORS/dircolors.sh
 export LS_COLORS="$(vivid generate ayu)"
-alias diff='diff --color'
-alias myip='dig +short myip.opendns.com @resolver1.opendns.com'
-alias ..='cd ..'
-alias py='python'
-alias pym='python -m'
-alias py2='python2'
-#alias feh='feh -x --auto-zoom'
-#alias feh='feh --scale-down'
-alias grep='grep --color=auto -Pn'
-alias grepi='grep -i'
-alias grepr='grep -rI'
-alias grepr2='grepr --exclude-dir=vendors --exclude-dir=plugins --exclude-dir=WEB-INF --exclude-dir=css'
-alias info='info --vi-keys'
-alias htop='htop -d 8'
-alias mpvtty='mpv -vo=drm'
-alias stow='stow -v'
-alias clip='xclip -selection clipboard'
-alias echopath='echo $PATH | tr ":" "\n"'
-alias clearswap='sudo swapoff -a && sudo swapon -a'
-alias bim='vim'
-alias svim='sudoedit'
-alias rnet='systemctl restart NetworkManager'
-alias netdown='ip link set enp2s0 down'
-alias netup='ip link set enp2s0 up'
-alias netrestart='netdown && netup'
-alias ds='df -h | \grep "/dev/sd\|Filesystem"'
-alias pac='sudo pacman'
-alias xm='vim ~/.xmonad/xmonad.hs'
-del() {
-	mv "$@" ~/.trash
-}
 
-alias gs='git status'
-alias gc='git commit'
-alias gca='git commit -a'
-alias gcm='git commit -m'
-alias gcam='git commit -am'
-alias gd='git diff'
-alias ga='git add'
-alias gch='git checkout'
-alias gl='git log'
-alias glo='git log --oneline'
-alias gch='git checkout'
-alias gb='git branch'
+source .aliases
 
 # disable Ctrl-S stopping terminal output
 stty -ixon

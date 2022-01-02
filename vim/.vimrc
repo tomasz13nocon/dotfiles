@@ -2,6 +2,8 @@
 """"""""""""""""""""
 " Drop compatibility with vi
 set nocompatible
+" Why do I need to set this in current year???
+set encoding=utf-8
 " Enable syntax highlighting
 syntax enable
 " Enable filetype specific plugins
@@ -16,6 +18,7 @@ set wildmenu
 " so you don't have to wait 1 second
 " e.g. for escape to exit visual mode
 set ttimeoutlen=0
+set timeoutlen=400
 " It's very weird that this is necessary because it's the default
 " It allows backspace to delete over newlines and such
 set backspace=indent,eol,start
@@ -66,6 +69,8 @@ set nrformats-=octal
 set shortmess+=F
 " Enable mouse support
 set mouse=a
+" Leave this amount of lines from the cursor to bottom/top of the screen
+set scrolloff=5
 
 autocmd FileType c setlocal path+=/usr/lib/gcc/x86_64-pc-linux-gnu/7.1.1/include
 """}}}
@@ -130,8 +135,10 @@ Plug 'tpope/vim-surround'
 Plug 'ryanoasis/vim-devicons'
 Plug 'vim-scripts/nextval'
 "Plug 'wfxr/minimap.vim'
+Plug 'tpope/vim-sleuth'
 
 Plug 'drewtempelmeyer/palenight.vim'
+Plug 'ghifarit53/tokyonight-vim'
 Plug 'rafi/awesome-vim-colorschemes'
 call plug#end()
 """}}}
@@ -196,6 +203,7 @@ autocmd VimEnter * set laststatus=0
 " distinguished, dark
 "let g:airline_theme='term'
 let g:airline_theme='murmur'
+"let g:airline_theme='tokyonight'
 "let g:airline_theme='ayu'
 "let g:airline_theme='deus'
 "let g:airline_theme='gruvbox'
@@ -234,13 +242,21 @@ if (has("termguicolors"))
 
 	"colorscheme palenight
 
-	colo ayu
-	" Adjustments for ayu
-	hi Comment guifg=#808B97
-	hi LineNr guifg=#eeeeee
-	"hi Normal guifg=#F0EBDA
-	" Whitespace color (listchars)
-	hi SpecialKey guifg=#33414E
+	let g:tokyonight_style = 'night' " available: night, storm
+	let g:tokyonight_enable_italic = 0
+	colo tokyonight
+	hi Comment cterm=none
+	hi Comment guifg=#646b8a
+	hi Grey guifg=#646b8a
+	hi LineNr guifg=#646b8a
+
+	"colo ayu
+	"" Adjustments for ayu
+	"hi Comment guifg=#808B97
+	"hi LineNr guifg=#eeeeee
+	"" Whitespace color (listchars)
+	"hi SpecialKey guifg=#33414E
+	""hi Normal guifg=#F0EBDA
 endif
 "colorscheme gruvbox
 "set background=dark
@@ -248,6 +264,7 @@ endif
 " Inherit background color from the terminal
 " Useful for preserving transparent background
 highlight Normal ctermbg=none guibg=NONE
+highlight EndOfBuffer ctermbg=none guibg=NONE
 autocmd BufEnter * hi airline_tabfill ctermbg=NONE guibg=NONE
 "hi airline_tabfill ctermbg=NONE guibg=NONE
 
@@ -263,9 +280,9 @@ let mapleader=" "
 nnoremap <leader>y :Loadycm<CR>
 " Turn off search result highlighting until the next search
 nnoremap <silent> <leader>h :nohlsearch<CR>
-" Treat wrapped line as multiple lines
-noremap j gj
-noremap k gk
+" Treat a wrapped line as multiple lines without breaking other commands
+nnoremap <expr> j v:count ? 'j' : 'gj'
+nnoremap <expr> k v:count ? 'k' : 'gk'
 " Also clear search highlighting in minimap if it's loaded
 if exists("loaded_minimap")
 	nnoremap <leader>h :nohlsearch<CR>:call minimap#vim#ClearColorSearch()<CR>
@@ -291,12 +308,13 @@ function! DeleteBuffer()
 		echoerr v:exception
 	endtry
 endfunction
-nnoremap <C-q> :call DeleteBuffer()<CR>
+nnoremap <silent> <C-q> :call DeleteBuffer()<CR>
 nnoremap <leader>q :q<CR>
 " Repeat last macro
 nnoremap <C-@> @@
 nnoremap <C-S-t> :e #<CR>
 
+nnoremap <leader>m :set mouse=<CR>
 nnoremap <leader>w :w<CR>
 nnoremap <leader>Q :q!<CR>
 nnoremap <leader>u :UltiSnipsEdit<CR>
@@ -308,15 +326,14 @@ nnoremap <leader>d "_d
 nnoremap <leader>x "_x
 let s:showstatus = 0
 function! ToggleStatus()
+	AirlineToggle
 	if s:showstatus == 0
-		AirlineToggle
 		set ruler
 		set laststatus=2
 		set showcmd
 		"set showmode
 		let s:showstatus=1
 	else
-		AirlineToggle
 		set noruler
 		set laststatus=0
 		set noshowcmd
@@ -399,6 +416,26 @@ set term=xterm-256color
 
 " Don't clear clipboard on exit
 autocmd VimLeave * call system('echo ' . shellescape(getreg('+')) . ' | xclip -selection clipboard')
+
+" show/hide tab and statusline ui depending on number of open buffers
+" BufAdd happens AFTER adding a buffer while BufDelete happens BEFORE deleting one
+" Hence the weird numbuf comparisons
+function! Show_ui()
+    let numbuf = len(getbufinfo({'buflisted':1}))
+    if numbuf >= 2 && s:showstatus == 0
+        call ToggleStatus()
+    endif
+endfunction
+function! Hide_ui()
+    let numbuf = len(getbufinfo({'buflisted':1}))
+    if numbuf <= 2 && s:showstatus == 1
+	call ToggleStatus()
+    endif
+endfunction
+
+autocmd! BufAdd * call Show_ui()
+"autocmd! VimEnter * call Show_ui()
+autocmd! BufDelete * call Hide_ui()
 """}}}
 
 """NEOVIM"""{{{

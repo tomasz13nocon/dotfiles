@@ -1,0 +1,114 @@
+/* @import url('components/variables.css');
+@import url('components/menu-icons.css');
+@import url('components/elements-transparencies.css');
+@import url('components/window-transparencies.css');
+ */
+
+.browser-toolbar:not(.titlebar-color) {
+    background: none !important;
+}
+
+#tabbrowser-tabs .tab-background {
+  margin-block: unset !important;
+  border-radius: unset !important;
+}
+.tabbrowser-tab {
+	padding-inline: 0px !important;
+  height: 32px !important;
+  border-right: 1px solid rgb(66,65,77) !important;
+}
+.tabbrowser-tab[selected] .tab-content {
+/*  	border-top: 2px solid  blueviolet; */
+}
+.tabbrowser-tab .tab-content {
+}
+.tabbrowser-tab .tab-icon-stack {
+}
+.tabbrowser-tab[selected]:not(:hover):not([pinned]) .tab-label-container,
+#tabbrowser-tabs:not([closebuttons="activetab"]) .tabbrowser-tab:not(:hover):not([pinned]) .tab-label-container{ margin-inline-end: 7px }
+.tab-content:not([pinned])::before{
+  display: -moz-box;
+  content: "";
+  -moz-box-flex: 1;
+}
+.tabbrowser-tab .tab-label-container {
+  margin-bottom: 2px !important;
+}
+.tabbrowser-tab .tab-close-button {
+/*   display: none; */
+}
+
+toolbar .toolbarbutton-1 {
+	padding: 0 var(--toolbarbutton-outer-padding) !important;;
+}
+
+.tabbrowser-tab[fadein]:not([style^="max-width"]){ max-width: 100vw !important }
+#tabbrowser-tabs:not([drag=detach]) > .tabbrowser-tab:not([pinned])[fadein] {
+	min-width: 30px !important;
+	max-width: 100% !important;
+}
+
+/* SOUND ICON */
+.tab-icon-overlay:not([crashed]) {
+  right: -19px !important;
+/*   right: 2px !important; */
+  pointer-events: none !important;
+  fill-opacity: 1 !important;
+  width: 17px !important;
+  height: 17px !important;
+  opacity: 0 !important;
+  transition: opacity 1.3s !important;
+}
+.tab-icon-overlay[soundplaying="true"], .tab-icon-overlay[muted="true"] {
+  margin-right: 22px !important;
+  opacity: 1 !important;
+}
+.tab-icon-image:not([crashed]) {
+  opacity: 1 !important;
+}
+
+/* Show all tabs instead of scrolling them */
+.tabbrowser-tab {
+  min-width: 0px !important;
+}
+.tab-content {
+overflow: hidden !important;
+}
+
+/* Move Find Bar above the page*/
+.browserContainer > findbar {
+  -moz-box-ordinal-group: 0;
+}
+/* Shift Find Bar content to the right */
+.findbar-container {
+  -moz-box-pack: end;
+}
+/* Move the "x of y matches" text to the start */
+.findbar-label.found-matches {
+  -moz-box-ordinal-group: 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+.titlebar-buttonbox-container {
+  margin-right: -6px !important;
+}
+*/
+
+/* 
+.tabbrowser-tab[selected="true"] .tab-background {
+  background: linear-gradient(to right, red , yellow, green, cyan, blue, violet) !important;
+}
+ */
+

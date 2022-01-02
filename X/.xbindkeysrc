@@ -65,20 +65,27 @@
 #"rxvt"
 #  Control + b:2 + Release
 
+
 "pactl set-sink-volume @DEFAULT_SINK@ -5%"
-	XF86AudioLowerVolume
+  XF86AudioLowerVolume
 
 "pactl set-sink-volume @DEFAULT_SINK@ +5%"
-	XF86AudioRaiseVolume
+  XF86AudioRaiseVolume
 
 "playerctl play-pause"
-	XF86AudioPlay
+  XF86AudioPlay
 
 "playerctl next"
-	XF86AudioNext
+  XF86AudioNext
 
 "playerctl previous"
-	XF86AudioPrev
+  XF86AudioPrev
+
+"maim -s | tee ~/Downloads/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png"
+  Control + Print
+
+"maim | tee ~/Downloads/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png"
+  Print
 
 ##################################
 # End of xbindkeys configuration #
