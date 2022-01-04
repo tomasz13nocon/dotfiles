@@ -52,5 +52,6 @@ alias xm='vim ~/.xmonad/xmonad.hs'
 del() {
 	mv "$@" ~/.trash
 }
-alias bri='sudo ddcutil setvcp 10'
+alias bri='ddcutil setvcp 10'
+alias bri?='ddcutil getvcp 10'
 alias r='ranger'
