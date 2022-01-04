@@ -27,10 +27,8 @@ echo 2 > /tmp/libinput_discrete_deltay_multiplier
 xset r rate 250
 # Enable MangoHud in all vulkan programs
 MANGOHUD=1
-# Google API stuff to make chromium sync work
-export GOOGLE_DEFAULT_CLIENT_ID=114775368064-atevfk1e8f9lletb18b9l02h8luhv048.apps.googleusercontent.com
-export GOOGLE_DEFAULT_CLIENT_SECRET=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
-export GOOGLE_API_KEY=AIzaSyBUaFNDDxqFpTG6Tn47fSPRaOodLtxqiy0
+export CALIBRE_USE_SYSTEM_THEME=1
+
 
 ### EXEC ###
 
@@ -40,6 +38,7 @@ export GOOGLE_API_KEY=AIzaSyBUaFNDDxqFpTG6Tn47fSPRaOodLtxqiy0
 #xsetroot -cursor_name left_ptr
 #exec xmonad
 
+export QT_QPA_PLATFORMTHEME=qt5ct
 export XDG_SESSION_TYPE=x11
 export GDK_BACKEND=x11
 exec gnome-session
