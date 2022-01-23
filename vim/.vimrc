@@ -107,11 +107,9 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 
 call plug#begin()
-Plug 'ctrlpvim/ctrlp.vim'
-" Necessary for sane matching algorithm
-Plug 'JazzCore/ctrlp-cmatcher'
 Plug 'SirVer/ultisnips'
 Plug 'jceb/emmet.snippets'
+"Plug 'mattn/emmet-vim'
 "Plug 'vim-scripts/AutoComplPop'
 if has('nvim')
 	"Plug 'Shougo/deoplete.nvim'
@@ -120,7 +118,12 @@ else
 	"Plug 'Valloric/YouCompleteMe', { 'for': 'css' }
 endif
 Plug 'ervandew/supertab'
-Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+"if has('nvim')
+  "Plug 'ms-jpq/chadtree'
+"else
+  Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+  Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
+"endif
 "Plug 'terryma/vim-expand-region'
 "Plug 'MichaelRFairhurst/angular-dep.vim'
 Plug 'henrik/vim-indexed-search'
@@ -128,14 +131,27 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'scrooloose/nerdcommenter'
 Plug 'Raimondi/delimitMate'
+"Plug 'jiangmiao/auto-pairs'
 "Plug 'Valloric/ListToggle'
 Plug 'maksimr/vim-jsbeautify'
+Plug 'sheerun/vim-polyglot'
 Plug 'Kazark/vim-SimpleSmoothScroll'
 Plug 'tpope/vim-surround'
 Plug 'ryanoasis/vim-devicons'
 Plug 'vim-scripts/nextval'
-"Plug 'wfxr/minimap.vim'
-Plug 'tpope/vim-sleuth'
+Plug 'kana/vim-textobj-user'
+Plug 'Julian/vim-textobj-variable-segment'
+Plug 'inkarkat/vim-ReplaceWithRegister'
+Plug 'mhinz/vim-startify'
+"Plug 'monaqa/dial.nvim'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'AndrewRadev/tagalong.vim'
+Plug 'alvan/vim-closetag'
+Plug 'francoiscabrol/ranger.vim'
+Plug 'rbgrouleff/bclose.vim'
+Plug 'alunny/pegjs-vim'
 
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'ghifarit53/tokyonight-vim'
@@ -145,6 +161,24 @@ call plug#end()
 
 """PLUGIN SPECIFIC SETTINGS"""{{{
 """"""""""""""""""""""""""""""
+"""ranger.vim"""
+let g:NERDTreeHijackNetrw = 0 " add this line if you use NERDTree
+let g:ranger_replace_netrw = 1 " open ranger when vim open a directory
+"""emmet-vim"""
+"autocmd FileType javascript EmmetInstall
+"let g:user_emmet_expandabbr_key='<Tab>'
+"imap <expr> <tab> emmet#expandAbbrIntelligent("\<tab>")
+"imap <expr> <tab> emmet#expandAbbrIntelligent("\<tab>")
+"""vim-closetag"""
+let g:closetag_filenames = "*.html,*.jsx,*.js,*.tsx,*.vue,*.xhml,*.xml"
+"let g:closetag_regions = {
+  "\ 'typescript.tsx': 'jsxRegion,tsxRegion',
+  "\ 'javascript.jsx': 'jsxRegion',
+  "\ }
+"""coc"""
+command! -nargs=0 Prettier :call CocAction('runCommand', 'prettier.formatFile')
+"""startify"""
+let g:startify_change_to_vcs_root = 1
 """CTRLP"""
 " Disable changing ctrl-p root directory
 " so that it always searches from cwd.
@@ -221,10 +255,15 @@ let g:bl_pagefiletypes = ['html']
 let g:bl_no_css_reload = 1
 """JSBEAUTIFY"""
 command! JsBeautify call JsBeautify()
-"""MINIMAP"""
-let g:minimap_auto_start = 1
-let g:minimap_highlight_range = 1
-let g:minimap_highlight_search = 1
+"""TAGALONG"""
+let g:tagalong_additional_filetypes = ['javascript']
+"""vim-nerdtree-syntax-highlight"""
+let g:NERDTreeFileExtensionHighlightFullName = 1
+let g:NERDTreeExactMatchHighlightFullName = 1
+let g:NERDTreePatternMatchHighlightFullName = 1
+let g:NERDTreeExactMatchHighlightColor = {}
+let g:NERDTreeExactMatchHighlightColor['package.json'] = "905532"
+"let g:NERDTreeSyntaxEnabledExactMatches = ['package.json']
 """}}}
 
 """APPEARANCE"""{{{
@@ -245,7 +284,7 @@ if (has("termguicolors"))
 	let g:tokyonight_style = 'night' " available: night, storm
 	let g:tokyonight_enable_italic = 0
 	colo tokyonight
-	hi Comment cterm=none
+	hi Comment cterm=none gui=none
 	hi Comment guifg=#646b8a
 	hi Grey guifg=#646b8a
 	hi LineNr guifg=#646b8a
@@ -268,6 +307,9 @@ highlight EndOfBuffer ctermbg=none guibg=NONE
 autocmd BufEnter * hi airline_tabfill ctermbg=NONE guibg=NONE
 "hi airline_tabfill ctermbg=NONE guibg=NONE
 
+" COC highlighting
+"hi FgCocErrorFloatBgCocFloating guibg=#484951 guifg=#f7768e
+
 "autocmd BufEnter * hi airline_tab_mod ctermbg=NONE guibg=NONE
 "hi airline_c ctermbg=NONE guibg=NONE
 """}}}
@@ -276,6 +318,20 @@ autocmd BufEnter * hi airline_tabfill ctermbg=NONE guibg=NONE
 """"""""""""""""""
 " Set the leader key
 let mapleader=" "
+command! -nargs=0 OI :silent call CocAction('runCommand', 'editor.action.organizeImport')
+nmap <silent> gR <Plug>(coc-references)
+xmap <leader>a  <Plug>(coc-codeaction-selected)
+nmap <leader>a  <Plug>(coc-codeaction-selected)
+nnoremap <silent> <C-k> :call CocAction('doHover')<CR>
+nnoremap <F2> <Plug>(coc-rename)
+vnoremap <leader>f :Prettier<CR>
+nnoremap <leader>f :Prettier<CR>
+"nnoremap <C-p> :call FZFOpen(':Files')<CR>
+nnoremap <C-p> :Files<CR>
+nnoremap <C-S-p> :Rg<CR>
+nnoremap <C-c> "+y
+vnoremap <C-c> "+y
+nnoremap Q :q<CR>
 " Load YouCompleteMe
 nnoremap <leader>y :Loadycm<CR>
 " Turn off search result highlighting until the next search
@@ -320,7 +376,13 @@ nnoremap <leader>Q :q!<CR>
 nnoremap <leader>u :UltiSnipsEdit<CR>
 nnoremap <leader>r :e ~/.vimrc<CR>
 nnoremap <leader>R :source ~/.vimrc<CR>
-nnoremap <leader>n :NERDTreeToggle<CR>
+"if has('nvim')
+  "nnoremap <leader>n :CHADopen<CR>
+  "nnoremap <C-n> :CHADopen<CR>
+"else
+  nnoremap <leader>n :NERDTreeToggle<CR>
+  nnoremap <C-n> :NERDTreeToggle<CR>
+"endif
 nnoremap <leader>g :YcmCompleter GoTo<CR>
 nnoremap <leader>d "_d
 nnoremap <leader>x "_x
@@ -344,21 +406,25 @@ endfunction
 nnoremap <silent> <leader>s :call ToggleStatus()<CR>
 " Show syntax highlighting groups for word under cursor
 nnoremap <leader>p :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
-nnoremap <leader><CR> :YcmCompleter FixIt<CR>:ccl<CR>
+"nnoremap <leader><CR> :YcmCompleter FixIt<CR>:ccl<CR>
+nnoremap <leader><CR> <Plug>(coc-codeaction)
 "nnoremap <leader>f :silent :set nomore<Bar>:ls<Bar>:set more<CR>:b<Space>
-nnoremap <leader>f :ls<CR>:b<Space>
-nnoremap <C-n> :CtrlPBuffer<CR>
+"nnoremap <leader>f :ls<CR>:b<Space>
+"nnoremap <C-n> :CtrlPBuffer<CR>
 nnoremap <C-j> :join<CR>
 noremap J 4j
 noremap K 4k
 
 inoremap } }<ESC>mr=%`ra
-
 inoremap <C-z> <ESC>ui
 """}}}
 
 """OTHER"""{{{
 """""""""""
+if has('nvim')
+  autocmd TermOpen * startinsert
+  au TermClose * call feedkeys("")
+endif
 " Save current view settings on a per-window, per-buffer basis.
 function! AutoSaveWinView()
     if !exists("w:SavedBufView")
@@ -386,7 +452,8 @@ if v:version >= 700
     autocmd BufEnter * call AutoRestoreWinView()
 endif
 
-command! Wsudo :w !sudo tee %
+"command! Wsudo :w !sudo tee % >/dev/null
+command! Wsudo :silent execute 'write !sudo tee ' . shellescape(@%, 1) . ' >/dev/null'
 abbreviate wsudo Wsudo
 
 abbreviate q qa
@@ -412,7 +479,9 @@ endfunction
 "imap <ESC>[1;5B <C-Down>
 "imap <ESC>[1;5C <C-Right>
 "imap <ESC>[1;5D <C-Left>
-set term=xterm-256color
+if !has('nvim')
+  set term=xterm-256color
+endif
 
 " Don't clear clipboard on exit
 autocmd VimLeave * call system('echo ' . shellescape(getreg('+')) . ' | xclip -selection clipboard')
@@ -420,22 +489,49 @@ autocmd VimLeave * call system('echo ' . shellescape(getreg('+')) . ' | xclip -s
 " show/hide tab and statusline ui depending on number of open buffers
 " BufAdd happens AFTER adding a buffer while BufDelete happens BEFORE deleting one
 " Hence the weird numbuf comparisons
-function! Show_ui()
-    let numbuf = len(getbufinfo({'buflisted':1}))
-    if numbuf >= 2 && s:showstatus == 0
-        call ToggleStatus()
-    endif
-endfunction
-function! Hide_ui()
-    let numbuf = len(getbufinfo({'buflisted':1}))
-    if numbuf <= 2 && s:showstatus == 1
-	call ToggleStatus()
-    endif
+" !! not working...
+"function! Show_ui()
+    "let numbuf = len(getbufinfo({'buflisted':1}))
+    "if numbuf >= 2 && s:showstatus == 0
+        "call ToggleStatus()
+    "endif
+"endfunction
+"function! Hide_ui()
+    "let numbuf = len(getbufinfo({'buflisted':1}))
+    "if numbuf <= 2 && s:showstatus == 1
+	"call ToggleStatus()
+    "endif
+"endfunction
+
+"autocmd! BufAdd * call Show_ui()
+""autocmd! VimEnter * call Show_ui()
+"autocmd! BufDelete * call Hide_ui()
+
+function! MakeSession()
+  let b:sessiondir = $HOME . "/.vim/sessions" . getcwd()
+  if (filewritable(b:sessiondir) != 2)
+    exe 'silent !mkdir -p ' b:sessiondir
+    redraw!
+  endif
+  let b:filename = b:sessiondir . '/session.vim'
+  exe "mksession! " . b:filename
 endfunction
 
-autocmd! BufAdd * call Show_ui()
-"autocmd! VimEnter * call Show_ui()
-autocmd! BufDelete * call Hide_ui()
+function! LoadSession()
+  let b:sessiondir = $HOME . "/.vim/sessions" . getcwd()
+  let b:sessionfile = b:sessiondir . "/session.vim"
+  if (filereadable(b:sessionfile))
+    exe 'source ' b:sessionfile
+  else
+    echo "No session loaded."
+  endif
+endfunction
+
+" Adding automatons for when entering or leaving Vim
+if(argc() == 0 && getcwd() != $HOME)
+  au VimEnter * nested :call LoadSession()
+  au VimLeave * :call MakeSession()
+endif
 """}}}
 
 """NEOVIM"""{{{

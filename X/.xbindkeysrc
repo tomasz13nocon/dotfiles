@@ -72,8 +72,8 @@
 "pactl set-sink-volume @DEFAULT_SINK@ +5%"
   XF86AudioRaiseVolume
 
-"playerctl play-pause"
-  XF86AudioPlay
+#"playerctl play-pause"
+  #XF86AudioPlay
 
 "playerctl next"
   XF86AudioNext

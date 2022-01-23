@@ -13,8 +13,12 @@ font:
     #family: Cozette
     #style: Regular
   size: 7.5
+  #size: 12
 
-background_opacity: 0.7
+#background_opacity: 0.7
+
+key_bindings:
+  - { key: P, mods: Control|Shift, chars: "\x1b[80;5u" }
 
 colors:
   # Default colors

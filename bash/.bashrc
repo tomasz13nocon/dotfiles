@@ -6,6 +6,9 @@ export PATH=$PATH:~/.local/bin:~/bin
 export LESS='-R -z3'
 export PAGER='less'
 export EDITOR='vim'
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export FZF_DEFAULT_COMMAND='rg --files'
+
 
 #. /usr/share/LS_COLORS/dircolors.sh
 export LS_COLORS="$(vivid generate ayu)"
@@ -40,6 +43,24 @@ shopt -s histappend
 #function redirect(){ exec 2>&8; }
 #trap "redirect;" DEBUG
 #PROMPT_COMMAND='undirect;'
+
+pacs() {
+	packages=$(pacman -Ssq | fzf -m --preview="pacman -Si {}" --preview-window=:hidden --bind=space:toggle-preview)
+	[ -z "$packages" ] || sudo pacman -S $packages
+}
+
+cdf() {
+	cd "$(fd -L -t d | fzf --preview="echo {} && lsd -l --icon=always --color=always --blocks=name -L {}" --bind="space:toggle-preview")"
+}
+open_with_fzf() {
+    #fd -t f -H -I | fzf -m --preview="xdg-mime query default {}" | xargs -ro -d "\n" xdg-open 2>&-
+	fd -L | fzf --preview="bat --decorations always --color always 2>/dev/null {} || ls {}" | xargs -rod "\n" rifle
+}
+bind '"\C-o":"open_with_fzf\n"'
+bind '"\C-f":"cdf\n"'
+
+
+
 
 ######## PS1 ########
 # Old colors

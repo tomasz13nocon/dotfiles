@@ -8,33 +8,6 @@ snippet isarr
 Array.isArray($1)$0
 endsnippet
 
-snippet log
+snippet cl
 console.log($0);
-endsnippet
-
-snippet component
-angular.module("$1")
-.component("$2", {
-	templateUrl: $3,
-	controller: $4,
-	controllerAs: ${5:`!p 
-if len(t[4]) > 0:
-	rv = t[4].replace('Controller', 'Ctrl')
-	snip.rv = rv[:1].lower() + rv[1:]
-	`},
-});
-endsnippet
-
-snippet controller
-angular.module("$1")
-.controller("$2", [function() {
-	$0
-}]);
-endsnippet
-
-snippet service
-angular.module("$1")
-.factory("$2", [function() {
-	$0
-}]);
 endsnippet

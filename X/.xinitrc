@@ -10,7 +10,7 @@ setxkbmap pl -option caps:swapescape -option terminate:ctrl_alt_bksp -option kpd
 # Bind keys specified in .xbindkeysrc
 xbindkeys
 # Adjust scrolling speed
-echo 2 > /tmp/libinput_discrete_deltay_multiplier
+#echo 2 > /tmp/libinput_discrete_deltay_multiplier
 #imwheel -b 45
 # Compositor
 #picom -b --experimental-backends
