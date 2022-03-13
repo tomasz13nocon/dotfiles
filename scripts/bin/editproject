@@ -1,0 +1,17 @@
+#!/bin/bash
+# in order for the "exit" at the end this script to close the caller's terminal,
+# this script needs to be sourced, not executed
+
+. ~/bin/util.sh
+
+alacritty --working-directory "/home/user/code/swtimeline/server" -t "SERVER EDIT" -e bash -c "nvim; bash" &
+id=$(wait_and_get_id $!)
+wmctrl -ir $id -t 1
+wmctrl -ir $id -b add,maximized_vert,maximized_horz 
+
+alacritty --working-directory "/home/user/code/swtimeline/client" -t "CLIENT EDIT" -e bash -c "nvim; bash" &
+id=$(wait_and_get_id $!)
+wmctrl -ir $id -t 0
+wmctrl -ir $id -b add,maximized_vert,maximized_horz 
+
+exit

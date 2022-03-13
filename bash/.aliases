@@ -12,6 +12,7 @@ alias gch='git checkout'
 alias gb='git branch'
 alias gpl='git pull'
 alias gps='git push'
+alias gst='git stash'
 
 alias vim='nvim'
 #alias ls='ls -l --color=auto --group-directories-first'
@@ -60,3 +61,7 @@ alias r='ranger'
 grepepubs() {
 	for z in **/*.epub; do unzip -p "$z" | grep -aH --label="$z" "$@"; done
 }
+alias start='. startservers'
+alias edit='. editproject'
+alias work='. workscript'
+alias term='alacritty --working-directory=. &'

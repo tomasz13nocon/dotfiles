@@ -4,6 +4,12 @@ for (var i = 0; i < $1; i++) {
 }
 endsnippet
 
+snippet forobj
+for (const [key, value] of Object.entries(${1:obj})) {
+	$0
+}
+endsnippet
+
 snippet isarr
 Array.isArray($1)$0
 endsnippet

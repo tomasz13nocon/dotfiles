@@ -1,13 +1,13 @@
-export PATH=$PATH:~/.local/bin:~/bin
+export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin
 
 #export TERM=xterm-256color
 
 # Scroll 3 lines when using b/f or z/w instead of whole screen in less
 export LESS='-R -z3'
 export PAGER='less'
-export EDITOR='vim'
+export EDITOR='nvim'
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-export FZF_DEFAULT_COMMAND='rg --files'
+export FZF_DEFAULT_COMMAND='rg --files -g !builds'
 
 
 #. /usr/share/LS_COLORS/dircolors.sh
@@ -57,7 +57,7 @@ open_with_fzf() {
 	fd -L | fzf --preview="bat --decorations always --color always 2>/dev/null {} || ls {}" | xargs -rod "\n" rifle
 }
 bind '"\C-o":"open_with_fzf\n"'
-bind '"\C-f":"cdf\n"'
+bind '"\C-p":"cdf\n"'
 
 
 

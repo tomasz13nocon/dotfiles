@@ -1,0 +1,23 @@
+#!/bin/bash
+# in order for the "exit" at the end this script to close the caller's terminal,
+# this script needs to be sourced, not executed
+
+. ~/bin/util.sh
+
+insomnia &>/dev/null &
+id=$(wait_and_get_id $!)
+wmctrl -ir $id -t 2
+
+mongodb-compass &>/dev/null &
+id=$(wait_and_get_id $!)
+wmctrl -ir $id -t 2
+
+alacritty --working-directory "/home/user/code/swtimeline/server" -t "Server scripts" &
+id=$(wait_and_get_id $!)
+wmctrl -ir $id -t 2
+wmctrl -ir $id -e "0,0,0,-1,-1"
+
+startservers
+editproject
+
+exit
