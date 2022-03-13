@@ -12,6 +12,7 @@ alias gch='git checkout'
 alias gb='git branch'
 alias gpl='git pull'
 alias gps='git push'
+alias gpsh='git push'
 alias gst='git stash'
 
 alias vim='nvim'

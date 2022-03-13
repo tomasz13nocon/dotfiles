@@ -1,0 +1,22 @@
+.viewer-icon, .streamer-icon {
+  height: 1em;
+  width: 1.4em;
+}
+
+.viewer-count, .uptime {
+  text-align: right; /* I think this might not be implemented for St.Label yet */
+}
+
+.streamer-menuitem.name {
+  font-weight: bold;
+}
+
+.streamer-menuitem.viewer-count, .streamer-menuitem.game, .streamer-menuitem.name, .streamer-menuitem.viewer-icon, .streamer-menuitem.uptime {
+  margin-left: 1em;
+}
+
+.streamer-menuitem.title {
+  font-size: 90%;
+  margin-top: 0.3em;
+  margin-left: 2.67em; /* Align to streamer name (1.4 + 1) / 0.9 */
+}
