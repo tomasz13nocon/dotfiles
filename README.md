@@ -5,4 +5,5 @@ Firefox files have to be linked manually, due to randomly generated profile fold
 
 ## Gnome
 `dconf dump / > dconf-settings.ini`
+
 `dconf load / < dconf-settings.ini`
