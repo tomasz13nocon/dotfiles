@@ -4,13 +4,17 @@
 
 . ~/bin/util.sh
 
+# sleep 1 before maximizing because gnome is buggy
+
 alacritty --working-directory "/home/user/code/swtimeline/server" -t "SERVER EDIT" -e bash -c "nvim; bash" &
 id=$(wait_and_get_id $!)
+sleep 1
 wmctrl -ir $id -t 1
 wmctrl -ir $id -b add,maximized_vert,maximized_horz 
 
 alacritty --working-directory "/home/user/code/swtimeline/client" -t "CLIENT EDIT" -e bash -c "nvim; bash" &
 id=$(wait_and_get_id $!)
+sleep 1
 wmctrl -ir $id -t 0
 wmctrl -ir $id -b add,maximized_vert,maximized_horz 
 

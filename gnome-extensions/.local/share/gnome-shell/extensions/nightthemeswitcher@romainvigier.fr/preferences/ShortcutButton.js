@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Romain Vigier <contact AT romainvigier.fr>
+// SPDX-FileCopyrightText: 2021, 2022 Romain Vigier <contact AT romainvigier.fr>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 const { Gdk, GLib, GObject, Gtk } = imports.gi;
@@ -11,7 +11,7 @@ const utils = Me.imports.utils;
 
 var ShortcutButton = GObject.registerClass({
     GTypeName: 'ShortcutButton',
-    Template: `file://${GLib.build_filenamev([Me.path, 'preferences', 'ui', 'ShortcutButton.ui'])}`,
+    Template: 'resource:///org/gnome/shell/extensions/nightthemeswitcher/preferences/ui/ShortcutButton.ui',
     InternalChildren: ['choose_button', 'change_button', 'clear_button', 'dialog'],
     Properties: {
         keybinding: GObject.ParamSpec.string(
@@ -23,6 +23,10 @@ var ShortcutButton = GObject.registerClass({
         ),
     },
 }, class ShortcutButton extends Gtk.Stack {
+    vfunc_mnemonic_activate() {
+        this.activate();
+    }
+
     activate() {
         if (this.keybinding)
             return this._change_button.activate();

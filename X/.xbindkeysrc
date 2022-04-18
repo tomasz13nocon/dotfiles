@@ -81,10 +81,10 @@
 "playerctl previous"
   XF86AudioPrev
 
-"maim -s | tee ~/Downloads/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png"
+"maim -s | tee ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png && play /usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
   Control + Print
 
-"maim | tee ~/Downloads/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png"
+"maim | tee ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png && play /usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
   Print
 
 ##################################

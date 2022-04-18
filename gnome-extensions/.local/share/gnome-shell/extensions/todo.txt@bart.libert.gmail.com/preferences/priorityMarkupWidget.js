@@ -361,6 +361,7 @@ var PriorityMarkupWidget = GObject.registerClass({
         toolbar.append(addButton);
         addButton.connect('clicked', () => {
             const dialog = new Gtk.MessageDialog({
+                modal: true,
                 buttons: Gtk.ButtonsType.OK_CANCEL,
                 text: _("Please enter the priority"),
                 message_type: Gtk.MessageType.QUESTION,

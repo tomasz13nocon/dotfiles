@@ -56,6 +56,7 @@ var SubCategoryTab = GObject.registerClass({
 
         helpButton.connect('clicked', (ignored_object) => {
             const dialog = new Gtk.MessageDialog({
+                modal: true,
                 buttons: Gtk.ButtonsType.OK,
                 text: _(this._getHelpText()),
                 message_type: Gtk.MessageType.INFO

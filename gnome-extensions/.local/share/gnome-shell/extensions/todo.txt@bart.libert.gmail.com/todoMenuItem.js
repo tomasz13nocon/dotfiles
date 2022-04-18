@@ -55,7 +55,15 @@ var TodoMenuItem = GObject.registerClass({
 
         this.label.add_style_class_name('todo-txt-task-label');
         this.grabHelper = new GrabHelper.GrabHelper(this);
-        this.grabHelper.addActor(this);
+        this.connect('destroy', this._onDestroy.bind(this));
+    }
+
+    _onDestroy() {
+        if (this.editTask !== null) {
+            this.grabHelper.ungrab({ actor: this.editTask });
+            this.editTask = null;
+            this.grabHelper = null;
+        }
     }
 
     _RGBAColorToHex(rgbaColor) {
@@ -386,6 +394,7 @@ var TodoMenuItem = GObject.registerClass({
         this.actor.insert_child_at_index(this.label, TASK_POSITION);
         this.restoreButtonsAndLabels();
         this.setSensitive(true);
+        this.grabHelper.ungrab({actor: this.editTask});
         this.editTask = null;
     }
 
@@ -424,7 +433,7 @@ var TodoMenuItem = GObject.registerClass({
             }
             const isCtrlModifier =
                 (modifiers & Clutter.ModifierType.CONTROL_MASK) !== 0; // eslint-disable-line no-magic-numbers
-            if (isCtrlModifier && (symbol == Clutter.KEY_c)) {
+            if ((isCtrlModifier && (symbol == Clutter.KEY_c)) || (symbol == Clutter.KEY_Escape)) {
                 this.exitEditMode();
                 return Clutter.EVENT_STOP;
             }
@@ -432,6 +441,10 @@ var TodoMenuItem = GObject.registerClass({
         });
         const EDIT_TASK_FIELD_POSITION = 1;
         this.actor.insert_child_at_index(this.editTask, EDIT_TASK_FIELD_POSITION);
+        this.grabHelper.grab({
+            actor: this.editTask,
+            onUngrab: () => this.exitEditMode()
+        });
         this.editTask.clutter_text.grab_key_focus();
     }
 

@@ -14,6 +14,7 @@ const PrefsWidget = GObject.registerClass({
         'only_all_slider_revealer',
         'show_value_label_switch',
         'show_display_name_switch',
+        'show_osd_switch',
         'button_location_combo_button',
         'system_menu_revealer',
         'hide_system_indicator_switch',
@@ -22,6 +23,7 @@ const PrefsWidget = GObject.registerClass({
         'decrease_shortcut_entry',
         'increase_shortcut_button',
         'decrease_shortcut_button',
+        'step_keyboard_spin_button',
         'allow_zero_brightness_switch',
         'disable_display_state_check_switch'
     ],
@@ -58,6 +60,13 @@ const PrefsWidget = GObject.registerClass({
         );
 
         this.settings.bind(
+            'show-osd',
+            this._show_osd_switch,
+            'active',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+
+        this.settings.bind(
             'button-location',
             this._button_location_combo_button,
             'active-id',
@@ -72,6 +81,7 @@ const PrefsWidget = GObject.registerClass({
         );
 
         this._position_system_menu_spin_button.value = this.settings.get_double('position-system-menu');
+        this._step_keyboard_spin_button.value = this.settings.get_double('step-change-keyboard');
 
         this.settings.bind(
             'allow-zero-brightness',
@@ -83,7 +93,7 @@ const PrefsWidget = GObject.registerClass({
         this.settings.bind(
             'disable-display-state-check',
             this._disable_display_state_check_switch,
-            'active-id',
+            'active',
             Gio.SettingsBindFlags.DEFAULT
         );
 
@@ -113,10 +123,12 @@ const PrefsWidget = GObject.registerClass({
             this._only_all_slider_revealer.reveal_child = false;
         }
     }
-    onValueChanged() {
+    onPositionValueChanged() {
         this.settings.set_double('position-system-menu', this._position_system_menu_spin_button.value);
     }
-
+    onStepKeyboardValueChanged() {
+        this.settings.set_double('step-change-keyboard', this._step_keyboard_spin_button.value);
+    }
 }
 );
 

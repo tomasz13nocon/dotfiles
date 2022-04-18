@@ -22,7 +22,6 @@ const Main = imports.ui.main;
 const Meta = imports.gi.Meta;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
-const Lang = imports.lang;
 const Shell = imports.gi.Shell;
 const St = imports.gi.St;
 const WindowManager = imports.ui.windowManager;
@@ -32,7 +31,7 @@ const Signals = imports.signals;
 
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const PanelManager = Me.imports.panelManager;
+const { PanelManager } = Me.imports.panelManager;
 const Utils = Me.imports.utils;
 
 const UBUNTU_DOCK_UUID = 'ubuntu-dock@ubuntu.com';
@@ -101,7 +100,7 @@ function _enable() {
         });
     }
 
-    panelManager = new PanelManager.dtpPanelManager();
+    panelManager = new PanelManager();
 
     panelManager.enable();
     
@@ -109,12 +108,12 @@ function _enable() {
     Utils.addKeybinding(
         'open-application-menu',
         new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),
-        Lang.bind(this, function() {
+        () => {
             if(Me.settings.get_boolean('show-appmenu'))
                 Main.wm._toggleAppMenu();
             else
                 panelManager.primaryPanel.taskbar.popupFocusedAppSecondaryMenu();
-        }),
+        },
         Shell.ActionMode.NORMAL | Shell.ActionMode.POPUP
     );
 }
@@ -131,7 +130,7 @@ function disable(reset) {
     Utils.addKeybinding(
         'open-application-menu',
         new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),
-        Lang.bind(Main.wm, Main.wm._toggleAppMenu),
+        Main.wm._toggleAppMenu.bind(Main.wm),
         Shell.ActionMode.NORMAL | Shell.ActionMode.POPUP
     );
 

@@ -161,6 +161,24 @@ var Daemon = class Daemon {
       // _onMenuConfigsChanged().
     }
 
+    // This is called from the handlers below whenever the global hidpi-factor or the
+    // global resource-scale factor changes.
+    const onScaleChange = () => {
+      this._menu.onSettingsChange();
+      this._touchButtons.onSettingsChange();
+      this._onScreencastMouseChanged();
+    };
+
+    // Call the above lambda whenever the global hidpi-factor or the global resource-scale
+    // factor changes.
+    const ctx                   = St.ThemeContext.get_for_stage(global.stage);
+    this._scaleFactorConnection = ctx.connect('notify::scale-factor', onScaleChange);
+
+    if (utils.shellVersionIsAtLeast(3, 38)) {
+      this._resourceScaleConnection =
+          global.stage.connect('resource-scale-changed', onScaleChange);
+    }
+
     // Whenever settings are changed, we adapt the currently shown menu accordingly.
     this._settingsConnections.push(this._settings.connect('change-event', (o, keys) => {
       // For historical reasons, all settings of Fly-Pie are included in one schema. This
@@ -263,6 +281,13 @@ var Daemon = class Daemon {
 
     // Unregister our resources.
     Gio.resources_unregister(this._resources);
+
+    // Disconnect some handlers.
+    global.stage.disconnect(this._resourceScaleConnection);
+
+    if (utils.shellVersionIsAtLeast(3, 38)) {
+      St.ThemeContext.get_for_stage(global.stage).disconnect(this._scaleFactorConnection);
+    }
   }
 
   // -------------------------------------------------------------- public D-Bus-Interface
@@ -278,6 +303,18 @@ var Daemon = class Daemon {
   // given pixel coordinates.
   ShowMenuAt(name, x, y) {
     return this._openMenu(name, false, x, y);
+  }
+
+  // Opens a menu with that name if there are currently none open. Closes the currently
+  // open menu otherwise.
+  ToggleMenu(name) {
+    if (this._menu.getID() == null) {
+      return this.ShowMenu(name);
+    }
+
+    this.CancelMenu();
+
+    return DBusInterface.errorCodes.eHadToCancelAMenu;
   }
 
   // This opens a menu configured with Fly-Pie's menu editor in preview mode and can be
@@ -529,19 +566,18 @@ var Daemon = class Daemon {
   // This enables / disables the additional mouse pointer for screencasts. It is simply
   // created as a child of the global.stage.
   _onScreencastMouseChanged() {
-    const value = this._settings.get_boolean('show-screencast-mouse');
+    if (this._screencastMouse) {
+      this._screencastMouse.destroy();
+      delete this._screencastMouse;
+    }
 
-    if (value && this._screencastMouse == undefined) {
+    if (this._settings.get_boolean('show-screencast-mouse')) {
 
       // For now, we use a hard-coded size of 50. This can be made configurable in the
       // future if anybody needs it.
-      this._screencastMouse = new MouseHighlight(50);
+      const size            = 50 * utils.getHDPIScale();
+      this._screencastMouse = new MouseHighlight(size);
       global.stage.add_child(this._screencastMouse);
-
-    } else if (!value && this._screencastMouse != undefined) {
-      this._screencastMouse.destroy();
-      global.stage.remove_child(this._screencastMouse);
-      delete this._screencastMouse;
     }
   }
 

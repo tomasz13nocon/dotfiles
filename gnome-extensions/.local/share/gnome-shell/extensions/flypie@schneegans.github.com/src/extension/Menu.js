@@ -307,7 +307,7 @@ var Menu = class Menu {
         return Clutter.EVENT_STOP;
       }
 
-      return Clutter.EVENT_CONTINUE;
+      return Clutter.EVENT_PROPAGATE;
     });
 
     // Delete the currently active menu once the background was faded-out.
@@ -421,7 +421,7 @@ var Menu = class Menu {
       // going offscreen, we clamp the position to the current monitor bounds (we do it
       // removing background boundaries from mouse pointer).
       const [clampedX, clampedY] =
-          this._clampToToMonitor(x - this._background.x, y - this._background.y, 10);
+          this._clampToMonitor(x - this._background.x, y - this._background.y, 10);
 
       // Warp the mouse pointer to this position if necessary accounting background
       // position as well.
@@ -493,7 +493,7 @@ var Menu = class Menu {
       // going offscreen, we clamp the position to the current monitor bounds (we do it
       // removing background boundaries from mouse pointer).
       const [clampedX, clampedY] =
-          this._clampToToMonitor(x - this._background.x, y - this._background.y, 10);
+          this._clampToMonitor(x - this._background.x, y - this._background.y, 10);
 
       // Warp the mouse pointer to this position if necessary accounting background
       // position as well.
@@ -994,7 +994,7 @@ var Menu = class Menu {
   // only move the root actor but also the selection wedges.
   _setPosition(x, y, doPointerWarp) {
     const [clampedX, clampedY] =
-        this._clampToToMonitor(x - this._background.x, y - this._background.y, 10);
+        this._clampToMonitor(x - this._background.x, y - this._background.y, 10);
     this._root.set_translation(clampedX, clampedY, 0);
     this._selectionWedges.set_translation(clampedX, clampedY, 0);
 
@@ -1007,7 +1007,8 @@ var Menu = class Menu {
     // Report an initial motion event at the menu's center. This ensures that gestures
     // are detected properly even if the initial pointer movement is really fast.
     const mods = global.get_pointer()[2];
-    this._selectionWedges.onMotionEvent([clampedX, clampedY], mods);
+    this._selectionWedges.onMotionEvent(
+        [clampedX + this._background.x, clampedY + this._background.y], mods);
   }
 
   // This assigns IDs and angles to each and every item. It also ensures that the root
@@ -1135,7 +1136,7 @@ var Menu = class Menu {
   // inside the current monitor's bounds, including the specified margin. This is done by
   // calculating the theoretically largest extends based on the current appearance
   // settings.
-  _clampToToMonitor(x, y, margin) {
+  _clampToMonitor(x, y, margin) {
 
     const wedgeRadius  = this._settings.get_double('wedge-inner-radius');
     const centerRadius = Math.max(
@@ -1159,7 +1160,7 @@ var Menu = class Menu {
     maxSize     = Math.max(maxSize, centerRadius);
     maxSize     = Math.max(maxSize, childRadius);
     maxSize     = Math.max(maxSize, grandchildRadius);
-    maxSize *= 2 * this._settings.get_double('global-scale');
+    maxSize *= 2 * this._settings.get_double('global-scale') * utils.getHDPIScale();
 
     // Clamp to monitor bounds.
     const monitor = Main.layoutManager.currentMonitor;
@@ -1222,7 +1223,7 @@ var Menu = class Menu {
       // There is a setting for a minimum trace length.
       const idealTraceLength = Math.max(
           this._settings.get_double('trace-min-length') *
-              this._settings.get_double('global-scale'),
+              this._settings.get_double('global-scale') * utils.getHDPIScale(),
           currentTraceLength);
 
       // Based on this trace length, we can compute where the item should be placed

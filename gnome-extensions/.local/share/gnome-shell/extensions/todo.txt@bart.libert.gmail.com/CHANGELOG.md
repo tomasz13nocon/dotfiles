@@ -1,5 +1,10 @@
 # Changelog
 
+# v37
+* Allow pressing Escape to cancel task edit
+* Fix display issues with some shell themes
+* Gnome 42 compatibility
+
 # v36
 * Gnome 41 compatibility
 * Fix some deprecation warnings about St ContentLayout

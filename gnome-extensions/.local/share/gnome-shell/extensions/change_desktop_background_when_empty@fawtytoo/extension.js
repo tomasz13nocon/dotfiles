@@ -28,7 +28,7 @@ function nextBackground()
         return;
 
     // sometimes, you just don't want it to change
-    if (Main.overview.visible)
+    if (Main.overview.visible && !ShowAppsButton.checked)
         return;
 
     let filename = _settings.get_string("picture-uri").replace(/^file:\/\/\//, '/');

@@ -28,17 +28,17 @@
  */
 
 const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Overview = Me.imports.overview;
-const Panel = Me.imports.panel;
+const { Overview } = Me.imports.overview;
+const { Panel, panelBoxes } = Me.imports.panel;
 const PanelSettings = Me.imports.panelSettings;
 const Proximity = Me.imports.proximity;
 const Taskbar = Me.imports.taskbar;
 const Utils = Me.imports.utils;
 
 const Config = imports.misc.config;
-const Lang = imports.lang;
 const Gi = imports._gi;
 const GLib = imports.gi.GLib;
+const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 const Meta = imports.gi.Meta;
 const Shell = imports.gi.Shell;
@@ -53,13 +53,12 @@ const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const Layout = imports.ui.layout;
 const WM = imports.ui.windowManager;
-const WorkspacesView = imports.ui.workspacesView;
+const { SecondaryMonitorDisplay, WorkspacesView } = imports.ui.workspacesView;
 
-var dtpPanelManager = Utils.defineClass({
-    Name: 'DashToPanel.PanelManager',
+var PanelManager = class {
 
-    _init: function() {
-        this.overview = new Overview.dtpOverview();
+    constructor() {
+        this.overview = new Overview();
         this.panelsElementPositions = {};
 
         this._saveMonitors();
@@ -68,9 +67,9 @@ var dtpPanelManager = Utils.defineClass({
             Utils.wrapActor(v.view);
             Utils.wrapActor(v.view._grid);
         });
-    },
+    }
 
-    enable: function(reset) {
+    enable(reset) {
         let dtpPrimaryIndex = Me.settings.get_int('primary-monitor');
 
         this.dtpPrimaryMonitor = Main.layoutManager.monitors[dtpPrimaryIndex] || Main.layoutManager.primaryMonitor;
@@ -125,16 +124,7 @@ var dtpPanelManager = Utils.defineClass({
         this._updatePanelElementPositions();
         this.setFocusedMonitor(this.dtpPrimaryMonitor);
         
-        if (this.primaryPanel.checkIfVertical()) {
-            Main.wm._getPositionForDirection = newGetPositionForDirection;
-        }
-        
         if (reset) return;
-
-        if (Config.PACKAGE_VERSION > '3.35.1') {
-            this._oldDoSpringAnimation = AppDisplay.BaseAppView.prototype._doSpringAnimation;
-            AppDisplay.BaseAppView.prototype._doSpringAnimation = newDoSpringAnimation;
-        }
 
         this._oldUpdatePanelBarrier = Main.layoutManager._updatePanelBarrier;
         Main.layoutManager._updatePanelBarrier = (panel) => {
@@ -145,7 +135,7 @@ var dtpPanelManager = Utils.defineClass({
         Main.layoutManager._updatePanelBarrier();
 
         this._oldUpdateHotCorners = Main.layoutManager._updateHotCorners;
-        Main.layoutManager._updateHotCorners = Lang.bind(Main.layoutManager, newUpdateHotCorners);
+        Main.layoutManager._updateHotCorners = newUpdateHotCorners.bind(Main.layoutManager);
         Main.layoutManager._updateHotCorners();
 
         this._forceHotCornerId = Me.settings.connect('changed::stockgs-force-hotcorner', () => Main.layoutManager._updateHotCorners());
@@ -154,13 +144,10 @@ var dtpPanelManager = Utils.defineClass({
             this._enableHotCornersId = Main.layoutManager._interfaceSettings.connect('changed::enable-hot-corners', () => Main.layoutManager._updateHotCorners());
         }
 
+        this._oldUpdateWorkspacesViews = Main.overview._overview._controls._workspacesDisplay._updateWorkspacesViews;
+        Main.overview._overview._controls._workspacesDisplay._updateWorkspacesViews = this._newUpdateWorkspacesViews.bind(Main.overview._overview._controls._workspacesDisplay);
+
         Main.overview.getShowAppsButton = this._newGetShowAppsButton.bind(this);
-
-        this._needsDashItemContainerAllocate = !Dash.DashItemContainer.prototype.hasOwnProperty('vfunc_allocate');
-
-        if (this._needsDashItemContainerAllocate) {
-            Utils.hookVfunc(Dash.DashItemContainer.prototype, 'allocate', this._newDashItemContainerAllocate);
-        }
 
         LookingGlass.LookingGlass.prototype._oldResize = LookingGlass.LookingGlass.prototype._resize;
         LookingGlass.LookingGlass.prototype._resize = _newLookingGlassResize;
@@ -169,53 +156,6 @@ var dtpPanelManager = Utils.defineClass({
         LookingGlass.LookingGlass.prototype.open = _newLookingGlassOpen;
 
         this._signalsHandler = new Utils.GlobalSignalsHandler();
-
-        if (Config.PACKAGE_VERSION > '3.35.9') {
-            let currentAppsView;
-
-            this._oldAnimateIconPosition = IconGrid.animateIconPosition;
-            IconGrid.animateIconPosition = newAnimateIconPosition.bind(this);
-
-            this._signalsHandler.add(
-                [
-                    Utils.DisplayWrapper.getScreen(),
-                    'window-entered-monitor',
-                    () => this._needsIconAllocate = 1
-                ]
-            );
-
-            Utils.getAppDisplayViews().forEach(v => {
-                if (!v.control || v.control.has_style_pseudo_class('checked')) {
-                    currentAppsView = v;
-                }
-
-                if (v.control) {
-                    this._signalsHandler.add(
-                        [
-                            v.control, 
-                            'clicked', 
-                            () => {
-                                this._needsIconAllocate = currentAppsView != v;
-                                currentAppsView = v;
-                            }
-                        ]
-                    );
-                }
-
-                this._signalsHandler.add(
-                    [
-                        v.view, 
-                        'notify::visible', 
-                        () => this._needsIconAllocate = !(currentAppsView != v && !v.view.visible)
-                    ],
-                    [
-                        v.view._grid, 
-                        'animation-done', 
-                        () => this._needsIconAllocate = 0
-                    ]
-                );
-            });
-        }
 
         //listen settings
         this._signalsHandler.add(
@@ -247,14 +187,14 @@ var dtpPanelManager = Utils.defineClass({
                 'monitors-changed', 
                 () => {
                     if (Main.layoutManager.primaryMonitor) {
-                        this._saveMonitors();
+                        this._saveMonitors(true);
                         this._reset();
                     }
                 }
             ]
         );
 
-        Panel.panelBoxes.forEach(c => this._signalsHandler.add(
+        panelBoxes.forEach(c => this._signalsHandler.add(
             [Main.panel[c], 'actor-added', (parent, child) => this._adjustPanelMenuButton(this._getPanelMenuButton(child), this.primaryPanel.monitor, this.primaryPanel.getPosition())]
         ));
 
@@ -262,10 +202,10 @@ var dtpPanelManager = Utils.defineClass({
 
         // keep GS overview.js from blowing away custom panel styles
         if(!Me.settings.get_boolean('stockgs-keep-top-panel'))
-            Object.defineProperty(Main.panel, "style", {configurable: true, set: function(v) {}});
-    },
+            Object.defineProperty(Main.panel, "style", {configurable: true, set(v) {}});
+    }
 
-    disable: function(reset) {
+    disable(reset) {
         this.overview.disable();
         this.proximityManager.destroy();
 
@@ -309,8 +249,6 @@ var dtpPanelManager = Utils.defineClass({
             Utils.hookVfunc(BoxPointer.BoxPointer.prototype, 'get_preferred_height', BoxPointer.BoxPointer.prototype.vfunc_get_preferred_height);
         }
 
-        delete Main.wm._getPositionForDirection;
-
         if (Main.layoutManager.primaryMonitor) {
             Main.layoutManager.panelBox.set_position(Main.layoutManager.primaryMonitor.x, Main.layoutManager.primaryMonitor.y);
             Main.layoutManager.panelBox.set_size(Main.layoutManager.primaryMonitor.width, -1);
@@ -334,15 +272,9 @@ var dtpPanelManager = Utils.defineClass({
         Main.layoutManager._updatePanelBarrier = this._oldUpdatePanelBarrier;
         Main.layoutManager._updatePanelBarrier();
 
+        Main.overview._overview._controls._workspacesDisplay._updateWorkspacesViews = this._oldUpdateWorkspacesViews;
+
         Utils.getPanelGhost().set_size(-1, -1);
-
-        if (this._oldDoSpringAnimation) {
-            AppDisplay.BaseAppView.prototype._doSpringAnimation = this._oldDoSpringAnimation;
-        }
-
-        if (this._oldAnimateIconPosition) {
-            IconGrid.animateIconPosition = this._oldAnimateIconPosition;
-        }
 
         LookingGlass.LookingGlass.prototype._resize = LookingGlass.LookingGlass.prototype._oldResize;
         delete LookingGlass.LookingGlass.prototype._oldResize;
@@ -351,38 +283,86 @@ var dtpPanelManager = Utils.defineClass({
         delete LookingGlass.LookingGlass.prototype._oldOpen
 
         delete Main.panel.style;
-    },
+    }
 
-    setFocusedMonitor: function(monitor, ignoreRelayout) {
-        // todo show overview on non primary monitor is not working right now on gnome40
+    setFocusedMonitor(monitor) {
+        if (!this.checkIfFocusedMonitor(monitor)) {
+            Main.overview._overview.clear_constraints();
+            Main.overview._overview.add_constraint(new Layout.MonitorConstraint({ index: monitor.index }));
 
-        // this._needsIconAllocate = 1;
+            Main.overview._overview._controls._workspacesDisplay._primaryIndex = monitor.index;
+        }
+    }
 
-        // if (!this.checkIfFocusedMonitor(monitor)) {
-        //     Main.overview._overview._controls._workspacesDisplay._primaryIndex = monitor.index;
+    _newUpdateWorkspacesViews() {
+        for (let i = 0; i < this._workspacesViews.length; i++)
+            this._workspacesViews[i].destroy();
 
-        //     Main.overview._overview.clear_constraints();
-        //     Main.overview._overview.add_constraint(new Layout.MonitorConstraint({ index: monitor.index }));
-        // }
-    },
+        this._workspacesViews = [];
+        let monitors = Main.layoutManager.monitors;
+        for (let i = 0; i < monitors.length; i++) {
+            let view;
+            if (i === this._primaryIndex) {
+                view = new WorkspacesView(i,
+                    this._controls,
+                    this._scrollAdjustment,
+                    this._fitModeAdjustment,
+                    this._overviewAdjustment);
 
-    _saveMonitors: function() {
+                view.visible = this._primaryVisible;
+                this.bind_property('opacity', view, 'opacity', GObject.BindingFlags.SYNC_CREATE);
+                this.add_child(view);
+            } else {
+                // todo exorcise this after the GS 42 release
+                view = new ProxySecondaryMonitorDisplay(i,
+                    this._controls,
+                    this._scrollAdjustment,
+                    this._fitModeAdjustment,
+                    this._overviewAdjustment);
+                Main.layoutManager.overviewGroup.add_actor(view);
+            }
+
+            this._workspacesViews.push(view);
+        }
+    }
+
+    _saveMonitors(savePrimaryChange) {
         //Mutter meta_monitor_manager_get_primary_monitor (global.display.get_primary_monitor()) doesn't return the same
         //monitor as GDK gdk_screen_get_primary_monitor (imports.gi.Gdk.Screen.get_default().get_primary_monitor()).
         //Since the Mutter function is what's used in gnome-shell and we can't access it from the settings dialog, store 
         //the monitors information in a setting so we can use the same monitor indexes as the ones in gnome-shell
+        let keyMonitors = 'available-monitors';
         let primaryIndex = Main.layoutManager.primaryIndex;
-        let monitors = [primaryIndex];
+        let newMonitors = [primaryIndex];
 
-        Main.layoutManager.monitors.filter(m => m.index != primaryIndex).forEach(m => monitors.push(m.index));
-        Me.settings.set_value('available-monitors', new GLib.Variant('ai', monitors));
-    },
+        Main.layoutManager.monitors.filter(m => m.index != primaryIndex).forEach(m => newMonitors.push(m.index));
+        
+        if (savePrimaryChange) {
+            let keyPrimary = 'primary-monitor';
+            let savedMonitors = Me.settings.get_value(keyMonitors).deep_unpack();
+            let dtpPrimaryIndex = Me.settings.get_int(keyPrimary);
+            let newDtpPrimaryIndex = primaryIndex;
 
-    checkIfFocusedMonitor: function(monitor) {
+            if (savedMonitors[0] != dtpPrimaryIndex) {
+                // dash to panel primary wasn't the gnome-shell primary (first index of available-monitors)
+                let savedIndex = savedMonitors.indexOf(dtpPrimaryIndex)
+
+                // default to primary if it was set to a monitor that is no longer available
+                newDtpPrimaryIndex = newMonitors[savedIndex];
+                newDtpPrimaryIndex = newDtpPrimaryIndex == null ? primaryIndex : newDtpPrimaryIndex;
+            }
+            
+            Me.settings.set_int(keyPrimary, newDtpPrimaryIndex);
+        }
+
+        Me.settings.set_value(keyMonitors, new GLib.Variant('ai', newMonitors));
+    }
+
+    checkIfFocusedMonitor(monitor) {
         return Main.overview._overview._controls._workspacesDisplay._primaryIndex == monitor.index;
-    },
+    }
 
-    _createPanel: function(monitor, isStandalone) {
+    _createPanel(monitor, isStandalone) {
         let panelBox;
         let panel;
         let clipContainer = new Clutter.Actor();
@@ -400,7 +380,7 @@ var dtpPanelManager = Utils.defineClass({
         clipContainer.add_child(panelBox);
         Main.layoutManager.trackChrome(panelBox, { trackFullscreen: true, affectsStruts: true, affectsInputRegion: true });
         
-        panel = new Panel.dtpPanel(this, monitor, panelBox, isStandalone);
+        panel = new Panel(this, monitor, panelBox, isStandalone);
         panelBox.add(panel);
         panel.enable();
 
@@ -411,20 +391,20 @@ var dtpPanelManager = Utils.defineClass({
         panelBox.set_position(0, 0);
 
         return panel;
-    },
+    }
 
-    _reset: function() {
+    _reset() {
         this.disable(true);
         this.allPanels = [];
         this.enable(true);
-    },
+    }
 
-    _updatePanelElementPositions: function() {
+    _updatePanelElementPositions() {
         this.panelsElementPositions = PanelSettings.getSettingsJson(Me.settings, 'panel-element-positions');
         this.allPanels.forEach(p => p.updateElementPositions());
-    },
+    }
 
-    _adjustPanelMenuButton: function(button, monitor, arrowSide) {
+    _adjustPanelMenuButton(button, monitor, arrowSide) {
         if (button) {
             Utils.wrapActor(button);
             button.menu._boxPointer._dtpSourceActor = button.menu._boxPointer.sourceActor;
@@ -438,9 +418,9 @@ var dtpPanelManager = Utils.defineClass({
                 });
             }
         }
-    },
+    }
 
-    _getBoxPointerPreferredHeight: function(boxPointer, alloc, monitor) {
+    _getBoxPointerPreferredHeight(boxPointer, alloc, monitor) {
         if (boxPointer._dtpInPanel && boxPointer.sourceActor && Me.settings.get_boolean('intellihide')) {
             monitor = monitor || Main.layoutManager.findMonitorForActor(boxPointer.sourceActor);
             let panel = Utils.find(global.dashToPanel.panels, p => p.monitor == monitor);
@@ -452,9 +432,9 @@ var dtpPanelManager = Utils.defineClass({
         }
 
         return [alloc.min_size, alloc.natural_size];
-    },
+    }
 
-    _findPanelMenuButtons: function(container) {
+    _findPanelMenuButtons(container) {
         let panelMenuButtons = [];
         let panelMenuButton;
 
@@ -469,9 +449,9 @@ var dtpPanelManager = Utils.defineClass({
         find(container);
 
         return panelMenuButtons;
-    },
+    }
 
-    _removePanelBarriers: function(panel) {
+    _removePanelBarriers(panel) {
         if (panel.isStandalone && panel._rightPanelBarrier) {
             panel._rightPanelBarrier.destroy();
         }
@@ -480,13 +460,13 @@ var dtpPanelManager = Utils.defineClass({
             panel._leftPanelBarrier.destroy();
             delete panel._leftPanelBarrier;
         }
-    },
+    }
 
-    _getPanelMenuButton: function(obj) {
+    _getPanelMenuButton(obj) {
         return obj._delegate && obj._delegate instanceof PanelMenu.Button ? obj._delegate : 0;
-    },
+    }
 
-    _setKeyBindings: function(enable) {
+    _setKeyBindings(enable) {
         let keys = {
             'intellihide-key-toggle': () => this.allPanels.forEach(p => p.intellihide.toggle())
         };
@@ -498,21 +478,29 @@ var dtpPanelManager = Utils.defineClass({
                 Utils.addKeybinding(k, Me.settings, keys[k], Shell.ActionMode.NORMAL);
             }
         });
-    },
+    }
 
-    _newGetShowAppsButton: function() {
+    _newGetShowAppsButton() {
         let focusedMonitorIndex = Utils.findIndex(this.allPanels, p => this.checkIfFocusedMonitor(p.monitor));
         
         return this.allPanels[focusedMonitorIndex].taskbar.showAppsButton;
+    }
+};
+
+// No idea why atm, but we need the import at the top of this file and this
+// "proxy" class, otherwise SecondaryMonitorDisplay can't be used ¯\_(ツ)_/¯
+var ProxySecondaryMonitorDisplay = GObject.registerClass({
+}, class ProxySecondaryMonitorDisplay extends imports.ui.workspacesView.SecondaryMonitorDisplay {
+    _init(...params) {
+        super._init(...params)
     }
 });
 
 // This class drives long-running icon animations, to keep them running in sync
 // with each other.
-var IconAnimator = Utils.defineClass({
-    Name: 'DashToPanel.IconAnimator',
+var IconAnimator = class {
 
-    _init: function(actor) {
+    constructor(actor) {
         this._count = 0;
         this._started = false;
         this._animations = {
@@ -535,9 +523,9 @@ var IconAnimator = Utils.defineClass({
                 dancers[i].target.rotation_angle_z = danceRotation;
             }
         });
-    },
+    }
 
-    destroy: function() {
+    destroy() {
         this._timeline.stop();
         this._timeline = null;
         for (let name in this._animations) {
@@ -548,32 +536,32 @@ var IconAnimator = Utils.defineClass({
             }
         }
         this._animations = null;
-    },
+    }
 
-    pause: function() {
+    pause() {
         if (this._started && this._count > 0) {
             this._timeline.stop();
         }
         this._started = false;
-    },
+    }
 
-    start: function() {
+    start() {
         if (!this._started && this._count > 0) {
             this._timeline.start();
         }
         this._started = true;
-    },
+    }
 
-    addAnimation: function(target, name) {
+    addAnimation(target, name) {
         const targetDestroyId = target.connect('destroy', () => this.removeAnimation(target, name));
         this._animations[name].push({ target: target, targetDestroyId: targetDestroyId });
         if (this._started && this._count === 0) {
             this._timeline.start();
         }
         this._count++;
-    },
+    }
 
-    removeAnimation: function(target, name) {
+    removeAnimation(target, name) {
         const pairs = this._animations[name];
         for (let i = 0, iMax = pairs.length; i < iMax; i++) {
             const pair = pairs[i];
@@ -588,36 +576,7 @@ var IconAnimator = Utils.defineClass({
             }
         }
     }
-});
-
-function newGetPositionForDirection(direction, fromWs, toWs) {
-    let [xDest, yDest] = WM.WindowManager.prototype._getPositionForDirection(direction, fromWs, toWs);
-
-    if (direction == Meta.MotionDirection.UP ||
-        direction == Meta.MotionDirection.UP_LEFT ||
-        direction == Meta.MotionDirection.UP_RIGHT) {
-        yDest -= Main.panel.height;
-    } else if (direction != Meta.MotionDirection.LEFT &&
-               direction != Meta.MotionDirection.RIGHT) {
-        yDest += Main.panel.height;
-    }
-
-    return [xDest, yDest];
-}
-
-function newDoSpringAnimation(animationDirection) {
-    this._grid.opacity = 255;
-    this._grid.animateSpring(animationDirection, Main.overview.getShowAppsButton());
-}
-
-function newAnimateIconPosition(icon, box, flags, nChangedIcons) {
-    if (this._needsIconAllocate) {
-        Utils.allocate(icon, box, flags);
-        return;
-    }
-
-    return this._oldAnimateIconPosition(icon, box, flags, nChangedIcons);;
-}
+};
 
 function newUpdateHotCorners() {
     // destroy old hot corners
@@ -682,7 +641,7 @@ function newUpdateHotCorners() {
         if (haveTopLeftCorner) {
             let corner = new Layout.HotCorner(this, monitor, cornerX, cornerY);
 
-            corner.setBarrierSize = size => corner.__proto__.setBarrierSize.call(corner, Math.min(size, 32));
+            corner.setBarrierSize = size => Object.getPrototypeOf(corner).setBarrierSize.call(corner, Math.min(size, 32));
             corner.setBarrierSize(panel ? panel.dtpSize : 32);
             this.hotCorners.push(corner);
         } else {

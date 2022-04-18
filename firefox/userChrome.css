@@ -17,6 +17,13 @@
   height: 32px !important;
   border-right: 1px solid rgb(66,65,77) !important;
 }
+.tabbrowser-tab .tab-background {
+  background: #42414D;
+}
+.tabbrowser-tab[selected="true"] .tab-background {
+  /*background: linear-gradient(to right, red , yellow, green, cyan, blue, violet) !important;*/
+  background: #1C1B22 !important;
+}
 .tabbrowser-tab[selected] .tab-content {
 /*  	border-top: 2px solid  blueviolet; */
 }
@@ -88,22 +95,9 @@ overflow: hidden !important;
   -moz-box-ordinal-group: 0;
 }
 
-
-
-
-
-
-
-
 /*
 .titlebar-buttonbox-container {
   margin-right: -6px !important;
 }
 */
-
-/* 
-.tabbrowser-tab[selected="true"] .tab-background {
-  background: linear-gradient(to right, red , yellow, green, cyan, blue, violet) !important;
-}
- */
 

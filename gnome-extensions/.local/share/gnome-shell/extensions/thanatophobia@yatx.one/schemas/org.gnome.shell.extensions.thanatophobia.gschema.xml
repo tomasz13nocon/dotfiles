@@ -1,0 +1,59 @@
+<schemalist gettext-domain="thanatophobia">
+    <schema id="org.gnome.shell.extensions.thanatophobia" path="/org/gnome/shell/extensions/thanatophobia/">
+        <key type="i" name="year">
+            <default>1970</default>
+            <summary>Year</summary>
+            <description/>
+        </key>
+        <key type="i" name="month">
+            <default>1</default>
+            <summary>Month</summary>
+            <description/>
+        </key>
+        <key type="i" name="day">
+            <default>1</default>
+            <summary>Day</summary>
+            <description/>
+        </key>
+        <key type="i" name="hour">
+            <default>1</default>
+            <summary>Hour</summary>
+            <description/>
+        </key>
+        <key type="i" name="minute">
+            <default>1</default>
+            <summary>Minute</summary>
+            <description/>
+        </key>
+        <key type="i" name="sex">
+            <default>0</default>
+            <summary>Sex</summary>
+            <description/>
+        </key>
+        <key type="s" name="country">
+            <default>"USA"</default>
+            <summary>Country ISO Alpha-3 Code</summary>
+            <description/>
+        </key>
+        <key type="d" name="expectancy">
+            <default>73.2</default>
+            <summary>Life Expectancy</summary>
+            <description/>
+        </key>
+        <key type="i" name="expectancy-year">
+            <default>2021</default>
+            <summary>Year Life Expectancy Was Fetched From</summary>
+            <description/>
+        </key>
+        <key type="i" name="countdown">
+            <default>0</default>
+            <summary>Count down or count up</summary>
+            <description/>
+        </key>
+        <key type="i" name="rounding">
+            <default>9</default>
+            <summary>Number of digits to display.</summary>
+            <description/>
+        </key>
+    </schema>
+</schemalist>

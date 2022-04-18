@@ -23,11 +23,12 @@ var ScrollablePopupMenu = class extends PopupMenu.PopupMenu {
 
         this.scroller.add_actor(this.box);
         this.boxlayout.add(this.scroller);
+        this.box.style_class = '';
 
         this.style_class = 'popup-menu-boxpointer';
 
         this._boxPointer.bin.set_child(this.boxlayout);
-        this._boxPointer.add_style_class_name('popup-menu');
+        this._boxPointer.add_style_class_name('popup-menu-content');
 
         this.box.set_style('padding-bottom: 0');
         // global.focus_manager.add_group(this);

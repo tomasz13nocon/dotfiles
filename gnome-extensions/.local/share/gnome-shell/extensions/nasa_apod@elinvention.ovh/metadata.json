@@ -6,9 +6,10 @@
   "settings-schema": "org.gnome.shell.extensions.nasa-apod",
   "shell-version": [
     "40",
-    "41"
+    "41",
+    "42"
   ],
   "url": "https://github.com/Elinvention/gnome-shell-extension-nasa-apod",
   "uuid": "nasa_apod@elinvention.ovh",
-  "version": 31
+  "version": 32
 }

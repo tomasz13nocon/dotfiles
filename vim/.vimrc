@@ -18,7 +18,7 @@ set wildmenu
 " so you don't have to wait 1 second
 " e.g. for escape to exit visual mode
 set ttimeoutlen=0
-set timeoutlen=400
+set timeoutlen=600
 " It's very weird that this is necessary because it's the default
 " It allows backspace to delete over newlines and such
 set backspace=indent,eol,start
@@ -108,9 +108,9 @@ autocmd FileType c setlocal path+=/usr/lib/gcc/x86_64-pc-linux-gnu/7.1.1/include
 """INDENTATION"""{{{
 """""""""""""""""
 " Width of indentation (with commands like >>)
-set shiftwidth=4
+set shiftwidth=2
 " Width of a tab
-set tabstop=4
+set tabstop=2
 " Don't expand tabs into spaces (default)
 set noexpandtab
 " Set shorter tab width and use spaces for different file types
@@ -123,7 +123,7 @@ autocmd FileType python setlocal expandtab
 " are not working either
 autocmd BufEnter *.sass setlocal noexpandtab shiftwidth=4
 " Show whitespace
-set list
+" set list
 " ▶▸‒
 set listchars=lead:·,tab:▶—,trail:·
 """}}}
@@ -137,38 +137,25 @@ if empty(glob('~/.vim/autoload/plug.vim'))
 endif
 
 call plug#begin()
+Plug 'michaelb/do-nothing.vim'
 Plug 'SirVer/ultisnips'
 " Using coc for emmet now
 " Plug 'jceb/emmet.snippets'
 " Plug 'mattn/emmet-vim'
 "Plug 'vim-scripts/AutoComplPop'
-if has('nvim')
-  "Plug 'Shougo/deoplete.nvim'
-  Plug 'neoclide/coc.nvim', {'branch': 'release'}
-else
-  "Plug 'Valloric/YouCompleteMe', { 'on': [] }
-  "Plug 'Valloric/YouCompleteMe', { 'for': 'css' }
-endif
 Plug 'ervandew/supertab'
-"if has('nvim')
-"Plug 'ms-jpq/chadtree'
-"else
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 "endif
 "Plug 'terryma/vim-expand-region'
 "Plug 'MichaelRFairhurst/angular-dep.vim'
 Plug 'henrik/vim-indexed-search'
-"if has('nvim')
-"Plug 'nvim-lualine/lualine.nvim'
-"else
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-"endif
 "Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-commentary'
-Plug 'Raimondi/delimitMate'
-"Plug 'jiangmiao/auto-pairs'
+" Plug 'Raimondi/delimitMate'
+" Plug 'jiangmiao/auto-pairs'
 "Plug 'Valloric/ListToggle'
 Plug 'maksimr/vim-jsbeautify'
 Plug 'sheerun/vim-polyglot'
@@ -195,16 +182,23 @@ Plug 'suy/vim-context-commentstring'
 Plug 'Galooshi/vim-import-js'
 Plug 'kyazdani42/nvim-web-devicons'
 Plug 'romgrk/barbar.nvim'
+Plug 'RRethy/vim-hexokinase', { 'do': 'make hexokinase' }
+Plug 'romainl/vim-devdocs'
+Plug 'KabbAmine/vCoolor.vim'
+" Plug 'lewis6991/gitsigns.nvim'
+Plug 'airblade/vim-gitgutter'
+" Plug 'f-person/git-blame.nvim'
+Plug 'ActivityWatch/aw-watcher-vim'
 
 if has('nvim')
+  Plug 'neoclide/coc.nvim', {'branch': 'release'}
   Plug 'sidebar-nvim/sidebar.nvim'
-  "Plug 'simrat39/symbols-outline.nvim'
   Plug 'neovim/nvim-lspconfig'
   Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-  "Plug 'stevearc/aerial.nvim/'
-  "Plug 'liuchengxu/vista.vim'
   Plug 'xuyuanp/scrollbar.nvim'
   Plug 'windwp/nvim-autopairs'
+  Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
+  Plug 'lukas-reineke/indent-blankline.nvim'
 endif
 
 Plug 'drewtempelmeyer/palenight.vim'
@@ -216,31 +210,68 @@ call plug#end()
 """PLUGIN SPECIFIC SETTINGS"""{{{
 """"""""""""""""""""""""""""""
 """NEOVIM PLUGIN SETUP"""
+
 if has('nvim')
 lua << EOF
 require("sidebar-nvim").setup({
-  side = "right",
-  -- section_separator = {"", "-----", ""},
-  section_separator = {""},
-  sections = { "git", "diagnostics", "files", "symbols", "todos" },
+side = "right",
+-- section_separator = {"", "-----", ""},
+section_separator = {""},
+sections = { "git", "diagnostics", "files", "symbols", "todos" },
 })
 require'lspconfig'.tsserver.setup{}
 require'lspconfig'.vimls.setup{}
 require'lspconfig'.cssls.setup{}
-require('nvim-autopairs').setup{}
+require('nvim-autopairs').setup{
+map_bs = false,
+}
+-- require('gitsigns').setup()
+-- Make autopairs CR work with coc completion's CR to confirm
+local remap = vim.api.nvim_set_keymap
+local npairs = require('nvim-autopairs')
+npairs.setup({map_cr=false})
+-- skip it, if you use another global object
+_G.MUtils= {}
+MUtils.completion_confirm=function()
+  if vim.fn.pumvisible() ~= 0  then
+    return vim.fn["coc#_select_confirm"]()
+  else
+    return npairs.autopairs_cr()
+  end
+end
+remap('i' , '<CR>','v:lua.MUtils.completion_confirm()', {expr = true , noremap = true})
+require("indent_blankline").setup{
+show_current_context = true,
+-- show_current_context_start = true,
+show_trailing_blankline_indent = false,
+}
 vim.diagnostic.config({
-  virtual_text = false,
+virtual_text = false,
 })
 EOF
 endif
+
+"""vim-gitgutter"""
+let g:gitgutter_map_keys = 0
+set termguicolors
+let g:gitgutter_signs=1
+let g:gitgutter_highlight_lines=0
+let g:gitgutter_highlight_linenrs=0
+" set scl=number
+let g:gitgutter_sign_added = '┃'
+let g:gitgutter_sign_modified = '┃'
+let g:gitgutter_sign_removed = '┃'
+
+"""vim-hexokinase"""
+let g:Hexokinase_highlighters = ['backgroundfull']
 """scrollbar.nvim"""
 if has('nvim')
-  augroup ScrollbarInit
-    autocmd!
-    autocmd CursorMoved,VimResized,QuitPre * silent! lua require('scrollbar').show()
-    autocmd WinEnter,FocusGained           * silent! lua require('scrollbar').show()
-    autocmd WinLeave,BufLeave,BufWinLeave,FocusLost            * silent! lua require('scrollbar').clear()
-  augroup end
+	augroup ScrollbarInit
+		autocmd!
+		autocmd CursorMoved,VimResized,QuitPre * silent! lua require('scrollbar').show()
+		autocmd WinEnter,FocusGained           * silent! lua require('scrollbar').show()
+		autocmd WinLeave,BufLeave,BufWinLeave,FocusLost            * silent! lua require('scrollbar').clear()
+	augroup end
 endif
 """Vista"""
 let g:vista_default_executive = "coc"
@@ -255,9 +286,9 @@ let g:ranger_replace_netrw = 1 " open ranger when vim open a directory
 """vim-closetag"""
 let g:closetag_filenames = "*.html,*.jsx,*.js,*.tsx,*.vue,*.xhml,*.xml"
 "let g:closetag_regions = {
-      "\ 'typescript.tsx': 'jsxRegion,tsxRegion',
-      "\ 'javascript.jsx': 'jsxRegion',
-      "\ }
+			"\ 'typescript.tsx': 'jsxRegion,tsxRegion',
+			"\ 'javascript.jsx': 'jsxRegion',
+			"\ }
 """coc"""
 command! -nargs=0 Prettier :call CocAction('runCommand', 'prettier.formatFile')
 """startify"""
@@ -273,34 +304,6 @@ let g:UltiSnipsExpandTrigger='<Tab>'
 let g:UltiSnipsJumpForwardTrigger='<C-n>'
 let g:UltiSnipsJumpBackwardTrigger='<C-p>'
 let g:UltiSnipsSnippetsDir='~/.vim/UltiSnips'
-"""YOUCOMPLETEME"""
-" Lazy load
-"command! Loadycm call plug#load('YouCompleteMe') | call youcompleteme#Enable() | Loadycm
-command! Loadycm call plug#load('YouCompleteMe') | call youcompleteme#Enable()
-" Close documentation window after completion
-let g:ycm_autoclose_preview_window_after_completion = 1
-"" Don't show annoying messages ("User defiend completion, pattern not found")
-set shortmess+=c
-"" Let supertab handle tab completion
-let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
-let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
-"" ctags support
-"let g:ycm_collect_identifiers_from_tags_files = 1
-let g:ycm_semantic_triggers = {
-      \   'css': [ 're!^\s{1,4}', 're!:\s+' ],
-      \   'sass': [ 're!^\s+', 're!:\s+' ],
-      \ }
-highlight YcmErrorSign ctermbg=1
-highlight SpellBad ctermbg=none
-highlight SpellBad ctermfg=9
-highlight SpellBad cterm=underline
-let g:ycm_extra_conf_globlist = ['~/.ycm_extra_conf.py']
-let g:ycm_always_populate_location_list = 1
-let g:ycm_error_symbol = '>'
-let g:ycm_warning_symbol = '>'
-let g:ycm_enable_diagnostic_signs = 0
-"""DEOPLETE"""
-let g:deoplete#enable_at_startup = 1
 """SUPERTAB"""
 " Reverse the order of scrolling through completion list (tab moves downward)
 let g:SuperTabDefaultCompletionType = '<C-n>'
@@ -407,6 +410,19 @@ highlight EndOfBuffer ctermbg=none guibg=NONE
 autocmd BufEnter * hi airline_tabfill ctermbg=NONE guibg=NONE
 highlight Folded guifg=#FFFFFF
 "hi airline_tabfill ctermbg=NONE guibg=NONE
+hi CursorLine guibg=#2C2D40
+
+" vim-gitgutter
+" highlight GitGutterAdd guifg=#232433
+" highlight GitGutterChange guifg=#232433
+" highlight GitGutterDelete guifg=#232433
+highlight GitGutterAddLineNr guifg=#9ECE6A
+highlight GitGutterChangeLineNr guifg=#7AA2F7
+highlight GitGutterDeleteLineNr guifg=#F7768E
+" highlight GitGutterAddLineNr guibg=#9ECE6A guifg=#000000
+" highlight GitGutterChangeLineNr guibg=#7AA2F7 guifg=#000000
+" highlight GitGutterDeleteLineNr guibg=#F7768E guifg=#000000
+" highlight GitGutterChangeDeleteLineNr guifg=lightred
 
 " COC highlighting
 "hi FgCocErrorFloatBgCocFloating guibg=#484951 guifg=#f7768e
@@ -422,9 +438,10 @@ let mapleader=" "
 command! -nargs=0 OI :silent call CocAction('runCommand', 'editor.action.organizeImport')
 nmap <silent> gR <Plug>(coc-references)
 nmap <silent> gd <Plug>(coc-definition)
-nnoremap <silent> <C-k> :call CocAction('doHover')<CR>
+nmap <silent> <leader>i <Plug>(coc-diagnostic-info)
+nnoremap <silent> <C-K> :call CocAction('doHover')<CR>
 nmap <F2> <Plug>(coc-rename)
-xmap <leader>a <Plug>(coc-codeaction)
+vmap <leader>a <Plug>(coc-codeaction)
 nmap <leader>a <Plug>(coc-codeaction)
 vnoremap <leader>f :Prettier<CR>
 nnoremap <leader>f :Prettier<CR>
@@ -433,6 +450,15 @@ nnoremap <silent> <leader>c :Commentary<CR>
 vnoremap <silent> <leader>c :Commentary<CR>
 nnoremap <silent> + "+y
 vnoremap <silent> + "+y
+" Move lines (and reindent)
+nnoremap <C-S-K> :<c-u>execute 'move -1-'. v:count1<cr>==
+nnoremap <C-S-J> :<c-u>execute 'move +'. v:count1<cr>==
+" vnoremap <C-S-K> :move -2<CR>gv
+" vnoremap <C-S-J> :move '>+1<CR>gv
+vnoremap <C-S-K> :<c-u>execute "'<,'>move -1-" . v:count1<CR>gv=gv
+vnoremap <C-S-J> :<c-u>execute "'<,'>move '>+" . v:count1<CR>gv=gv
+vnoremap < <gv
+vnoremap > >gv
 
 "nnoremap <C-p> :call FZFOpen(':Files')<CR>
 nnoremap <C-p> :Files<CR>
@@ -496,14 +522,14 @@ endfunction
 " nnoremap <silent> <C-q> :call DeleteBuffer()<CR>
 " plugin alternative:
 nnoremap <silent> <C-q> :BufferClose<CR>
-nnoremap <silent> <leader>q :BufferClose<CR>
+" nnoremap <silent> <leader>q :BufferClose<CR>
 " nnoremap <leader>q :q<CR>
 " Repeat last macro
-" nnoremap <C-2> @q
-nnoremap <C-q> @q
+nnoremap <C-2> @q
+" nnoremap <C-q> @q
 nnoremap <C-S-t> :e #<CR>
 
-nnoremap <leader>m :set mouse=<CR>
+" nnoremap <leader>m :set mouse=<CR>
 nnoremap <leader>w :w<CR>
 nnoremap <leader>Q :q!<CR>
 nnoremap <leader>u :UltiSnipsEdit<CR>
@@ -518,7 +544,9 @@ nnoremap <C-n> :NERDTreeToggle<CR>
 "endif
 nnoremap <leader>g :YcmCompleter GoTo<CR>
 nnoremap <leader>d "_d
+nnoremap <leader>D "_D
 nnoremap <leader>x "_x
+nnoremap <leader>X "_X
 let s:showstatus = 0
 function! ToggleStatus()
   "if !has('nvim')
@@ -549,6 +577,9 @@ nnoremap <leader><CR> <Plug>(coc-codeaction)
 nnoremap <C-j> :join<CR>
 noremap J 4j
 noremap K 4k
+" noremap <C-j> 4j
+" noremap <C-k> 4k
+imap <C-CR> <Esc>O
 
 inoremap } }<ESC>mr=%`ra
 inoremap <C-z> <ESC>ui
@@ -556,6 +587,18 @@ inoremap <C-z> <ESC>ui
 
 """OTHER"""{{{
 """""""""""
+" Return to last edit position when opening files (You want this!)
+autocmd BufReadPost *
+     \ if line("'\"") > 0 && line("'\"") <= line("$") |
+     \   exe "normal! g`\"" |
+     \ endif
+" Hungry backspace
+inoremap <silent><expr><bs> 
+  \ (&indentexpr isnot '' ? &indentkeys : &cinkeys) =~? '!\^F' &&
+  \ &backspace =~? '.*eol\&.*start\&.*indent\&' &&
+  \ !search('\S','nbW',line('.')) ? (col('.') != 1 ? "\<C-U>" : "") .
+  \ "\<bs>" . (getline(line('.')-1) =~ '\S' ? "" : "\<C-F>") : "\<bs>"
+" autocmd BufNewFile,BufRead TODO set filetype=markdown
 if has('nvim')
   autocmd TermOpen * startinsert
   au TermClose * call feedkeys("")
@@ -569,7 +612,7 @@ function! AutoSaveWinView()
 endfunction
 
 " Accept autocomplete entry with CR
-inoremap <expr> <CR> pumvisible() ? "\<C-Y>" : "\<CR>"
+" imap <expr> <CR> pumvisible() ? "\<C-Y>" : "\<CR>"
 
 " Restore current view settings.
 function! AutoRestoreWinView()
@@ -600,7 +643,8 @@ abbreviate q qa
 let &t_SI .= "\<Esc>[?2004h"
 let &t_EI .= "\<Esc>[?2004l"
 
-inoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
+" This adds delay to Esc which is horrible
+" inoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
 
 function! XTermPasteBegin()
   set pastetoggle=<Esc>[201~

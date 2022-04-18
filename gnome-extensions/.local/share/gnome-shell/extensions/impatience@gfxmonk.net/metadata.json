@@ -4,9 +4,10 @@
   "name": "Impatience",
   "shell-version": [
     "40",
-    "41"
+    "41",
+    "42"
   ],
   "url": "http://gfxmonk.net/dist/0install/gnome-shell-impatience.xml",
   "uuid": "impatience@gfxmonk.net",
-  "version": 17
+  "version": 20
 }

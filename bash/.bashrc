@@ -24,6 +24,8 @@ shopt -s nocaseglob
 # SHELL HISTORY
 # Avoid duplicates
 #HISTCONTROL=ignoredups:erasedups
+# Leading space disables history
+HISTCONTROL=ignorespace
 # Big history
 export HISTSIZE=10000
 export HISTFILESIZE=10000

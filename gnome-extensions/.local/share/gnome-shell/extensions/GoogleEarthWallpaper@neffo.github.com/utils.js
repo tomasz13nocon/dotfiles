@@ -16,38 +16,11 @@ const _ = Gettext.gettext;
 
 var icon_list = ['pin', 'globe','official'];
 var icon_list_filename = ['pin-symbolic', 'globe-symbolic', 'official'];
+var backgroundStyle = ['none', 'wallpaper', 'centered', 'scaled', 'stretched', 'zoom', 'spanned'];
 
 var gitreleaseurl = 'https://api.github.com/repos/neffo/earth-view-wallpaper-gnome-extension/releases/tags/';
-
-function getSettings() {
-	let extension = ExtensionUtils.getCurrentExtension();
-	let schema = 'org.gnome.shell.extensions.googleearthwallpaper';
-
-	const GioSSS = Gio.SettingsSchemaSource;
-
-	// check if this extension was built with "make zip-file", and thus
-	// has the schema files in a subfolder
-	// otherwise assume that extension has been installed in the
-	// same prefix as gnome-shell (and therefore schemas are available
-	// in the standard folders)
-	let schemaDir = extension.dir.get_child('schemas');
-	let schemaSource;
-	if (schemaDir.query_exists(null)) {
-		schemaSource = GioSSS.new_from_directory(schemaDir.get_path(),
-				GioSSS.get_default(),
-				false);
-	} else {
-		schemaSource = GioSSS.get_default();
-	}
-
-	let schemaObj = schemaSource.lookup(schema, true);
-	if (!schemaObj) {
-		throw new Error('Schema ' + schema + ' could not be found for extension ' +
-				extension.metadata.uuid + '. Please check your installation.');
-	}
-
-	return new Gio.Settings({settings_schema: schemaObj});
-}
+var schema = 'org.gnome.shell.extensions.googleearthwallpaper';
+var DESKTOP_SCHEMA = 'org.gnome.desktop.background';
 
 function friendly_time_diff(time, short = true) {
     // short we want to keep ~4-5 characters
@@ -116,10 +89,64 @@ function validate_icon(settings, icon_image = null) {
 }
 
 // Utility function
-function dump(object) {
+function dump(object, level = 0) {
     let output = '';
     for (let property in object) {
-        output += property + ': ' + object[property]+'; ';
+        output += "-".repeat(level)+property + ': ' + object[property]+'\n ';
+		if ( typeof property === 'object' )
+			output += dump(property, level+1);
     }
-    log(output);
+	if (level == 0)
+		log(output);
+    return(output);
+}
+
+function moveImagesToNewFolder(settings, oldPath, newPath) {
+    let dir = Gio.file_new_for_path(oldPath);
+    let dirIter = dir.enumerate_children('', Gio.FileQueryInfoFlags.NONE, null );
+    let newDir = Gio.file_new_for_path(newPath);
+    if (!newDir.query_exists(null)) {
+        newDir.make_directory_with_parents(null);
+    }
+    let file = null;
+    while (file = dirIter.next_file(null)) {
+        let filename = file.get_name(); // we only want to move files that we think we own
+        if (filename.match(/.+\.jpg/i)) {
+            log('file: ' + slash(oldPath) + filename + ' -> ' + slash(newPath) + filename);
+            let cur = Gio.file_new_for_path(slash(oldPath) + filename);
+            let dest = Gio.file_new_for_path(slash(newPath) + filename);
+            cur.move(dest, Gio.FileCopyFlags.OVERWRITE, null, function () { log ('...moved'); });
+        }
+    }
+    // correct filenames for GNOME backgrounds
+    if (settings.get_boolean('set-background'))
+        moveBackground(oldPath, newPath, DESKTOP_SCHEMA);
+}
+
+function dirname(path) {
+    return path.match(/.*\//);
+}
+
+function slash(path) {
+    if (!path.endsWith('/'))
+        return path += '/';
+    return path;
+}
+
+function moveBackground(oldPath, newPath, schema) {
+    let gsettings = new Gio.Settings({schema: schema});
+    let uri;
+	let dark_uri;
+	uri = gsettings.get_string('picture-uri');
+    gsettings.set_string('picture-uri', uri.replace(oldPath, newPath));
+	try {
+		dark_uri = gsettings.get_string('picture-uri-dark');
+		gsettings.set_string('picture-uri-dark', dark_uri.replace(oldPath, newPath));
+	}
+	catch (e) {
+		log('no dark background gsettings key found ('+e+')');
+	}
+
+    Gio.Settings.sync();
+    gsettings.apply();
 }

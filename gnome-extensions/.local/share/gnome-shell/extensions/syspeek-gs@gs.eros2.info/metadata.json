@@ -6,9 +6,10 @@
     "3.36",
     "3.38",
     "40",
-    "41"
+    "41",
+    "42"
   ],
   "url": "https://github.com/eugene-rom/syspeek-gs",
   "uuid": "syspeek-gs@gs.eros2.info",
-  "version": 8
+  "version": 10
 }

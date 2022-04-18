@@ -15,7 +15,7 @@
 */
 'use strict';
 
-const {GLib, Clutter, St, Meta, Shell} = imports.gi;
+const { GLib, Clutter, St, Meta, Shell, Gio } = imports.gi;
 
 const Main                   = imports.ui.main;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
@@ -23,12 +23,14 @@ const Volume                 = imports.ui.status.volume;
 const PopupMenu              = imports.ui.popupMenu;
 const BoxPointer             = imports.ui.boxpointer;
 const AltTab                 = imports.ui.altTab;
+const OsdMonitorLabeler      = imports.ui.osdMonitorLabeler;
 
 const Util                   = imports.misc.util;
 const SystemActions          = imports.misc.systemActions;
 const ExtensionUtils         = imports.misc.extensionUtils;
 const Me                     = ExtensionUtils.getCurrentExtension();
 const Settings               = Me.imports.settings;
+const shellVersion           = Settings.shellVersion;
 
 // gettext
 const _                      = Settings._;
@@ -38,20 +40,12 @@ let Shaders                  = null;
 let WinTmb                   = null;
 let _origAltTabWSP           = null;
 
-let GNOME40;
-
-const ws_indicator_mode = {
-    'DISABLE': 0,
-    'DEFAULT': 1,
-    'INDEX':   2,
-};
-
 function get_current_monitor_geometry() {
     return global.display.get_monitor_geometry(global.display.get_current_monitor());
 }
 
 var Actions = class {
-    constructor() {
+    constructor(mscOptions) {
         this._signalsCollector      = [];
 
         this._minimizedWindows      = [];
@@ -61,28 +55,26 @@ var Actions = class {
         this._a11yMagnifierSettings = null;
         this._interfaceSettings     = null;
         this._shellSettings         = null;
+        this._soundSettings         = null;
+
+        this.keyboardTimeoutId      = 0;
 
         this.WS_IGNORE_LAST         = false;
         this.WS_WRAPAROUND          = false;
-        this.WS_INDICATOR_MODE      = false;
 
         this.WIN_WRAPAROUND         = false;
         this.WIN_SKIP_MINIMIZED     = false;
-
-        this._recentWorkspace       = -1;
-        this._currentWorkspace      = -1;
+        this.WIN_STABLE_SEQUENCE    = false;
 
         this.windowThumbnails       = [];
-        this.tmbConnected           = false;
+        this._tmbConnected          = false;
 
         this._mainPanelVisible      = Main.panel.is_visible();
 
         this.customMenu             = [];
+        this._winPreview            = null
 
-        this._connectRecentWorkspace();
-
-        GNOME40 = Settings.GNOME40;
-        this._mscOptions = null;
+        this._mscOptions = mscOptions;
     }
 
     clean(full = true) {
@@ -94,15 +86,40 @@ var Actions = class {
             this.removeAllEffects();
             this._resetSettings();
 
-            for (let sig of this._signalsCollector)
-                sig[0].disconnect(sig[1]);
+            for (let sig of this._signalsCollector) {
+                if (sig[1])
+                    sig[0].disconnect(sig[1]);
+            }
 
             this.Shaders   = null;
         }
-        // global.workspace_manager.disconnect(this._signalsCollector.pop());
+
+        if (this._osdMonitorsConnection) {
+            global.display.disconnect(this._osdMonitorsConnection);
+        }
         this._removeThumbnails(full);
         this._destroyDimmerActors();
         this._removeCustomMenus();
+        this._destroyWindowPreview();
+        this._removeOsdMonitorIndexes();
+
+        if (this.keyboardTimeoutId) {
+            GLib.source_remove(this.keyboardTimeoutId);
+            this.keyboardTimeoutId = 0;
+        }
+        if (this._winSwitcherTimeoutId) {
+            GLib.source_remove(this._winSwitcherTimeoutId);
+            this._winSwitcherTimeoutId = 0;
+        }
+        if (this._setBCTimeoutId) {
+            GLib.source_remove(this._setBCTimeoutId);
+            this._setBCTimeoutId = 0;
+        }
+
+        if (this._osdMonitorsTimeoutId) {
+            GLib.source_remove(this._osdMonitorsTimeoutId);
+            this._osdMonitorsTimeoutId
+        }
     }
 
     resume() {
@@ -137,12 +154,24 @@ var Actions = class {
         }
     }
 
+    _removeOsdMonitorIndexes() {
+        if (this._osdMonitorLabels) {
+            this._osdMonitorLabels.forEach((w) => {
+                w.destroy();
+                this._osdMonitorLabels = null;
+            });
+        }
+    }
+
     _resetSettings() {
         this._a11yAppsSettings      = null;
         this._a11yMagnifierSettings = null;
         this._interfaceSettings     = null;
         this._shellSettings         = null;
         this._colorSettings         = null;
+        this._wsNamesSettings       = null;
+        this._soundSettings         = null;
+        this._mutterSettings        = null;
     }
 
     removeAllEffects(full = false) {
@@ -183,34 +212,28 @@ var Actions = class {
         }
     }
 
-    extensionEnabled(uuid = '') {
-        this._getShellSettings();
-        let enabled = this._shellSettings.get_strv('enabled-extensions');
-        enabled = enabled.includes(Me.metadata.uuid);
-        let disabled = this._shellSettings.get_strv('disabled-extensions');
-        disabled = disabled.includes(Me.metadata.uuid);
-        let disableUser = this._shellSettings.get_boolean('disable-user-extensions');
-
-        if (enabled && !disabled && !disableUser)
-            return true;
-        return false;
-    }
-
     _getShellSettings() {
         if (!this._shellSettings) {
-            this._shellSettings = Settings.getSettings(
-                'org.gnome.shell',
-                '/org/gnome/shell/'
+            this._shellSettings = ExtensionUtils.getSettings(
+                            'org.gnome.shell'
             );
         }
         return this._shellSettings;
     }
 
+    _getMutterSettings() {
+        if (!this._mutterSettings) {
+            this._mutterSettings = ExtensionUtils.getSettings(
+                            'org.gnome.mutter'
+            )
+        }
+        return this._mutterSettings;
+    }
+
     _getA11yAppSettings() {
         if (!this._a11yAppsSettings) {
-            this._a11yAppsSettings = Settings.getSettings(
-                'org.gnome.desktop.a11y.applications',
-                '/org/gnome/desktop/a11y/applications/'
+            this._a11yAppsSettings = ExtensionUtils.getSettings(
+                            'org.gnome.desktop.a11y.applications'
             );
         }
         return this._a11yAppsSettings;
@@ -218,42 +241,67 @@ var Actions = class {
 
     _getA11yMagnifierSettings() {
         if (!this._a11yMagnifierSettings) {
-            this._a11yMagnifierSettings = Settings.getSettings(
-                            'org.gnome.desktop.a11y.magnifier',
-                            '/org/gnome/desktop/a11y/magnifier/');
+            this._a11yMagnifierSettings = ExtensionUtils.getSettings(
+                            'org.gnome.desktop.a11y.magnifier'
+            );
         }
         return this._a11yMagnifierSettings;
     }
 
     _getInterfaceSettings() {
         if (!this._interfaceSettings) {
-            this._interfaceSettings = Settings.getSettings(
-                            'org.gnome.desktop.interface',
-                            '/org/gnome/desktop/interface/');
+            this._interfaceSettings = ExtensionUtils.getSettings(
+                            'org.gnome.desktop.interface'
+            );
         }
         return this._interfaceSettings;
     }
 
     _getColorSettings() {
         if (!this._colorSettings) {
-            this._colorSettings = Settings.getSettings(
-                            'org.gnome.settings-daemon.plugins.color',
-                            '/org/gnome/settings-daemon/plugins/color/');
+            this._colorSettings = ExtensionUtils.getSettings(
+                            'org.gnome.settings-daemon.plugins.color'
+            );
         }
         return this._colorSettings;
     }
 
-    _connectRecentWorkspace() {
-        let actor = global.workspace_manager;
-        let connection = actor.connect('workspace-switched', this._onWorkspaceSwitched.bind(this));
-        this._signalsCollector.push([actor, connection]);
+    _getWsNamesSettings() {
+        if (!this._wsNamesSettings) {
+            this._wsNamesSettings = ExtensionUtils.getSettings(
+                            'org.gnome.desktop.wm.preferences'
+            );
+        }
+        return this._wsNamesSettings;
     }
 
-    _onWorkspaceSwitched(display, prev, current, direction) {
-        if (current !== this._currentWorkspace) {
-            this._recentWorkspace  = this._currentWorkspace;
-            this._currentWorkspace = current;
+    _getSoundSettings() {
+        if (!this._soundSettings) {
+            this._soundSettings = ExtensionUtils.getSettings(
+                            'org.gnome.desktop.sound'
+            );
         }
+        return this._soundSettings;
+    }
+
+    _getDisplayBrightnessProxy() {
+        if (!this._dispalyBrightnessProxy) {
+            const { loadInterfaceXML } = imports.misc.fileUtils;
+            const BUS_NAME = 'org.gnome.SettingsDaemon.Power';
+            const OBJECT_PATH = '/org/gnome/SettingsDaemon/Power';
+
+            const BrightnessInterface = loadInterfaceXML('org.gnome.SettingsDaemon.Power.Screen');
+            const BrightnessProxy = Gio.DBusProxy.makeProxyWrapper(BrightnessInterface);
+            this._dispalyBrightnessProxy = new BrightnessProxy(Gio.DBus.session, BUS_NAME, OBJECT_PATH,
+                (proxy, error) => {
+                    if (error) {
+                        log(error.message);
+                        return;
+                    }
+                }
+            );
+        }
+        return this._dispalyBrightnessProxy;
     }
 
     _destroyDimmerActors() {
@@ -275,6 +323,25 @@ var Actions = class {
         }
         log (`[${Me.metadata.name}] Warning: no focused window found`);
         return null;*/
+    }
+
+    _getWindowApp(metaWindow) {
+        if (!metaWindow) return null;
+        let tracker = Shell.WindowTracker.get_default();
+        return tracker.get_window_app(metaWindow);
+    }
+
+    _getWindowsOfFocusedAppOnActiveWs() {
+        let win = this._getFocusedWindow();
+        let app = this._getWindowApp(win);
+        let ws = global.workspaceManager.get_active_workspace();
+        let wsWidows = ws.list_windows();
+        let result = [];
+        wsWidows.forEach(w => {
+           if (this._getWindowApp(w).get_id() === app.get_id())
+                result.push(w);
+        });
+        return result;
     }
 
     _getWindowSurface(metaWindow) {
@@ -299,12 +366,13 @@ var Actions = class {
         return actor;
     }
 
-    _getActorByMetaWin(metaWindow) {
-        for (let act of global.get_window_actors()) {
-            if (act.get_meta_window() === metaWindow)
-                return act;
+    _getMonitorByIndex(monitorIndex) {
+        let monitors = Main.layoutManager.monitors;
+        for (let monitor of monitors) {
+            if (monitor.index === monitorIndex)
+                return monitor;
         }
-        return null;
+        return -1;
     }
 
     _getShaders() {
@@ -312,7 +380,58 @@ var Actions = class {
             Shaders = Me.imports.shaders;
     }
 
+    _isWsOrientationHorizontal() {
+        if (global.workspace_manager.layout_rows == -1)
+			return false;
+        return true;
+    }
+
+    _translateDirectionToHorizontal(direction) {
+        if (this._isWsOrientationHorizontal()) {
+            if (direction == Meta.MotionDirection.UP) {
+                direction = Meta.MotionDirection.LEFT;
+            } else {
+                direction = Meta.MotionDirection.RIGHT;
+            }
+        }
+        return direction;
+    }
+
+    _showMonitorIndexesOsd() {
+        if (this._osdMonitorLabels)
+            this._removeOsdMonitorIndexes();
+        this._osdMonitorLabels = [];
+        const nMonitors = Main.layoutManager.monitors.length;
+
+        if (nMonitors === 1) {
+            this._mscOptions.set('showOsdMonitorIndexes', false);
+            //return;
+        }
+
+        const primaryIndex = Main.layoutManager.primaryIndex;
+        let monIndexes = [...Main.layoutManager.monitors.keys()];
+        // index of the primary monitor to the first possition
+        // Monitor 1 in preferences will allways refer to the primary monitor
+        monIndexes.splice(0, 0, monIndexes.splice(primaryIndex, 1)[0]);
+
+        for (let i = 0; i < nMonitors; ++i) {
+            const label = new OsdMonitorLabeler.OsdMonitorLabel(i, `${i + 1}`);
+            this._osdMonitorLabels.push(label);
+        }
+
+        this._osdMonitorsConnection = global.display.connect('notify::focus-window', () =>{
+            // destroy osd when the preferences window lost focus
+            if (global.display.focus_window && !global.display.focus_window.get_title().includes('Custom Hot Corners')) {
+                global.display.disconnect(this._osdMonitorsConnection);
+                this._osdMonitorsConnection = 0;
+                this._removeOsdMonitorIndexes();
+                this._mscOptions.set('showOsdMonitorIndexes', false);
+            }
+        });
+    }
+
     /////////////////////////////////////////////////////////////////////////////
+
     toggleOverview() {
         Main.overview.toggle();
     }
@@ -323,7 +442,7 @@ var Actions = class {
         } else {
             // Pressing the apps btn before overview activation avoids icons animation in GS 3.36/3.38
             // but in GS40 with Dash to Dock and its App button set to "no animation", this whole sequence is problematic
-            if (!GNOME40)
+            if (shellVersion < 40)
                 Main.overview.dash.showAppsButton.checked = true;
             // in 3.36 pressing the button is usualy enough to activate overview, but not always
             Main.overview.show();
@@ -336,23 +455,52 @@ var Actions = class {
     }
 
     runCommand(command) {
+        if (command.match(/\.desktop$/)) {
+            const appId = command;
+            const appSystem = Shell.AppSystem.get_default();
+            const app = appSystem.lookup_app(appId);
+            if (app) {
+                app.activate();
+            } else {
+                Main.notify(Me.metadata.name, _(`Application ID not found: ${appId}`));
+                log(Me.metadata.name, _(`Application ID not found: ${appId}`));
+            }
+            return;
+        }
+
         Util.spawnCommandLine(command);
     }
 
     moveToWorkspace(index) {
         if (index < 0)
             return;
-        let maxIndex = global.workspaceManager.n_workspaces - 1;
+        const maxIndex = global.workspaceManager.n_workspaces - 1;
         if (maxIndex < index)
-            index = maxIndex;
-        let ws = global.workspaceManager.get_workspace_by_index(index);
+        index = maxIndex;
+        const ws = global.workspaceManager.get_workspace_by_index(index);
+
+        const direction = global.workspaceManager.get_active_workspace_index() > index
+                    ? Meta.MotionDirection.UP
+                    : Meta.MotionDirection.Down;
+
         Main.wm.actionMoveWorkspace(ws);
+
+        this._showWsSwitcherPopup(direction, index);
         // another option
         // ws.activate(global.get_current_time());
     }
 
     moveToRecentWorkspace() {
-        this.moveToWorkspace(this._recentWorkspace);
+        // find the first window in the AltTab list (sorted by the most recently used) with different workspace and switch to it
+        const tabList = AltTab.getWindows(null);
+        const currentWs = global.workspaceManager.get_active_workspace();
+        for (let win of tabList) {
+            const ws = win.get_workspace();
+            if (ws !== currentWs) {
+                this.moveToWorkspace(ws.index());
+                return;
+            }
+        }
     }
 
     reorderWorkspace(direction = 0) {
@@ -364,7 +512,98 @@ var Actions = class {
         if (targetIdx > 0 || targetIdx < (global.workspace_manager.get_n_workspaces() - 1)) {
             global.workspace_manager.reorder_workspace(activeWs, targetIdx);
         }
-        this.showWorkspaceIndex();
+        //this.showWorkspaceIndex();
+        direction = direction > 0 ? Meta.MotionDirection.DOWN : Meta.MotionDirection.UP;
+        this._showWsSwitcherPopup(direction, targetIdx);
+    }
+
+    rotateWorkspaces(direction = 0, monitorIndex = -1, step = 1) {
+        step = direction === Meta.MotionDirection.UP ? +step : -step;
+        const monitor = monitorIndex > -1 ? monitorIndex : global.display.get_current_monitor();
+        const dynamicWs = this._getMutterSettings().get_boolean('dynamic-workspaces');
+        const lastIndex = global.workspaceManager.get_n_workspaces() - (dynamicWs ? 1 : 0);
+        //let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
+        let windows = AltTab.getWindows(null);
+        for (let win of windows.reverse()) {
+            // avoid moving modal windows as they move their parents (and vice versa) immediately, before we move the parent window.
+            if (win.get_monitor() === monitor && !win.is_always_on_all_workspaces() && !win.is_attached_dialog() && !win.get_transient_for()) {
+                let wWs = win.get_workspace().index();
+                wWs += step;
+                if (wWs < 0) wWs = (lastIndex - 1);
+                if (wWs > lastIndex - 1) wWs = 0;
+                const ws = global.workspaceManager.get_workspace_by_index(wWs);
+                win.change_workspace(ws);
+            }
+        }
+    }
+
+    switchWorkspaceCurrentMonitor(direction) {
+        //const focusedWindow = global.display.get_focus_window();
+        //const currentMonitor = focusedWindow ? focusedWindow.get_monitor() : global.display.get_current_monitor();
+        // using focused window to determine current monitor can lead to inconsistent behavior and switching monitors between switches
+        // depending on which window takes focus on each workspace
+        // mouse pointer is more stable source in this case
+        const currentMonitor = global.display.get_current_monitor();
+        const primaryMonitor = currentMonitor === Main.layoutManager.primaryIndex;
+        const nMonitors = Main.layoutManager.monitors.length;
+        const lastIndex = global.workspaceManager.get_n_workspaces() - 1;
+        const activeWs = global.workspaceManager.get_active_workspace();
+        const neighbor = activeWs.get_neighbor(direction);
+
+        if (!primaryMonitor) {
+            this.rotateWorkspaces(direction, currentMonitor);
+            return;
+        }
+
+        // for case that workspace switcher is in wraparound mode
+        let diff = neighbor.index() - activeWs.index();
+        let step = 1;
+        if (!(Math.abs(diff) !== 1 && diff !== 0)) {
+            step = Math.abs(diff);
+        }
+
+        if (neighbor !== activeWs && (neighbor.index() !== lastIndex || activeWs !== lastIndex)) {
+            for (let i = 0; i < nMonitors; i++) {
+                if (i !== currentMonitor) {
+                        const opositeDirection = direction === Meta.MotionDirection.UP ? Meta.MotionDirection.DOWN : Meta.MotionDirection.UP;
+                        this.rotateWorkspaces(opositeDirection, i, step);
+                }
+            }
+        }
+        this.switchWorkspace(direction);
+    }
+
+    closeWorkspace() {
+        const activeWs = global.workspace_manager.get_active_workspace();
+        const windows = AltTab.getWindows(activeWs);
+        for (let i = 0; i < windows.length; i++) {
+            if (!windows[i].is_on_all_workspaces()) {
+                windows[i].delete(global.get_current_time()+i);
+            }
+        }
+        const vertical = global.workspaceManager.layout_rows === -1;
+        const direction = vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT;
+        this.switchWorkspace(direction, true);
+    }
+
+    setDisplayBrightness(direction) {
+        const proxy = this._getDisplayBrightnessProxy();
+        let value = proxy.Brightness;
+        if (value === null)
+            return;
+        const STEP = 5;
+        if (direction === Meta.MotionDirection.UP) {
+            value += STEP;
+        } else {
+            value -= STEP;
+        }
+
+        if (value > 100)
+            value = 100;
+        if (value < 0)
+            value = 0;
+
+        proxy.Brightness = value;
     }
 
     lockScreen() {
@@ -395,8 +634,31 @@ var Actions = class {
             Main.lookingGlass.toggle();
     }
 
+    activateUiInspector() {
+        if (Main.lookingGlass === null)
+            Main.createLookingGlass();
+        const lg = Main.lookingGlass;
+        lg.open();
+        const Inspector = imports.ui.lookingGlass.Inspector;
+        lg.openInspector = () => {
+            let inspector = new Inspector(lg);
+            inspector.connect('target', (i, target, stageX, stageY) => {
+                lg._pushResult(`inspect(${Math.round(stageX)}, ${Math.round(stageY)})`, target);
+            });
+            inspector.connect('closed', () => {
+                lg.show();
+                global.stage.set_key_focus(lg._entry);
+            });
+            lg.hide();
+            return Clutter.EVENT_STOP;
+        }
+
+        lg.openInspector();
+    }
+
     switchToRecentWindow() {
-        global.display.get_tab_list(0, null)[1].activate(global.get_current_time());
+        AltTab.getWindows(null)[1].activate(global.get_current_time());
+        //global.display.get_tab_list(0, null)[1].activate(global.get_current_time());
     }
 
     closeWindow() {
@@ -457,34 +719,125 @@ var Actions = class {
             win.make_fullscreen();
     }
 
+    openNewWindow() {
+        let win = this._getFocusedWindow();
+        if (!win)
+            return;
+        let app = Shell.WindowTracker.get_default().get_window_app(win);
+        app.open_new_window(global.get_current_time());
+    }
+
     fullscreenWinOnEmptyWs(metaWindow = null) {
         let win;
         if (!metaWindow)
             win = this._getFocusedWindow(true);
         else
             win = metaWindow;
-
         if (!win)
             return;
+
+        // if property fullscreen === true, win was already maximized on new ws
         if (win.fullscreen) {
             win.unmake_fullscreen();
             if (win._originalWS) {
-                win.change_workspace(win._originalWS);
-                Main.wm.actionMoveWorkspace(win._originalWS);
+                let ws = false;
+                for(let i = 0; i < global.workspaceManager.n_workspaces; i++) {
+                    let w = global.workspaceManager.get_workspace_by_index(i);
+                    if (w === win._originalWS) {
+                        ws = true;
+                        break;
+                    }
+                }
+                if (ws) {
+                    win.change_workspace(win._originalWS);
+                    Main.wm.actionMoveWorkspace(win._originalWS);
+                }
                 win._originalWS = null;
             }
         } else {
             let ws = win.get_workspace();
             win.make_fullscreen();
-            if (ws.n_windows > 1) {
+            let nWindows = ws.list_windows().filter(
+                w =>
+                    //w.get_window_type() === Meta.WindowType.NORMAL &&
+                    !w.is_on_all_workspaces()
+                ).length;
+            if (nWindows > 1) {
                 win._originalWS = ws;
-                let lastWs = global.workspaceManager.n_workspaces - 1;
-                lastWs = global.workspaceManager.get_workspace_by_index(lastWs);
-                //Main.wm.actionMoveWorkspace(lastWs);
-                win.change_workspace(lastWs);
-                global.workspace_manager.reorder_workspace(lastWs, ws.index() + 1);
+                let newWsIndex = ws.index() + 1;
+                Main.wm.insertWorkspace(newWsIndex);
+                let newWs = global.workspace_manager.get_workspace_by_index(newWsIndex);
+                win.change_workspace(newWs);
+                win.activate(global.get_current_time());
             }
-            win.activate(global.get_current_time());
+        }
+    }
+
+    moveWinToNewWs(direction, windows = null) {
+        let selected
+        if (!windows)
+            selected = [this._getFocusedWindow(true)];
+        else
+            selected = windows;
+        if (!selected)
+            return;
+
+        let wsIndex = global.workspace_manager.get_active_workspace_index();
+            wsIndex = wsIndex + (direction === Meta.MotionDirection.UP ? 0 : 1);
+            Main.wm.insertWorkspace(wsIndex);
+            this.moveWinToAdjacentWs(direction, selected);
+    }
+
+    moveWinToAdjacentWs(direction, windows = null) {
+        let selected;
+        if (!windows)
+            selected = [this._getFocusedWindow(true)];
+        else
+            selected = windows;
+        if (!selected)
+            return;
+
+        let wsIndex = global.workspace_manager.get_active_workspace_index();
+        wsIndex = wsIndex + (direction === Meta.MotionDirection.UP ? -1 : 1);
+        wsIndex = Math.min(wsIndex, global.workspace_manager.get_n_workspaces() - 1);
+        if (wsIndex < 0) {
+            this.moveWinToNewWs(direction, selected);
+            return;
+        }
+
+        let ws = global.workspace_manager.get_workspace_by_index(wsIndex);
+        if (selected.length > 1) {
+            this._moveWindowsToWS(selected, ws);
+            this.switchWorkspace(direction, true);
+        } else {
+            Main.wm.actionMoveWindow(selected[0], ws);
+        }
+        Main.wm.actionMoveWorkspace(ws);
+
+        this._showWsSwitcherPopup(direction, wsIndex);
+    }
+
+    _moveWindowsToWS(windows, workspace) {
+        let winList = windows;
+        winList.forEach(win => {
+            this._moveWindowToWs(win, workspace);
+        });
+    }
+
+    _moveWindowToWs(metaWindow, workspace = null, monitorIndex = -1) {
+        let ws = workspace ? workspace : global.workspace_manager.get_active_workspace();
+        let win = metaWindow;
+        win.change_workspace(ws);
+        let targetMonitorIndex = monitorIndex > -1 ? monitorIndex : global.display.get_current_monitor();
+        let currentMonitorIndex = win.get_monitor();
+        if (currentMonitorIndex !== targetMonitorIndex) {
+            // move window to target monitor
+            let actor = win.get_compositor_private();
+            let targetMonitor  = this._getMonitorByIndex(targetMonitorIndex);
+
+            let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
+            let y = targetMonitor.y + Math.max(Math.floor(targetMonitor.height - actor.height) / 2, 0);
+            win.move_frame(true, x, y);
         }
     }
 
@@ -528,22 +881,39 @@ var Actions = class {
             Main.panel.show();
     }
 
+    openPanelAggregateMenu() {
+        Main.panel.statusArea.aggregateMenu.menu.toggle();
+    }
+
+    openPanelDateMenu() {
+        Main.panel.statusArea.dateMenu.menu.toggle();
+    }
+
+    openPanelAppMenu() {
+        Main.panel.statusArea.appMenu.menu.toggle();
+    }
+
     toggleTheme() {
         let intSettings = this._getInterfaceSettings();
         let theme = intSettings.get_string('gtk-theme');
         switch (theme) {
-            case 'Yaru-light' || 'Yaru':
+            case 'Yaru-light':
+            case 'Yaru':
                 intSettings.set_string('gtk-theme', 'Yaru-dark');
                 break;
             case 'Yaru-dark':
-                let theme = GNOME40 ? 'Yaru' : 'Yaru-light'
+                let theme = shellVersion >= 40 ? 'Yaru' : 'Yaru-light'
                 intSettings.set_string('gtk-theme', theme);
                 break;
             case 'Adwaita':
                 intSettings.set_string('gtk-theme', 'Adwaita-dark');
+                if (shellVersion >= 42)
+                    intSettings.set_string('color-scheme', 'prefer-dark');
                 break;
             case 'Adwaita-dark':
                 intSettings.set_string('gtk-theme', 'Adwaita');
+                if (shellVersion >= 42)
+                    intSettings.set_string('color-scheme', 'default');
                 break;
             default:
                 Main.notify(Me.metadata.name, _('Theme switcher works with Adwaita/Adwaita-dark and Yaru(-light)/Yaru-dark themes only'));
@@ -589,157 +959,218 @@ var Actions = class {
         }
     }
 
-    // direction 0/1
-    switchWorkspace(direction, noIndicator = false) {
+    // direction: Meta.MotionDirection
+    switchWorkspace(direction, showPopup = true) {
+        direction = this._translateDirectionToHorizontal(direction);
+        const targetWs = global.workspaceManager.get_active_workspace().get_neighbor(direction);
+        Main.wm.actionMoveWorkspace(targetWs);
+        if (showPopup)
+            this._showWsSwitcherPopup(direction, targetWs.index());
+        /*
             let n_workspaces = global.workspaceManager.n_workspaces;
             let lastWsIndex =  n_workspaces - (this.WS_IGNORE_LAST ? 2 : 1);
-            let motion;
-    
+
             let activeWs  = global.workspaceManager.get_active_workspace();
             let activeIdx = activeWs.index();
-            let targetIdx = this.WS_WRAPAROUND ? 
+            let targetIdx = this.WS_WRAPAROUND ?
                             (activeIdx + (direction ? 1 : lastWsIndex )) % (lastWsIndex + 1) :
                             activeIdx + (direction ? 1 : -1);
             if (targetIdx < 0 || targetIdx > lastWsIndex) {
                 targetIdx = activeIdx;
             }
             let ws = global.workspaceManager.get_workspace_by_index(targetIdx);
- 
-            const showIndicator = !noIndicator && this.WS_INDICATOR_MODE > 0;
-
-            // show default workspace indicator popup
-            if (showIndicator && this.WS_INDICATOR_MODE === ws_indicator_mode.DEFAULT) {
-                this._showWsSwitcherPopup(direction, ws.index());
-            }
 
             Main.wm.actionMoveWorkspace(ws);
 
-            // show workspace index overlay if wanted
-            if (this.WS_INDICATOR_MODE === ws_indicator_mode.INDEX && showIndicator)
-                this.showWorkspaceIndex();
+            // show default workspace indicator popup
+            if (this.WS_INDICATOR_MODE === ws_indicator_mode.DEFAULT) {
+                this._showWsSwitcherPopup(direction, ws.index());
+            } else if (this.WS_INDICATOR_MODE > ws_indicator_mode.DEFAULT)
+        */
     }
 
     _showWsSwitcherPopup(direction, wsIndex) {
         if (!Main.overview.visible) {
-            const vertical = global.workspaceManager.layout_rows === -1;
             if (Main.wm._workspaceSwitcherPopup == null) {
                 Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-                Main.wm._workspaceSwitcherPopup.reactive = false;
                 Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
                     Main.wm._workspaceSwitcherPopup = null;
                 });
             }
-            let motion = direction ? (vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT)
-                                   : (vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT);
-            Main.wm._workspaceSwitcherPopup.display(motion, wsIndex);
-        }
-    }
 
-    showWorkspaceIndex(position = [], timeout = 600, names = {}) {
+            let motion = this._translateDirectionToHorizontal(direction);
 
-        let wsIndex = global.workspace_manager.get_active_workspace().index();
-        let text = names[wsIndex];
-        if (!text) text = `${wsIndex + 1}`;
-
-        if (!this._wsOverlay) {
-
-            //let monitorIndex = global.display.get_current_monitor();
-            //let geometry = global.display.get_monitor_geometry(monitorIndex);
-            let geometry = get_current_monitor_geometry();
-
-
-            this._wsOverlay = new St.Label ({
-                        name: 'ws-index',
-                        text: text,
-                        x: position.length ? position[0] : geometry.x,
-                        y: position.length ? position[1] : geometry.y + (geometry.height / 2),
-                        width: geometry.width,
-                        style_class: 'workspace-overlay',
-                        reactive: true,
-            });
-            Main.layoutManager.addChrome(this._wsOverlay);
-        } else if (this._wsOverlay) {
-            this._wsOverlay.set_text(text);
-            if (this._wsOverlay._timeoutId) {
-                GLib.source_remove(this._wsOverlay._timeoutId);
-                this._wsOverlay._timeoutId = 0;
+            if (shellVersion >= 42) {
+                Main.wm._workspaceSwitcherPopup.display(wsIndex);
+            } else {
+                Main.wm._workspaceSwitcherPopup.display(motion, wsIndex);
             }
         }
-
-        if (timeout) {
-
-            this._wsOverlay._timeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                timeout,
-                () => {
-                    if (this._wsOverlay !== null) {
-                        Main.layoutManager.removeChrome(this._wsOverlay);
-                        this._wsOverlay.destroy();
-                        this._wsOverlay = null;
-                    }
-                    return GLib.SOURCE_REMOVE;
-            });
-        }
-
-        return this._wsOverlay;
     }
-    
+
     switchWindow(direction, wsOnly = false, monitorIndex = -1) {
         let workspaceManager = global.workspace_manager;
-        let workspace = wsOnly ? workspaceManager.get_active_workspace() : null;
+        //let workspace = wsOnly ? workspaceManager.get_active_workspace() : null;
         // get all windows, skip-taskbar included
-        let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, workspace);
+        //let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, workspace);
+        const workspace = null;
+        let windows = AltTab.getWindows(workspace);
         if (monitorIndex > -1)
             windows = windows.filter(w => w.get_monitor() === monitorIndex);
-        // when window with attached modal window is activated, focus shifts to modal window ...
+        // when window with attached modal window is activated, focus shifts to the modal window ...
         //  ... and switcher can stuck trying to activate same window again ...
-        //  ... when these windows are next to each other in window list
+        //  ... when these windows are next to each other in the window list
         // map windows with modals attached ...
         // ... and filter out not modal windows and duplicates
-        let modals = windows.map(w => 
+// this is already part of AltTab.getWindows() function
+/*        let modals = windows.map(w =>
             w.get_transient_for() ? w.get_transient_for() : null
             ).filter((w, i, a) => w !== null && a.indexOf(w) == i);
         // filter out skip_taskbar windows and windows with modals
         // top modal windows should stay
         windows = windows.filter( w => modals.indexOf(w) && !w.is_skip_taskbar());
+*/
+
+        // after the shell restarts (X11) AltTab.getWindows(ws) generates different (wrong) win order than ...getwindows(null) (tested on GS 3.36 - 41)
+        // so we will filter the list here if needed, to get consistent results in this situation for all FilterModes
+        if (wsOnly) {
+            const workspace = workspaceManager.get_active_workspace();
+            windows = windows.filter(w => w.get_workspace() === workspace);
+        }
+
         if (this.WIN_SKIP_MINIMIZED)
             windows = windows.filter(win => !win.minimized);
-    
-        if (!windows.length)
-            return;
-    
-        let currentWin  = windows[0];
-        // tab list is sorted by MRU order, active window is allways idx 0
-        // each window has index in global stable order list (as launched)
-        windows.sort((a, b) => {
-                return a.get_stable_sequence() - b.get_stable_sequence();
-            });
+
+        if (!windows.length) return;
+
+        // if window selection is in the process, the previewd window must be the current one
+        let currentWin  = this._winPreview ? this._winPreview._window : windows[0];
+        if (this.WIN_STABLE_SEQUENCE) {
+            // tab list is sorted by MRU order, active window is allways idx 0
+            // each window has index in global stable order list (as launched)
+            windows.sort((a, b) => {
+                    return a.get_stable_sequence() - b.get_stable_sequence();
+                }).reverse(); // reverse the list to get the same sequence direction as MRU list has
+        }
         const currentIdx = windows.indexOf(currentWin);
-        let targetIdx = currentIdx + direction;
-        if (targetIdx > windows.length - 1)
+        let targetIdx = currentIdx + ( - direction); // reverse the direction to follow MRU ordered list
+
+        if (targetIdx > windows.length - 1) {
             targetIdx = this.WIN_WRAPAROUND ? 0 : currentIdx;
-        else if (targetIdx < 0)
+        } else if (targetIdx < 0) {
             targetIdx = this.WIN_WRAPAROUND ? windows.length - 1 : currentIdx;
-        windows[targetIdx].activate(global.get_current_time());
+        }
+
+        this._showWindowPreview(windows[targetIdx]);
+        if (this._winSwitcherTimeoutId) {
+            GLib.source_remove(this._winSwitcherTimeoutId);
+            this._winSwitcherTimeoutId = 0;
+        }
+        this._winSwitcherTimeoutId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            300,
+            () => {
+                // if the mouse pointer is still over the edge of the current monitor, we assume that the user has not yet finished the selection
+                if (this._winPreview && !this._isPointerOnEdge()) {
+                    this._winPreview._window.activate(global.get_current_time());
+                    this._destroyWindowPreview();
+                    this._winSwitcherTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+                return GLib.SOURCE_CONTINUE;
+            }
+        );
     }
-    
+
+    // returns true if the mouse pointer is at the edge of the current monitor and not further than 100px on the other axis
+    _isPointerOnEdge() {
+        let [x, y] = global.get_pointer();
+        const geometry = global.display.get_monitor_geometry(global.display.get_current_monitor());
+        if ([geometry.x, geometry.x + geometry.width -1].includes(x) && Math.abs(this._winPreview._yPointer - y) < 100)
+            return true;
+        if ([geometry.y, geometry.y + geometry.height - 1].includes(y) && Math.abs(this._winPreview._xPointer - x) < 100)
+            return true;
+
+        return false;
+    }
+
+    _showWindowPreview(metaWin) {
+        if (!metaWin) return;
+
+        /*if (this._winPreview) {
+            this._destroyWindowPreview();
+        }*/
+
+        if (!this._winPreview) {
+            this._winPreview = new AltTab.CyclerHighlight();
+            global.window_group.add_actor(this._winPreview);
+            [this._winPreview._xPointer, this._winPreview._yPointer] = global.get_pointer();
+        }
+
+        this._winPreview.window = metaWin;
+        this._winPreview._window = metaWin;
+        global.window_group.set_child_above_sibling(this._winPreview, null);
+    }
+
+    _destroyWindowPreview() {
+        if (this._winPreview) {
+            this._winPreview.destroy();
+            this._winPreview = null;
+        }
+    }
+
+    //direction +1 / -1, 0 for toggle mute
     adjustVolume(direction) {
         let mixerControl = Volume.getMixerControl();
         let sink = mixerControl.get_default_sink();
+
+        if (!sink) return;
+
+        const soundSettings = this._getSoundSettings();
+        const alowOverAmplification = soundSettings.get_boolean('allow-volume-above-100-percent');
+
         if (direction === 0) {
             sink.change_is_muted(!sink.is_muted);
-        } else {
-            let volume = sink.volume;
-            let max = mixerControl.get_vol_max_norm();
-            let step = direction * 2048;
-            volume = volume + step;
-            if (volume > max)
-                volume = max;
-            if (volume <   0)
-                volume = 0;
-            sink.volume = volume;
-            sink.push_volume();
+            return;
         }
+
+        let volume = sink.volume;
+        const maxLevelNorm = mixerControl.get_vol_max_norm();
+        const maxLevel = alowOverAmplification ? mixerControl.get_vol_max_amplified() : maxLevelNorm;
+        const ampScale = maxLevel / maxLevelNorm;
+
+        const step = direction * 2048;
+
+        volume = volume + step;
+        if (volume > maxLevel)
+            volume = maxLevel;
+        if (volume < 0)
+            volume = 0;
+
+        sink.volume = volume;
+        sink.push_volume();
+
+        // OSD
+        let icons = ["audio-volume-muted-symbolic",
+                     "audio-volume-low-symbolic",
+                     "audio-volume-medium-symbolic",
+                     "audio-volume-high-symbolic",
+                     "audio-volume-overamplified-symbolic"];
+
+                     let n;
+        if (sink.is_muted || volume <= 0) {
+            n = 0;
+        } else {
+            n = Math.ceil(3 * volume / maxLevelNorm);
+            if (n < 1)
+                n = 1;
+            else if (n > 3)
+                n = 4;
+        }
+
+        const gicon = new Gio.ThemedIcon({ name: icons[n] });
+        const level = volume / maxLevel * ampScale;
+        Main.osdWindowManager.show(-1, gicon, null, level, ampScale);
     }
 
     toggleNightLight() {
@@ -783,15 +1214,15 @@ var Actions = class {
         let brightnessContrast, value;
 
         const getBCValue = function () {
-            return brightness ?
-                            brightnessContrast.get_brightness()[0] : // Clutter returns value in [r,g,b] format
-                            brightnessContrast.get_contrast()[0];
+            return brightness
+                            ? brightnessContrast.get_brightness()[0] // Clutter returns value in [r,g,b] format
+                            : brightnessContrast.get_contrast()[0];
         };
 
         const setBCValue = function (val) {
-            return brightness ?
-                            brightnessContrast.set_brightness(val) :
-                            brightnessContrast.set_contrast(val);
+            return brightness
+                            ? brightnessContrast.set_brightness(val)
+                            : brightnessContrast.set_contrast(val);
         };
 
         if (window) {
@@ -826,21 +1257,22 @@ var Actions = class {
 
         // notify when normal contrast is reached
         if (!valueO && value === 0) {
-            brightness ?
-                brightnessContrast.set_brightness(-0.3) :
-                brightnessContrast.set_contrast(-0.1);
-            GLib.timeout_add(
+            brightness
+                ? brightnessContrast.set_brightness(-0.3)
+                : brightnessContrast.set_contrast(-0.1);
+            this._setBCTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
                 100,
                 () => {
                     setBCValue(value);
-                    return false;
+                    this._setBCTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
                 }
             );
         }
 
     }
-    
+
     toggleDesaturateEffect(window = true) {
         let name = 'desaturate';
         let effect = Clutter.DesaturateEffect;
@@ -848,7 +1280,6 @@ var Actions = class {
             this._toggleWindowEffect(name, effect);
         else
             this._toggleGlobalEffect(name, effect);
-
     }
 
     toggleColorTintEffect(color, window = true) {
@@ -871,7 +1302,7 @@ var Actions = class {
         else
             this._toggleGlobalEffect(name, effect);
     }
-    
+
     toggleColorsInvertEffect(window = true) {
         let name = 'inversion';
         this._getShaders();
@@ -943,7 +1374,7 @@ var Actions = class {
             }
         });
     }
-    
+
     toggleDimmMonitors(alpha, text, monitorIndex = -1) {
         // reverse order to avoid conflicts after dimmer removed
         let createNew = true;
@@ -952,9 +1383,9 @@ var Actions = class {
                 createNew = false;
         }
         for (let i = this._dimmerActors.length - 1; i > -1;  i--) {
-    
+
             if (this._dimmerActors[i].name === `${monitorIndex}`) {
-    
+
                 let idx = this._dimmerActors.indexOf(this._dimmerActors[i]);
                 if (idx > -1) {
                     this._dimmerActors[i].destroy();
@@ -966,9 +1397,9 @@ var Actions = class {
         if (createNew) {
             if (monitorIndex === -1) this._destroyDimmerActors();
             let monitors = [...Main.layoutManager.monitors.keys()];
-    
+
             for (let monitor of monitors) {
-    
+
                 if ( (monitorIndex < 0 ? true : monitor === monitorIndex)) {
                     let geometry = global.display.get_monitor_geometry(monitor);
                     let actor = new St.Label ({
@@ -983,7 +1414,6 @@ var Actions = class {
                         reactive: true,
                     });
                     actor.connect('button-press-event', () => this.toggleDimmMonitors(null, null, monitorIndex));
-                    //global.stage.add_actor(actor);  // actor added like this is transparent for the mouse pointer events
                     Main.layoutManager.addChrome(actor);
                     this._dimmerActors.push(actor);
                 }
@@ -1027,17 +1457,28 @@ var Actions = class {
     }
 
     toggleKeyboard(monitorIndex = -1) {
-        if (monitorIndex < 0)
-            monitorIndex = global.display.get_current_monitor();
-        let visible = Main.keyboard.visible;
-        let appSettings = this._getA11yAppSettings();
-        if (visible)
-            appSettings.set_boolean('screen-keyboard-enabled', false);
-        else {
-            if (!appSettings.get_boolean('screen-keyboard-enabled'))
-                appSettings.set_boolean('screen-keyboard-enabled', true);
-            Main.keyboard.open(monitorIndex);
-        }
+        // timeout added because of activation from menu, keyboard doesn't show up if menu is up
+        this.keyboardTimeoutId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            200,
+            () => {
+                if (monitorIndex < 0)
+                    monitorIndex = global.display.get_current_monitor();
+                let visible = Main.keyboard.visible;
+                let appSettings = this._getA11yAppSettings();
+                if (visible)
+                    appSettings.set_boolean('screen-keyboard-enabled', false);
+                else {
+                    if (!appSettings.get_boolean('screen-keyboard-enabled'))
+                        appSettings.set_boolean('screen-keyboard-enabled', true);
+                    // open the keyboard even if incompatible input is currently in focus
+                    Main.keyboard.open(monitorIndex);
+                }
+
+                this.keyboardTimeoutId = 0;
+                return GLib.SOURCE_REMOVE;
+            }
+        );
     }
 
     toggleScreenReader() {
@@ -1070,18 +1511,18 @@ var Actions = class {
         if (!metaWin)
             return;
 
-        if (!this.tmbConnected) {
+        if (!this._tmbConnected) {
             let conS = Main.overview.connect('showing', () => { this.windowThumbnails.forEach((t) => {t.hide();}); });
             let conH = Main.overview.connect('hiding',  () => { this.windowThumbnails.forEach((t) => {t.show();}); });
             this._signalsCollector.push([Main.overview, conS]);
             this._signalsCollector.push([Main.overview, conH]);
-            this.tmbConnected = true;
+            this._tmbConnected = true;
         }
 
         let monitorHeight = get_current_monitor_geometry().height;
-        let scale = this._mscOptions.winThumbnailScale;
+        let scale = this._mscOptions.get('winThumbnailScale');
         this.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this, {
-            'actionTimeout': this._mscOptions.actionEventDelay,
+            'actionTimeout': this._mscOptions.get('actionEventDelay'),
             'height' : Math.floor(scale / 100 * monitorHeight),
             'thumbnailsOnScreen' : this.windowThumbnails.length,
             })
@@ -1105,6 +1546,7 @@ var Actions = class {
         'filter-focused-app': false,
         'filter-pattern':     null,
         'apps':               false,
+        'switch-ws':          false,
     }) {
         const WindowSwitcherPopup = AltTab.WindowSwitcherPopup;
         let altTabPopup = new WindowSwitcherPopup();
@@ -1113,7 +1555,9 @@ var Actions = class {
         if (advancedSwitcherEnabled) {
             // behaviour variables
             altTabPopup.KEYBOARD_TRIGGERED = args['triggered-keyboard'];
-            altTabPopup._singleApp         = args['filter-focused-app'] ? Shell.WindowTracker.get_default().get_window_app(this._getFocusedWindow()).get_id() : null;
+            altTabPopup._singleApp         = args['filter-focused-app']
+                                                    ? Shell.WindowTracker.get_default().get_window_app(this._getFocusedWindow()).get_id()
+                                                    : null;
             if ( args['timeout'])
                 altTabPopup.NO_MODS_TIMEOUT  = args['timeout'];
             if ( args['position-pointer'] !== null)
@@ -1135,6 +1579,9 @@ var Actions = class {
             altTabPopup.connect('destroy', () => altTabPopup = null);
             altTabPopup._keyBind = args['shortcut'] ? args['shortcut'].replace(/<.+>/, '') : '';
             altTabPopup.show();
+            if ( args['switch-ws'] !== undefined && args['switch-ws'] !== false) {
+                altTabPopup._switchWorkspace(args['switch-ws']);
+            }
         // if Advanced Alt+Tab Window Switcher not available, use default popup
         } else {
             if (args['apps'])
@@ -1145,16 +1592,16 @@ var Actions = class {
     }
 
     showCustomMenu(actionTrigger, menuIndex) {
-        if (!this._mscOptions[`customMenu${menuIndex}`].length)
+        if (!this._mscOptions.get(`customMenu${menuIndex}`).length)
             return;
         if (!this.customMenu[menuIndex]) {
             this.customMenu[menuIndex] = new CustomMenuPopup(Main.layoutManager);
             this.customMenu[menuIndex].act.connect('destroy', () => {
-                Main.layoutManager.uiGroup.remove_actor(this.customMenu[menuIndex].actor);    
+                Main.layoutManager.uiGroup.remove_actor(this.customMenu[menuIndex].actor);
             });
             Main.layoutManager.uiGroup.add_actor(this.customMenu[menuIndex].actor);
         }
-        this.customMenu[menuIndex].menuItems      = this._mscOptions[`customMenu${menuIndex}`];
+        this.customMenu[menuIndex].menuItems      = this._mscOptions.get(`customMenu${menuIndex}`);
         this.customMenu[menuIndex].actionList     = Settings.actionList;
         let focusedWin = this._getFocusedWindow() ? this._getFocusedWindow().get_title() : null
         if (focusedWin && focusedWin.length > 40)
@@ -1167,11 +1614,53 @@ var Actions = class {
         Main.layoutManager.setDummyCursorGeometry(global.get_pointer()[0], global.get_pointer()[1], 0, 0);
 
         //Main.osdWindowManager.hideAll();
-        let firstItem = this.customMenu[menuIndex]._getMenuItems()[1];
-        if (firstItem) {
-            this.customMenu[menuIndex].open(BoxPointer.PopupAnimation.FULL);
-            this.customMenu[menuIndex]._getMenuItems()[1].active = true;
-        }
+        const focusedWinItem = this.customMenu[menuIndex].windowNeeded;
+        const firstItem = this.customMenu[menuIndex]._getMenuItems()[focusedWinItem ? 1 : 0];
+        this.customMenu[menuIndex].open(BoxPointer.PopupAnimation.FULL);
+        firstItem.active = true;
+    }
+
+    // actions 0 - PlayPause, 1 - Next, 2 - Prev
+    mprisPlayerControler(action = 0) {
+        const Methods = [
+            'PlayPause',
+            'Next',
+            'Previous'
+        ]
+        let method = Methods[action];
+        let session = Gio.DBus.session;
+        session.call(
+            'org.freedesktop.DBus',
+            "/org/freedesktop",
+            'org.freedesktop.DBus',
+            'ListNames',
+            null, null, Gio.DBusCallFlags.NONE,-1,null,
+            (connection, res) => {
+                try {
+                    let reply = connection.call_finish(res);
+                    let value = reply.get_child_value(0);
+                    let mprisServices = value.get_strv().filter(n => n.includes('org.mpris.MediaPlayer2'));
+                    // first in the list is usually the last created player, media keys in GNOME works the same way
+                    let player = mprisServices[0];
+                    this._executeMprisPlayerCommand(session, player, method);
+                } catch (e) {
+                    if (e instanceof Gio.DBusError) {
+                        Gio.DBusError.strip_remote_error(e);
+                    }
+                    logError(e);
+                }
+            }
+        );
+    }
+
+    _executeMprisPlayerCommand(session, player, method) {
+        session.call(
+            player,
+            "/org/mpris/MediaPlayer2",
+            'org.mpris.MediaPlayer2.Player',
+            method,
+            null, null, Gio.DBusCallFlags.NONE,-1,null
+        );
     }
 };
 
@@ -1181,6 +1670,7 @@ var CustomMenuPopup = class CustomMenuPopup extends PopupMenu.PopupMenu {
         this.menuItems = [];
         this.actionList = [];
         this.focusedWindow = null;
+        this.windowNeeded = false;
         this.actionTrigger = null;
         this.actor.add_style_class_name('background-menu');
 
@@ -1189,7 +1679,7 @@ var CustomMenuPopup = class CustomMenuPopup extends PopupMenu.PopupMenu {
         this.act.menu = this;
         this.act.manager = new PopupMenu.PopupMenuManager(this.act);
         this.act.manager.addMenu(this.act.menu);
-        
+
         // this.actor.connect('hide', this.destroy.bind(this));
     }
 
@@ -1202,25 +1692,34 @@ var CustomMenuPopup = class CustomMenuPopup extends PopupMenu.PopupMenu {
     }
 
     buildMenu() {
-        if (this.focusedWindow === null)
-            this.focusedWindow = _('No window has focus!');
-        let win = new PopupMenu.PopupMenuItem(`Win: ${this.focusedWindow}`);
-        win.sensitive = false;
-        this.addMenuItem(win, 0);
+        const runActionData = {
+            action: null,
+            monitorIndex: 0,
+            workspaceIndex: 0,
+            command: null,
+            keyboard: false
+        }
+        this.windowNeeded = false;
         let submenu = null;
+
         for (let i = 0; i < this.actionList.length; i++) {
-            let item = this.actionList[i];
+            const item = this.actionList[i];
+            const section = item[0] === null;
 
-            let action  = item[1];
-            let section = item[0] === null;
-
-            if (!this.menuItems.includes(action)) {
-                if (section) submenu = null;
+            if (!this.menuItems.includes(item[1])) {
+                // reset submenu if it shouldn't be used
+                if (section)
+                    submenu = null;
                 continue;
             }
+
+            const action  = item[1];
             // add space between icon and name
-            let name = ` ${item[2]}`;
-            let icon = item[4];
+            const name = ` ${item[2]}`;
+            const icon = item[4];
+            const needsWin = item[5];
+            if (needsWin)
+                this.windowNeeded = true;
 
             if (item[0] === 0) submenu = null;
             if (section) {
@@ -1228,10 +1727,24 @@ var CustomMenuPopup = class CustomMenuPopup extends PopupMenu.PopupMenu {
                 submenu.icon.icon_name = icon;
                 this.addMenuItem(submenu);
             } else if (submenu) {
-                submenu.menu.addAction(name, () => this.actionTrigger.runAction(action), icon);
+                submenu.menu.addAction(name, () => {
+                    runActionData.action = action;
+                    this.actionTrigger.runAction(runActionData);
+                }, icon);
             } else {
-                this.addAction(name, () => this.actionTrigger.runAction(action), icon);
+                this.addAction(name, () => {
+                    runActionData.action = action;
+                    this.actionTrigger.runAction(runActionData);
+                }, icon);
             }
+        }
+
+        if (this.windowNeeded) {
+            if (this.focusedWindow === null)
+                this.focusedWindow = _('No window has focus!');
+            let win = new PopupMenu.PopupMenuItem(this.focusedWindow);
+            win.sensitive = false;
+            this.addMenuItem(win, 0);
         }
     }
 };

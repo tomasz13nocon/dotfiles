@@ -1,6 +1,6 @@
 const {Gtk, GObject} = imports.gi;
-const Signals = imports.signals;
 
+/* exported ButtonCellRenderer */
 var ButtonCellRenderer = GObject.registerClass({
     GTypeName: 'ButtonCellRenderer'
 
@@ -16,6 +16,5 @@ var ButtonCellRenderer = GObject.registerClass({
         this.emit('clicked', path);
     }
 });
-Signals.addSignalMethods(ButtonCellRenderer.prototype);
 
 /* vi: set expandtab tabstop=4 shiftwidth=4: */

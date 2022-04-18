@@ -366,24 +366,48 @@ var AppIndicator = class AppIndicatorsAppIndicator {
         delete this._nameWatcher;
     }
 
-    open() {
+    open(x, y) {
         // we can't use WindowID because we're not able to get the x11 window id from a MetaWindow
         // nor can we call any X11 functions. Luckily, the Activate method usually works fine.
         // parameters are "an hint to the item where to show eventual windows" [sic]
         // ... and don't seem to have any effect.
-        this._proxy.ActivateRemote(0, 0);
+        this._proxy.ActivateRemote(x, y, this._cancellable, (_, e) => {
+            if (e && !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                Util.Logger.critical(`${this._indicator.id}, failed to activate: ${e.message}`);
+        });
     }
 
-    secondaryActivate() {
-        this._proxy.SecondaryActivateRemote(0, 0);
+    secondaryActivate(timestamp, x, y) {
+        const cancellable = this._cancellable;
+
+        this._proxy.XAyatanaSecondaryActivateRemote(timestamp, cancellable, (_, e) => {
+            if (e && e.matches(Gio.DBusError, Gio.DBusError.UNKNOWN_METHOD)) {
+                this._proxy.SecondaryActivateRemote(x, y, cancellable, (_r, error) => {
+                    if (error && !error.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                        Util.Logger.critical(`${this._indicator.id}, failed to secondary activate: ${e.message}`);
+                });
+            } else if (e && !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED)) {
+                Util.Logger.critical(`${this._indicator.id}, failed to secondary activate: ${e.message}`);
+            }
+        });
     }
 
     scroll(dx, dy) {
-        if (dx !== 0)
-            this._proxy.ScrollRemote(Math.floor(dx), 'horizontal');
+        const cancellable = this._cancellable;
 
-        if (dy !== 0)
-            this._proxy.ScrollRemote(Math.floor(dy), 'vertical');
+        if (dx !== 0) {
+            this._proxy.ScrollRemote(Math.floor(dx), 'horizontal', cancellable, (_, e) => {
+                if (e && !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                    Util.Logger.critical(`${this._indicator.id}, failed to scroll horizontally: ${e.message}`);
+            });
+        }
+
+        if (dy !== 0) {
+            this._proxy.ScrollRemote(Math.floor(dy), 'vertical', cancellable, (_, e) => {
+                if (e && !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                    Util.Logger.critical(`${this._indicator.id}, failed to scroll vertically: ${e.message}`);
+            });
+        }
     }
 };
 Signals.addSignalMethods(AppIndicator.prototype);
@@ -772,7 +796,7 @@ class AppIndicatorsIconActor extends St.Icon {
                     return gicon;
             }
 
-            if (pixmap)
+            if (pixmap && pixmap.length)
                 return this._createIconFromPixmap(iconSize, pixmap, iconType);
         } catch (e) {
             /* We handle the error messages already */
@@ -785,7 +809,7 @@ class AppIndicatorsIconActor extends St.Icon {
     }
 
     // updates the base icon
-    _updateIcon() {
+    async _updateIcon() {
         if (this.gicon instanceof Gio.EmblemedIcon) {
             let { gicon } = this.gicon;
 
@@ -798,10 +822,17 @@ class AppIndicatorsIconActor extends St.Icon {
             ? SNIconType.ATTENTION : SNIconType.NORMAL;
 
         this._updateIconSize();
-        this._updateIconByType(iconType, this._iconSize);
+
+        try {
+            await this._updateIconByType(iconType, this._iconSize);
+        } catch (e) {
+            if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED) &&
+                !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.PENDING))
+                logError(e, `${this._indicator.id}: Updating icon type ${iconType} failed`);
+        }
     }
 
-    _updateOverlayIcon() {
+    async _updateOverlayIcon() {
         if (this._emblem) {
             let { icon } = this._emblem;
 
@@ -814,7 +845,13 @@ class AppIndicatorsIconActor extends St.Icon {
         // our algorithms will always pick a smaller one instead of stretching it.
         let iconSize = Math.floor(this._iconSize / 1.6);
 
-        this._updateIconByType(SNIconType.OVERLAY, iconSize);
+        try {
+            await this._updateIconByType(SNIconType.OVERLAY, iconSize);
+        } catch (e) {
+            if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED) &&
+                !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.PENDING))
+                logError(e, `${this._indicator.id}: Updating overlay icon failed`);
+        }
     }
 
     // called when the icon theme changes

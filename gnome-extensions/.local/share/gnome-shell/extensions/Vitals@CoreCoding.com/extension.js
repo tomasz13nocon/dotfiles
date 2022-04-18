@@ -17,7 +17,7 @@ const MenuItem = Me.imports.menuItem;
 let vitalsMenu;
 
 var VitalsMenuButton = GObject.registerClass({
-       GTypeName: 'VitalsMenuButton',
+    GTypeName: 'VitalsMenuButton',
 }, class VitalsMenuButton extends PanelMenu.Button {
     _init() {
         super._init(St.Align.START);
@@ -32,8 +32,8 @@ var VitalsMenuButton = GObject.registerClass({
               'processor' : { 'icon': 'cpu-symbolic.svg' },
                  'system' : { 'icon': 'system-symbolic.svg' },
                 'network' : { 'icon': 'network-symbolic.svg',
-                     'icon-rx': 'network-download-symbolic.svg',
-                     'icon-tx': 'network-upload-symbolic.svg' },
+                           'icon-rx': 'network-download-symbolic.svg',
+                           'icon-tx': 'network-upload-symbolic.svg' },
                 'storage' : { 'icon': 'storage-symbolic.svg' },
                 'battery' : { 'icon': 'battery-symbolic.svg' }
         }
@@ -44,6 +44,7 @@ var VitalsMenuButton = GObject.registerClass({
         this._hotIcons = {};
         this._groups = {};
         this._widths = {};
+        this._last_query = new Date().getTime();
 
         this._sensors = new Sensors.Sensors(this._settings, this._sensorIcons);
         this._values = new Values.Values(this._settings, this._sensorIcons);
@@ -64,9 +65,8 @@ var VitalsMenuButton = GObject.registerClass({
 
         this._addSettingChangedSignal('update-time', this._updateTimeChanged.bind(this));
         this._addSettingChangedSignal('position-in-panel', this._positionInPanelChanged.bind(this));
-        this._addSettingChangedSignal('use-higher-precision', this._higherPrecisionChanged.bind(this));
 
-        let settings = [ 'alphabetize', 'include-public-ip', 'hide-zeros', 'unit', 'network-speed-format', 'memory-measurement', 'storage-measurement', 'fixed-widths', 'hide-icons' ];
+        let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros', 'fixed-widths', 'hide-icons', 'unit', 'memory-measurement', 'include-public-ip', 'network-speed-format', 'storage-measurement' ];
         for (let setting of Object.values(settings))
             this._addSettingChangedSignal(setting, this._redrawMenu.bind(this));
 
@@ -87,18 +87,18 @@ var VitalsMenuButton = GObject.registerClass({
         // display sensor categories
         for (let sensor in this._sensorIcons) {
             // groups associated sensors under accordion menu
-            if (typeof this._groups[sensor] != 'undefined') continue;
+            if (sensor in this._groups) continue;
 
             this._groups[sensor] = new PopupMenu.PopupSubMenuMenuItem(_(this._ucFirst(sensor)), true);
             this._groups[sensor].icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[sensor]['icon']);
 
             // hide menu items that user has requested to not include
             if (!this._settings.get_boolean('show-' + sensor))
-                this._groups[sensor].actor.hide(); // 3.34?
+                this._groups[sensor].actor.hide();
 
             if (!this._groups[sensor].status) {
                 this._groups[sensor].status = this._defaultLabel();
-                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4); // 3.34?
+                this._groups[sensor].actor.insert_child_at_index(this._groups[sensor].status, 4);
                 this._groups[sensor].status.text = 'No Data';
             }
 
@@ -151,13 +151,7 @@ var VitalsMenuButton = GObject.registerClass({
         let prefsButton = this._createRoundButton('preferences-system-symbolic', _('Preferences'));
         prefsButton.connect('clicked', (self) => {
             this.menu._getTopMenu().close();
-
-            // Gnome 3.36 has a fancier way of opening preferences
-            if (typeof ExtensionUtils.openPrefs === 'function') {
-                ExtensionUtils.openPrefs();
-            } else {
-                Util.spawn(['gnome-shell-extension-prefs', Me.metadata.uuid]);
-            }
+            ExtensionUtils.openPrefs();
         });
         customButtonBox.add_actor(prefsButton);
 
@@ -169,8 +163,13 @@ var VitalsMenuButton = GObject.registerClass({
 
         // query sensors on menu open
         this._menuStateChangeId = this.menu.connect('open-state-changed', (self, isMenuOpen) => {
-            if (isMenuOpen)
+            if (isMenuOpen) {
+                // make sure timer fires at next full interval
+                this._updateTimeChanged();
+
+                // refresh sensors now
                 this._querySensors();
+            }
         });
     }
 
@@ -193,6 +192,7 @@ var VitalsMenuButton = GObject.registerClass({
             // make sure default icon (if any) stays visible
             if (sensor == '_default_icon_') continue;
 
+            // removes sensors that are no longer available
             if (!this._sensorMenuItems[sensor]) {
                 hotSensors.splice(i, 1);
                 this._removeHotLabel(sensor);
@@ -204,6 +204,9 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _saveHotSensors(hotSensors) {
+        // removes any sensors that may not currently be available
+        hotSensors = this._removeMissingHotSensors(hotSensors);
+
         this._settings.set_strv('hot-sensors', hotSensors.filter(
             function(item, pos) {
                 return hotSensors.indexOf(item) == pos;
@@ -214,7 +217,6 @@ var VitalsMenuButton = GObject.registerClass({
     _initializeTimer() {
         // used to query sensors and update display
         let update_time = this._settings.get_int('update-time');
-        this._sensors.update_time = update_time;
         this._refreshTimeoutId = Mainloop.timeout_add_seconds(update_time, (self) => {
             // only update menu if we have hot sensors
             if (Object.values(this._hotLabels).length > 0)
@@ -244,13 +246,11 @@ var VitalsMenuButton = GObject.registerClass({
         label.get_clutter_text().ellipsize = 0;
 
         this._hotLabels[key] = label;
-        this._menuLayout.add_actor(label);
-    }
 
-    _higherPrecisionChanged() {
-        this._sensors.resetHistory();
-        this._values.resetHistory();
-        this._querySensors();
+        // support for fixed widths #55, save label (text) width
+        this._widths[key] = label.width;
+
+        this._menuLayout.add_actor(label);
     }
 
     _showHideSensorsChanged(self, sensor) {
@@ -259,20 +259,21 @@ var VitalsMenuButton = GObject.registerClass({
 
     _positionInPanelChanged() {
         this.container.get_parent().remove_actor(this.container);
+        let position = this._positionInPanel();
 
-        // small HACK with private boxes
+        // allows easily addressable boxes
         let boxes = {
             left: Main.panel._leftBox,
             center: Main.panel._centerBox,
             right: Main.panel._rightBox
         };
 
-        let p = this.positionInPanel;
-        boxes[p].insert_child_at_index(this.container, p == 'right' ? 0 : -1)
+        // update position when changed from preferences
+        boxes[position[0]].insert_child_at_index(this.container, position[1]);
     }
 
     _removeHotLabel(key) {
-        if (typeof this._hotLabels[key] != 'undefined') {
+        if (key in this._hotLabels) {
             let label = this._hotLabels[key];
             delete this._hotLabels[key];
             // make sure set_label is not called on non existant actor
@@ -286,7 +287,7 @@ var VitalsMenuButton = GObject.registerClass({
     }
 
     _removeHotIcon(key) {
-        if (typeof this._hotIcons[key] != 'undefined') {
+        if (key in this._hotIcons) {
             this._hotIcons[key].destroy();
             delete this._hotIcons[key];
         }
@@ -316,8 +317,13 @@ var VitalsMenuButton = GObject.registerClass({
     _drawMenu() {
         // grab list of selected menubar icons
         let hotSensors = this._settings.get_strv('hot-sensors');
-        for (let key of Object.values(hotSensors))
+        for (let key of Object.values(hotSensors)) {
+            // fixes issue #225 which started when _max_ was moved to the end
+            if (key == '__max_network-download__') key = '__network-rx_max__';
+            if (key == '__max_network-upload__') key = '__network-tx_max__';
+
             this._createHotItem(key);
+        }
     }
 
     _destroyTimer() {
@@ -344,9 +350,7 @@ var VitalsMenuButton = GObject.registerClass({
 
             // support for fixed widths #55
             if (this._settings.get_boolean('fixed-widths')) {
-                if (typeof this._widths[key] == 'undefined')
-                    this._widths[key] = this._hotLabels[key].width;
-
+                // grab text box width and see if new text is wider than old text
                 let width2 = this._hotLabels[key].get_clutter_text().width;
                 if (width2 > this._widths[key]) {
                     this._hotLabels[key].set_width(width2);
@@ -377,7 +381,7 @@ var VitalsMenuButton = GObject.registerClass({
     _appendMenuItem(sensor, key) {
         let split = sensor.type.split('-');
         let type = split[0];
-        let icon = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+        let icon = (split.length == 2)?'icon-' + split[1]:'icon';
         let gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][icon]);
 
         let item = new MenuItem.MenuItem(gicon, key, sensor.label, sensor.value, this._hotLabels[key]);
@@ -408,9 +412,6 @@ var VitalsMenuButton = GObject.registerClass({
                 }
             }
 
-            // removes any sensors that may not currently be available
-            hotSensors = this._removeMissingHotSensors(hotSensors);
-
             // this code is called asynchronously - make sure to save it for next round
             this._saveHotSensors(hotSensors);
         });
@@ -423,9 +424,8 @@ var VitalsMenuButton = GObject.registerClass({
             let menuItems = this._groups[type].menu._getMenuItems();
             for (i = 0; i < menuItems.length; i++)
                 // use natural sort order for system load, etc
-                if (typeof menuItems[i] != 'undefined' && typeof menuItems[i].label != 'undefined' &&
-                    menuItems[i].label.localeCompare(item.label, undefined, { numeric: true, sensitivity: 'base' }) > 0)
-                        break;
+                if (menuItems[i].label.localeCompare(item.label, undefined, { numeric: true, sensitivity: 'base' }) > 0)
+                    break;
         }
 
         this._groups[type].menu.addMenuItem(item, i);
@@ -447,11 +447,11 @@ var VitalsMenuButton = GObject.registerClass({
             reactive: true
         });
 
-        // support for hide icons #80
-        if (type == 'default') {
+        // second condition prevents crash due to issue #225, which started when _max_ was moved to the end
+        if (type == 'default' || !(type in this._sensorIcons)) {
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons['system']['icon']);
-        } else if (!this._settings.get_boolean('hide-icons')) {
-            let iconObj = (typeof split[1] != 'undefined')?'icon-' + split[1]:'icon';
+        } else if (!this._settings.get_boolean('hide-icons')) { // support for hide icons #80
+            let iconObj = (split.length == 2)?'icon-' + split[1]:'icon';
             icon.gicon = Gio.icon_new_for_string(Me.path + '/icons/' + this._sensorIcons[type][iconObj]);
         }
 
@@ -462,12 +462,51 @@ var VitalsMenuButton = GObject.registerClass({
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    get positionInPanel() {
-        let positions = [ 'left', 'center', 'right' ];
-        return positions[this._settings.get_int('position-in-panel')];
+    _positionInPanel() {
+        let alignment = '';
+        let gravity = 0;
+        let arrow_pos = 0;
+
+        switch (this._settings.get_int('position-in-panel')) {
+            case 0: // left
+                alignment = 'left';
+                gravity = -1;
+                arrow_pos = 1;
+                break;
+            case 1: // center
+                alignment = 'center';
+                gravity = -1;
+                arrow_pos = 0.5;
+                break;
+            case 2: // right
+                alignment = 'right';
+                gravity = 0;
+                arrow_pos = 0;
+                break;
+            case 3: // far left
+                alignment = 'left';
+                gravity = 0;
+                arrow_pos = 1;
+                break;
+            case 4: // far right
+                alignment = 'right';
+                gravity = -1;
+                arrow_pos = 0;
+                break;
+        }
+
+        // set arrow position when initializing and moving vitals
+        this.menu._arrowAlignment = arrow_pos;
+
+        return [alignment, gravity];
     }
 
     _querySensors() {
+        // figure out last run time
+        let now = new Date().getTime();
+        let dwell = (now - this._last_query) / 1000;
+        this._last_query = now;
+
         this._sensors.query((label, value, type, format) => {
             let key = '_' + type.replace('-group', '') + '_' + label.replace(' ', '_').toLowerCase() + '_';
 
@@ -479,10 +518,10 @@ var VitalsMenuButton = GObject.registerClass({
                 if (value == 'disabled') return;
             }
 
-            let items = this._values.returnIfDifferent(label, value, type, format, key);
+            let items = this._values.returnIfDifferent(dwell, label, value, type, format, key);
             for (let item of Object.values(items))
-                this._updateDisplay(_(item[0]), item[1], item[2], item[3]);
-        });
+                this._updateDisplay(item[0], item[1], item[2], item[3]);
+        }, dwell);
 
         if (this._warnings.length > 0) {
             this._notify('Vitals', this._warnings.join("\n"), 'folder-symbolic');
@@ -514,8 +553,8 @@ function init() {
 
 function enable() {
     vitalsMenu = new VitalsMenuButton();
-    let positionInPanel = vitalsMenu.positionInPanel;
-    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, positionInPanel == 'right' ? 1 : -1, positionInPanel);
+    let position = vitalsMenu._positionInPanel();
+    Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, position[1], position[0]);
 }
 
 function disable() {

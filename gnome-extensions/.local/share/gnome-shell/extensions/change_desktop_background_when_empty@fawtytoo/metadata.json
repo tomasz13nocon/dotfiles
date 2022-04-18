@@ -5,9 +5,10 @@
   "shell-version": [
     "3.38",
     "40",
-    "41"
+    "41",
+    "42"
   ],
   "url": "",
   "uuid": "change_desktop_background_when_empty@fawtytoo",
-  "version": 13
+  "version": 14
 }

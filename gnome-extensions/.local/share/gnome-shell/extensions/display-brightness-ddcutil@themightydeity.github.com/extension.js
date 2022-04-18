@@ -96,7 +96,7 @@ function BrightnessControl(set) {
         displays = [];
         if (settings.get_string('button-location') == "panel") {
             brightnessLog("Adding to panel");
-            mainMenuButton = new StatusAreaBrightnessMenu();
+            mainMenuButton = new StatusAreaBrightnessMenu(settings);
             Main.panel.addToStatusArea("DDCUtilBrightnessSlider", mainMenuButton, 0, "right");
         } else {
             brightnessLog("Adding to system menu");
@@ -131,6 +131,9 @@ function BrightnessControl(set) {
         if (_reloadMenuWidgetsTimer) {
             Convenience.clearTimeout(_reloadMenuWidgetsTimer);
         }
+        if (_reloadExtensionTimer) {
+            Convenience.clearTimeout(_reloadExtensionTimer);
+        }
         displays.forEach(display => {
             if ('slider' in display) {
                 display.slider.destory();
@@ -160,8 +163,9 @@ function setBrightness(settings, display, newValue) {
 
 function setAllBrightness(settings, newValue) {
     displays.forEach(display => {
+        display.slider.setHideOSD()
         display.slider.changeValue(newValue);
-        setBrightness(settings, display, newValue);
+        display.slider.resetOSD()
     });
 }
 
@@ -187,12 +191,12 @@ function addAllSlider(settings) {
     mainMenuButton.addMenuItem(allslider)
 
     /* save slider in main menu, so that it can be accessed easily for different events */
-    mainMenuButton.storeValueSliderForEvents(allslider.getValueSlider())
+    mainMenuButton.storeSliderForEvents(allslider)
 }
 
 function addDisplayToPanel(settings, display) {
     let onSliderChange = function (newValue) {
-        setBrightness(settings, display, newValue)
+        setBrightness(settings, display, newValue);
     }
     let displaySlider = new SingleMonitorSliderAndValue(settings, display.name, display.current, onSliderChange);
     display.slider = displaySlider;
@@ -200,11 +204,10 @@ function addDisplayToPanel(settings, display) {
         mainMenuButton.addMenuItem(displaySlider);
     }
 
-
     /* when "All" slider is shown we do not need to store each display's value slider */
     /* save slider in main menu, so that it can be accessed easily for different events */
     if (!settings.get_boolean('show-all-slider')) {
-        mainMenuButton.storeValueSliderForEvents(displaySlider.getValueSlider())
+        mainMenuButton.storeSliderForEvents(displaySlider)
     }
 
 }
@@ -225,6 +228,12 @@ function reloadMenuWidgets(settings) {
 }
 
 function _reloadMenuWidgets(settings) {
+    if (reloadingExtension) {
+        /* do nothing if extension is being reloaded */
+        brightnessLog("Skipping reloadMenuWidgets because extensions is reloading");
+        return;
+    }
+
     if (mainMenuButton === null) {
         return;
     }
@@ -232,7 +241,7 @@ function _reloadMenuWidgets(settings) {
     brightnessLog("Reloading widgets");
 
     mainMenuButton.removeAllMenu();
-    mainMenuButton.clearStoredValueSliders();
+    mainMenuButton.clearStoredSliders();
 
     if (settings.get_boolean('show-all-slider')) {
         addAllSlider(settings);
@@ -240,17 +249,40 @@ function _reloadMenuWidgets(settings) {
     displays.forEach(display => {
         addDisplayToPanel(settings, display);
     });
-    
+
     if (settings.get_string('button-location') == "panel") {
         addSettingsItem();
     }
 }
 
+let _reloadExtensionTimer = null;
+let reloadingExtension = false;
+
+/* 
+   reloading extension being called many times caused some lag
+   and also reloading menu widgets when reload extension was already called
+   caused unecessary extra ddcutil calls.
+ */
 function reloadExtension() {
+    reloadingExtension = true;
+    if (_reloadExtensionTimer) {
+        Convenience.clearTimeout(_reloadExtensionTimer);
+    }
+    _reloadExtensionTimer = Convenience.setTimeout(() => {
+        _reloadExtensionTimer = null;
+        _reloadExtension();
+    }, 1000)
+}
+
+function _reloadExtension() {
     brightnessLog("Reload extension");
     BrightnessControl("disable");
     BrightnessControl("enable");
+    reloadingExtension = false;
 }
+
+
+
 
 function addTextItemToPanel(text) {
     if (mainMenuButton === null) return;
@@ -283,33 +315,37 @@ function parseDisplaysInfoAndAddToPanel(settings, ddcutil_brief_info) {
                 Convenience.spawnWithCallback([ddcutil_path, "getvcp", "--brief", "D6", "--bus", display_bus], function (vcpPowerInfos) {
                     brightnessLog("ddcutil reading display status for bus: " + display_bus + " is: " + vcpPowerInfos)
                     /* only add display to list if ddc communication is supported with the bus*/
-                    if (vcpPowerInfos.indexOf("DDC communication failed") === -1) {
+                    if (vcpPowerInfos.indexOf("DDC communication failed") === -1 && vcpPowerInfos.indexOf("No monitor detected") === -1) {
                         let vcpPowerInfosArray = vcpPowerInfos.trim().split(" ");
 
-                        let stateCheck = (vcpPowerInfosArray.length >= 4);
+                        let displayInGoodState = true;
                         if (!settings.get_boolean('disable-display-state-check')) {
                             /*
                              D6 = Power mode
                              x01 = DPM: On,  DPMS: Off
                             */
-                            stateCheck = (stateCheck && vcpPowerInfosArray[3] == "x01")
+                             displayInGoodState = (vcpPowerInfosArray.length >= 4 && vcpPowerInfosArray[3] == "x01")
                         }
-                        if (stateCheck) {
+                        if (displayInGoodState) {
                             /* read the current and max brightness using getvcp 10 */
                             Convenience.spawnWithCallback([ddcutil_path, "getvcp", "--brief", "10", "--bus", display_bus], function (vcpInfos) {
-                                let display = {};
+                                if (vcpInfos.indexOf("DDC communication failed") === -1 && vcpInfos.indexOf("No monitor detected") === -1) {
+                                    let vcpInfosArray = vcpInfos.trim().split(" ");
+                                    if (vcpInfosArray[2] != "ERR" && vcpInfosArray.length >= 5) {
+                                        let display = {};
 
-                                let vcpInfosArray = vcpInfos.trim().split(" ");
-                                let maxBrightness = vcpInfosArray[4];
-                                /* we need current brightness in the scale of 0 to 1 for slider*/
-                                let currentBrightness = vcpInfosArray[3] / vcpInfosArray[4];
+                                        let maxBrightness = vcpInfosArray[4];
+                                        /* we need current brightness in the scale of 0 to 1 for slider*/
+                                        let currentBrightness = vcpInfosArray[3] / vcpInfosArray[4];
 
-                                /* make display object */
-                                display = { "bus": display_bus, "max": maxBrightness, "current": currentBrightness, "name": display_names[display_id] };
-                                displays.push(display);
+                                        /* make display object */
+                                        display = { "bus": display_bus, "max": maxBrightness, "current": currentBrightness, "name": display_names[display_id] };
+                                        displays.push(display);
 
-                                /* cheap way of making reloading all display slider in the panel */
-                                reloadMenuWidgets(settings);
+                                        /* cheap way of making reloading all display slider in the panel */
+                                        reloadMenuWidgets(settings);
+                                    }
+                                }
                             });
                         }
                     }
@@ -376,8 +412,10 @@ function onMonitorChange() {
 }
 
 let settingsSignals = {};
+let oldSettings = null;
 
 function connectSettingsSignals(settings) {
+    oldSettings = settings;
     settingsSignals = {
         change: settings.connect('changed', () => {
             onSettingsChange(settings)
@@ -385,7 +423,8 @@ function connectSettingsSignals(settings) {
         reload: settings.connect('changed::reload', reloadExtension),
         indicator: settings.connect('changed::button-location', reloadExtension),
         hide_system_indicator: settings.connect('changed::hide-system-indicator', reloadExtension),
-        position_system_menu: settings.connect('changed::position-system-menu', reloadExtension)
+        position_system_menu: settings.connect('changed::position-system-menu', reloadExtension),
+        disable_display_state_check: settings.connect('changed::disable-display-state-check', reloadExtension)
     }
 }
 
@@ -397,8 +436,12 @@ function connectMonitorChangeSignals() {
     }
 }
 
-function disconnectSettingsSignals(settings) {
-    settings.disconnect(settingsSignals.change);
+function disconnectSettingsSignals() {
+    Object.values(settingsSignals).forEach(signal => {
+        oldSettings.disconnect(signal);
+    });
+    settingsSignals = {};
+    oldSettings = null;
 }
 
 function disconnectMonitorSignals() {

@@ -26,7 +26,6 @@ const Utils = Me.imports.utils;
 
 const Clutter = imports.gi.Clutter;
 const Config = imports.misc.config;
-const Lang = imports.lang;
 const Main = imports.ui.main;
 const Shell = imports.gi.Shell;
 const Gtk = imports.gi.Gtk;
@@ -34,7 +33,7 @@ const Gdk = imports.gi.Gdk;
 const Gio = imports.gi.Gio;
 const Mainloop = imports.mainloop;
 const IconGrid = imports.ui.iconGrid;
-const OverviewControls = imports.ui.overviewControls;
+const { OverviewActor } = imports.ui.overview;
 const Workspace = imports.ui.workspace;
 const St = imports.gi.St;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
@@ -50,15 +49,14 @@ const DASH_MAX_HEIGHT_RATIO = 0.15;
 //timeout names
 const T1 = 'swipeEndTimeout';
 
-var dtpOverview = Utils.defineClass({
-    Name: 'DashToPanel.Overview',
+var Overview = class {
 
-    _init: function() {
+    constructor() {
         this._numHotkeys = 10;
         this._timeoutsHandler = new Utils.TimeoutsHandler();
-    },
+    }
 
-    enable : function(panel) {
+    enable (panel) {
         this._panel = panel;
         this.taskbar = panel.taskbar;
 
@@ -70,7 +68,6 @@ var dtpOverview = Utils.defineClass({
         this._optionalNumberOverlay();
         this._optionalClickToExit();
         this._toggleDash();
-        this._hookupAllocation();
 
         this._signalsHandler.add([
             Me.settings,
@@ -78,13 +75,9 @@ var dtpOverview = Utils.defineClass({
             () => this._toggleDash()
         ]);
     
-    },
+    }
 
-    disable: function () {
-        Utils.hookVfunc(Workspace.WorkspaceBackground.prototype, 'allocate', Workspace.WorkspaceBackground.prototype.vfunc_allocate);
-        Utils.hookVfunc(OverviewControls.ControlsManagerLayout.prototype, 'allocate', OverviewControls.ControlsManagerLayout.prototype.vfunc_allocate);
-        OverviewControls.ControlsManagerLayout.prototype._computeWorkspacesBoxForState = this._oldComputeWorkspacesBoxForState;
-
+    disable() {
         this._signalsHandler.destroy();
         this._injectionsHandler.destroy();
         
@@ -94,54 +87,28 @@ var dtpOverview = Utils.defineClass({
         this._disableHotKeys();
         this._disableExtraShortcut();
         this._disableClickToExit();
-    },
+    }
 
-    _toggleDash: function(visible) {
-        // To hide the dash, set its width to 1, so it's almost not taken into account by code
-        // calculaing the reserved space in the overview. The reason to keep it at 1 is
-        // to allow its visibility change to trigger an allocaion of the appGrid which
-        // in turn is triggergin the appsIcon spring animation, required when no other
-        // actors has this effect, i.e in horizontal mode and without the workspaceThumnails
-        // 1 static workspace only)
-
+    _toggleDash(visible) {
         if (visible === undefined) {
             visible = Me.settings.get_boolean('stockgs-keep-dash');
         }
 
         let visibilityFunc = visible ? 'show' : 'hide';
-        let width = visible ? -1 : 1;
-        let overviewControls = Main.overview._overview._controls || Main.overview._controls;
+        let height = visible ? -1 : 50; // 50 to preserve some spacing
+        let overviewControls = Main.overview._overview._controls;
 
         overviewControls.dash.actor[visibilityFunc]();
-        overviewControls.dash.actor.set_width(width);
-
-        // This force the recalculation of the icon size
-        overviewControls.dash._maxHeight = -1;
-    },
+        overviewControls.dash.actor.set_height(height);
+    }
 
     /**
      * Isolate overview to open new windows for inactive apps
      */
-    _optionalWorkspaceIsolation: function() {
+    _optionalWorkspaceIsolation() {
         let label = 'optionalWorkspaceIsolation';
         
-        this._signalsHandler.add([
-            Me.settings,
-            'changed::isolate-workspaces',
-            Lang.bind(this, function() {
-                this._panel.panelManager.allPanels.forEach(p => p.taskbar.resetAppIcons());
-
-                if (Me.settings.get_boolean('isolate-workspaces'))
-                    Lang.bind(this, enable)();
-                else
-                    Lang.bind(this, disable)();
-            })
-        ]);
-
-        if (Me.settings.get_boolean('isolate-workspaces'))
-            Lang.bind(this, enable)();
-
-        function enable() {
+        let enable = () => {
             this._injectionsHandler.removeWithLabel(label);
 
             this._injectionsHandler.addWithLabel(label, [
@@ -159,7 +126,7 @@ var dtpOverview = Utils.defineClass({
             ]);
         }
 
-        function disable() {
+        let disable = () => {
             this._signalsHandler.removeWithLabel(label);
             this._injectionsHandler.removeWithLabel(label);
         }
@@ -176,10 +143,26 @@ var dtpOverview = Utils.defineClass({
             
             return this.open_new_window(-1);
         }
-    },
+
+        this._signalsHandler.add([
+            Me.settings,
+            'changed::isolate-workspaces',
+            () => {
+                this._panel.panelManager.allPanels.forEach(p => p.taskbar.resetAppIcons());
+
+                if (Me.settings.get_boolean('isolate-workspaces'))
+                    enable();
+                else
+                    disable();
+            }
+        ]);
+
+        if (Me.settings.get_boolean('isolate-workspaces'))
+            enable();
+    }
 
     // Hotkeys
-    _activateApp: function(appIndex) {
+    _activateApp(appIndex) {
         let seenApps = {};
         let apps = [];
         
@@ -232,9 +215,9 @@ var dtpOverview = Utils.defineClass({
                 appIcon.activate(button, true);
             }
         }
-    },
+    }
 
-    _endHotkeyPreviewCycle: function(focusWindow) {
+    _endHotkeyPreviewCycle(focusWindow) {
         if (this._hotkeyPreviewCycleInfo) {
             global.stage.disconnect(this._hotkeyPreviewCycleInfo.capturedEventId);
             this._hotkeyPreviewCycleInfo.appIcon.actor.disconnect(this._hotkeyPreviewCycleInfo.keyFocusOutId);
@@ -247,9 +230,9 @@ var dtpOverview = Utils.defineClass({
             delete this._hotkeyPreviewCycleInfo.appIcon._hotkeysCycle;
             this._hotkeyPreviewCycleInfo = 0;
         }
-    },
+    }
 
-    _optionalHotKeys: function() {
+    _optionalHotKeys() {
         this._hotKeysEnabled = false;
         if (Me.settings.get_boolean('hot-keys'))
             this._enableHotKeys();
@@ -257,21 +240,21 @@ var dtpOverview = Utils.defineClass({
         this._signalsHandler.add([
             Me.settings,
             'changed::hot-keys',
-            Lang.bind(this, function() {
-                    if (Me.settings.get_boolean('hot-keys'))
-                        Lang.bind(this, this._enableHotKeys)();
-                    else
-                        Lang.bind(this, this._disableHotKeys)();
-            })
+            () => {
+                if (Me.settings.get_boolean('hot-keys'))
+                    this._enableHotKeys();
+                else
+                    this._disableHotKeys();
+            }
         ]);
-    },
+    }
 
-    _resetHotkeys: function() {
+    _resetHotkeys() {
         this._disableHotKeys();
         this._enableHotKeys();
-    },
+    }
 
-    _enableHotKeys: function() {
+    _enableHotKeys() {
         if (this._hotKeysEnabled)
             return;
 
@@ -307,9 +290,9 @@ var dtpOverview = Utils.defineClass({
 
         if (Me.settings.get_string('hotkeys-overlay-combo') === 'ALWAYS')
             this.taskbar.toggleNumberOverlay(true);
-    },
+    }
 
-    _disableHotKeys: function() {
+    _disableHotKeys() {
         if (!this._hotKeysEnabled)
             return;
 
@@ -332,9 +315,9 @@ var dtpOverview = Utils.defineClass({
         this._hotKeysEnabled = false;
 
         this.taskbar.toggleNumberOverlay(false);
-    },
+    }
 
-    _optionalNumberOverlay: function() {
+    _optionalNumberOverlay() {
         // Enable extra shortcut
         if (Me.settings.get_boolean('hot-keys'))
             this._enableExtraShortcut();
@@ -342,39 +325,39 @@ var dtpOverview = Utils.defineClass({
         this._signalsHandler.add([
             Me.settings,
             'changed::hot-keys',
-            Lang.bind(this, this._checkHotkeysOptions)
+            this._checkHotkeysOptions.bind(this)
         ], [
             Me.settings,
             'changed::hotkeys-overlay-combo',
-            Lang.bind(this, function() {
+            () => {
                 if (Me.settings.get_boolean('hot-keys') && Me.settings.get_string('hotkeys-overlay-combo') === 'ALWAYS')
                     this.taskbar.toggleNumberOverlay(true);
                 else
                     this.taskbar.toggleNumberOverlay(false);
-            })
+            }
         ], [
             Me.settings,
             'changed::shortcut-num-keys',
             () =>  this._resetHotkeys()
         ]);
-    },
+    }
 
-    _checkHotkeysOptions: function() {
+    _checkHotkeysOptions() {
         if (Me.settings.get_boolean('hot-keys'))
             this._enableExtraShortcut();
         else
             this._disableExtraShortcut();
-    },
+    }
 
-    _enableExtraShortcut: function() {
+    _enableExtraShortcut() {
         Utils.addKeybinding('shortcut', Me.settings, () => this._showOverlay(true));
-    },
+    }
 
-    _disableExtraShortcut: function() {
+    _disableExtraShortcut() {
         Utils.removeKeybinding('shortcut');
-    },
+    }
 
-    _showOverlay: function(overlayFromShortcut) {
+    _showOverlay(overlayFromShortcut) {
         //wait for intellihide timeout initialization
         if (!this._panel.intellihide) {
             return;
@@ -403,7 +386,7 @@ var dtpOverview = Utils.defineClass({
         }
 
         // Hide the overlay/dock after the timeout
-        this._numberOverlayTimeoutId = Mainloop.timeout_add(timeout, Lang.bind(this, function() {
+        this._numberOverlayTimeoutId = Mainloop.timeout_add(timeout, () => {
             this._numberOverlayTimeoutId = 0;
             
             if (hotkey_option != 'ALWAYS') {
@@ -411,10 +394,10 @@ var dtpOverview = Utils.defineClass({
             }
             
             this._panel.intellihide.release(Intellihide.Hold.TEMPORARY);
-        }));
-    },
+        });
+    }
 
-    _optionalClickToExit: function() {
+    _optionalClickToExit() {
         this._clickToExitEnabled = false;
         if (Me.settings.get_boolean('overview-click-to-exit'))
             this._enableClickToExit();
@@ -422,287 +405,66 @@ var dtpOverview = Utils.defineClass({
         this._signalsHandler.add([
             Me.settings,
             'changed::overview-click-to-exit',
-            Lang.bind(this, function() {
-                    if (Me.settings.get_boolean('overview-click-to-exit'))
-                        Lang.bind(this, this._enableClickToExit)();
-                    else
-                        Lang.bind(this, this._disableClickToExit)();
-            })
+            () => {
+                if (Me.settings.get_boolean('overview-click-to-exit'))
+                    this._enableClickToExit();
+                else
+                    this._disableClickToExit();
+            }
         ]);
-    },
+    }
 
-    _enableClickToExit: function() {
+    _enableClickToExit() {
         if (this._clickToExitEnabled)
             return;
 
-        let view = imports.ui.appDisplay;
         this._oldOverviewReactive = Main.overview._overview.reactive
-
         Main.overview._overview.reactive = true;
 
-        this._clickAction = new Clutter.ClickAction();
-        this._clickAction.connect('clicked', () => {
-            
-            if (this._swiping)
-                return Clutter.EVENT_PROPAGATE;
-  
+        Utils.hookVfunc(Object.getPrototypeOf(Main.layoutManager.overviewGroup), 'button_release_event', () => {
             let [x, y] = global.get_pointer();
-            let pickedActor = global.stage.get_actor_at_pos(Clutter.PickMode.ALL, x, y);
+            let pickedActor = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, x, y);
+            
+            if (pickedActor) {
+                let parent = pickedActor.get_parent();
 
-            Main.overview.toggle();
-         });
-         Main.overview._overview.add_action(this._clickAction);
+                if ((pickedActor.has_style_class_name && 
+                     pickedActor.has_style_class_name('apps-scroll-view') && 
+                     !pickedActor.has_style_pseudo_class('last-child')) ||
+                    (parent?.has_style_class_name && 
+                     parent.has_style_class_name('window-picker')) ||
+                    Main.overview._overview._controls._searchEntryBin.contains(pickedActor))
+                    return Clutter.EVENT_PROPAGATE;
+            } 
+
+            Main.overview.toggle()
+        })
 
         this._clickToExitEnabled = true;
-    },
+    }
 
-    _disableClickToExit: function () {
+    _disableClickToExit() {
         if (!this._clickToExitEnabled)
             return;
         
-        Main.overview._overview.remove_action(this._clickAction);
         Main.overview._overview.reactive = this._oldOverviewReactive;
+        Utils.hookVfunc(Object.getPrototypeOf(Main.layoutManager.overviewGroup), 'button_release_event', null)
 
-        this._signalsHandler.removeWithLabel('clickToExit');
-    
         this._clickToExitEnabled = false;
-    },
+    }
 
-    _onSwipeBegin: function() {
+    _onSwipeBegin() {
         this._swiping = true;
         return true;
-    },
+    }
 
-    _onSwipeEnd: function() {
+    _onSwipeEnd() {
         this._timeoutsHandler.add([
             T1,
             0, 
             () => this._swiping = false
         ]);
         return true;
-    },
-
-    _hookupAllocation: function() {
-        Utils.hookVfunc(OverviewControls.ControlsManagerLayout.prototype, 'allocate', function vfunc_allocate(container, box) {
-            const childBox = new Clutter.ActorBox();
-        
-            const { spacing } = this;
-        
-            let startY = 0;
-            let startX = 0;
-
-            if (Me.settings.get_boolean('stockgs-keep-top-panel') && Main.layoutManager.panelBox.y === Main.layoutManager.primaryMonitor.y) {
-                startY = Main.layoutManager.panelBox.height;
-                box.y1 += startY;
-            }
-            
-            const panel = global.dashToPanel.panels[0];
-            if(panel) {
-                switch (panel.getPosition()) {
-                    case St.Side.TOP:
-                        startY = panel.panelBox.height;
-                        box.y1 += startY;
-                        break;
-                    case St.Side.LEFT:
-                        startX = panel.panelBox.width;
-                        box.x1 += startX;
-                        break;
-                    case St.Side.RIGHT:
-                        box.x2 -= panel.panelBox.width;
-                        break;
-
-                }
-            }
-                 
-            
-            const [width, height] = box.get_size();
-            let availableHeight = height;
-        
-            // Search entry
-            let [searchHeight] = this._searchEntry.get_preferred_height(width);
-            childBox.set_origin(startX, startY);
-            childBox.set_size(width, searchHeight);
-            this._searchEntry.allocate(childBox);
-        
-            availableHeight -= searchHeight + spacing;
-        
-            // Dash
-            const maxDashHeight = Math.round(box.get_height() * DASH_MAX_HEIGHT_RATIO);
-            this._dash.setMaxSize(width, maxDashHeight);
-        
-            let [, dashHeight] = this._dash.get_preferred_height(width);
-            if (Me.settings.get_boolean('stockgs-keep-dash'))
-                dashHeight = Math.min(dashHeight, maxDashHeight);
-            else
-                dashHeight = spacing*5; // todo: determine proper spacing for window labels on maximized windows on workspace display
-            childBox.set_origin(startX, startY + height - dashHeight);
-            childBox.set_size(width, dashHeight);
-            this._dash.allocate(childBox);
-        
-            availableHeight -= dashHeight + spacing;
-        
-            // Workspace Thumbnails
-            let thumbnailsHeight = 0;
-            if (this._workspacesThumbnails.visible) {
-                const { expandFraction } = this._workspacesThumbnails;
-                [thumbnailsHeight] =
-                    this._workspacesThumbnails.get_preferred_height(width);
-                thumbnailsHeight = Math.min(
-                    thumbnailsHeight * expandFraction,
-                    height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
-                childBox.set_origin(startX, startY + searchHeight + spacing);
-                childBox.set_size(width, thumbnailsHeight);
-                this._workspacesThumbnails.allocate(childBox);
-            }
-        
-            // Workspaces
-            let params = [box, startX, startY, searchHeight, dashHeight, thumbnailsHeight];
-            const transitionParams = this._stateAdjustment.getStateTransitionParams();
-        
-            // Update cached boxes
-            for (const state of Object.values(OverviewControls.ControlsState)) {
-                this._cachedWorkspaceBoxes.set(
-                    state, this._computeWorkspacesBoxForState(state, ...params));
-            }
-        
-            let workspacesBox;
-            if (!transitionParams.transitioning) {
-                workspacesBox = this._cachedWorkspaceBoxes.get(transitionParams.currentState);
-            } else {
-                const initialBox = this._cachedWorkspaceBoxes.get(transitionParams.initialState);
-                const finalBox = this._cachedWorkspaceBoxes.get(transitionParams.finalState);
-                workspacesBox = initialBox.interpolate(finalBox, transitionParams.progress);
-            }
-        
-            this._workspacesDisplay.allocate(workspacesBox);
-        
-            // AppDisplay
-            if (this._appDisplay.visible) {
-                const workspaceAppGridBox =
-                    this._cachedWorkspaceBoxes.get(OverviewControls.ControlsState.APP_GRID);
-    
-                if (Config.PACKAGE_VERSION > '40.3') {
-                    const monitor = Main.layoutManager.findMonitorForActor(this._container);
-                    const workArea = Main.layoutManager.getWorkAreaForMonitor(monitor.index);
-                    const workAreaBox = new Clutter.ActorBox();
-    
-                    workAreaBox.set_origin(startX, startY);
-                    workAreaBox.set_size(workArea.width, workArea.height);
-    
-                    params = [workAreaBox, searchHeight, dashHeight, workspaceAppGridBox]
-                } else {
-                    params = [box, startX, searchHeight, dashHeight, workspaceAppGridBox];
-                }
-
-                let appDisplayBox;
-                if (!transitionParams.transitioning) {
-                    appDisplayBox =
-                        this._getAppDisplayBoxForState(transitionParams.currentState, ...params);
-                } else {
-                    const initialBox =
-                        this._getAppDisplayBoxForState(transitionParams.initialState, ...params);
-                    const finalBox =
-                        this._getAppDisplayBoxForState(transitionParams.finalState, ...params);
-        
-                    appDisplayBox = initialBox.interpolate(finalBox, transitionParams.progress);
-                }
-        
-                this._appDisplay.allocate(appDisplayBox);
-            }
-        
-            // Search
-            childBox.set_origin(0, startY + searchHeight + spacing);
-            childBox.set_size(width, availableHeight);
-        
-            this._searchController.allocate(childBox);
-        
-            this._runPostAllocation();
-        });
-
-        this._oldComputeWorkspacesBoxForState = OverviewControls.ControlsManagerLayout.prototype._computeWorkspacesBoxForState;
-        OverviewControls.ControlsManagerLayout.prototype._computeWorkspacesBoxForState = function _computeWorkspacesBoxForState(state, box, startX, startY, searchHeight, dashHeight, thumbnailsHeight) {
-            const workspaceBox = box.copy();
-            const [width, height] = workspaceBox.get_size();
-            const { spacing } = this;
-            const { expandFraction } = this._workspacesThumbnails;
-
-            switch (state) {
-            case OverviewControls.ControlsState.HIDDEN:
-                break;
-            case OverviewControls.ControlsState.WINDOW_PICKER:
-                workspaceBox.set_origin(startX,
-                    startY + searchHeight + spacing +
-                    thumbnailsHeight + spacing * expandFraction);
-                workspaceBox.set_size(width,
-                    height - 
-                    dashHeight - spacing -
-                    searchHeight - spacing -
-                    thumbnailsHeight - spacing * expandFraction);
-                break;
-            case OverviewControls.ControlsState.APP_GRID:
-                workspaceBox.set_origin(startX, startY + searchHeight + spacing);
-                workspaceBox.set_size(
-                    width,
-                    Math.round(height * SMALL_WORKSPACE_RATIO));
-                break;
-            }
-    
-            return workspaceBox;
-        }
-
-        Utils.hookVfunc(Workspace.WorkspaceBackground.prototype, 'allocate', function vfunc_allocate(box) {
-            const [width, height] = box.get_size();
-            const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
-            const scaledHeight = height - (BACKGROUND_MARGIN * 2 * scaleFactor);
-            const scaledWidth = (scaledHeight / height) * width;
-    
-            const scaledBox = box.copy();
-            scaledBox.set_origin(
-                box.x1 + (width - scaledWidth) / 2,
-                box.y1 + (height - scaledHeight) / 2);
-            scaledBox.set_size(scaledWidth, scaledHeight);
-    
-            const progress = this._stateAdjustment.value;
-    
-            if (progress === 1)
-                box = scaledBox;
-            else if (progress !== 0)
-                box = box.interpolate(scaledBox, progress);
-    
-            this.set_allocation(box);
-    
-            const themeNode = this.get_theme_node();
-            const contentBox = themeNode.get_content_box(box);
-    
-            this._bin.allocate(contentBox);
-    
-            
-            const [contentWidth, contentHeight] = contentBox.get_size();
-            const monitor = Main.layoutManager.monitors[this._monitorIndex];
-            let xOff = (contentWidth / this._workarea.width) *
-                (this._workarea.x - monitor.x);
-            let yOff = (contentHeight / this._workarea.height) *
-                (this._workarea.y - monitor.y);
-    
-            let startX = -xOff;
-            let startY = -yOff;
-            const panel = Utils.find(global.dashToPanel.panels, p => p.monitor.index == this._monitorIndex);
-            switch (panel.getPosition()) {
-                case St.Side.TOP:
-                    yOff += panel.panelBox.height;
-                    startY -= panel.panelBox.height;
-                    break;
-                case St.Side.BOTTOM:
-                    yOff += panel.panelBox.height;
-                    break;
-                case St.Side.RIGHT:
-                    xOff += panel.panelBox.width;
-                    break;
-            }
-            contentBox.set_origin(startX, startY);
-            contentBox.set_size(xOff + contentWidth, yOff + contentHeight);
-            this._backgroundGroup.allocate(contentBox);
-        });
-    
     }
-});
+
+}

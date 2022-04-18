@@ -10,7 +10,7 @@
 /*eslint class-methods-use-this: "off"*/
 
 const {St, Soup, Gio, GLib, Clutter, GObject} = imports.gi;
-const {main, panelMenu, popupMenu} = imports.ui;
+const {main, panelMenu, popupMenu, messageTray} = imports.ui;
 const Util = imports.misc.util;
 
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -48,7 +48,13 @@ function notifyError(msg) {
 function doSetBackground(uri, schema) {
     let gsettings = new Gio.Settings({schema: schema});
     gsettings.set_string('picture-uri', 'file://' + uri);
-    gsettings.set_string('picture-options', 'zoom');
+    try {
+        gsettings.set_string('picture-uri-dark', uri);
+    }
+    catch (e) {
+        log("unable to set dark background for : " + e);
+    }
+    //gsettings.set_string('picture-options', 'zoom');
     Gio.Settings.sync();
     gsettings.apply();
 }
@@ -58,7 +64,7 @@ class GEWallpaperIndicator extends panelMenu.Button {
     _init (params = {}) {
         super._init(0, IndicatorName, false);
 
-        this._settings = Utils.getSettings();
+        this._settings = ExtensionUtils.getSettings(Utils.schema);
         let gicon = Gio.icon_new_for_string(Me.dir.get_child('icons').get_path() + "/" + this._settings.get_string('icon') + "-symbolic.svg");
         this.icon = new St.Icon({gicon: gicon, style_class: 'system-status-icon'});
         this.x_fill = true;
@@ -79,12 +85,13 @@ class GEWallpaperIndicator extends panelMenu.Button {
         this.httpSession = new Soup.SessionAsync();
         Soup.Session.prototype.add_feature.call(this.httpSession, new Soup.ProxyResolverDefault());
 
-        this._settings.connect('changed::hide', function() {
+        this._settings.connect('changed::hide', () => {
             getActorCompat(this).visible = !this._settings.get_boolean('hide');
         });
         getActorCompat(this).visible = !this._settings.get_boolean('hide');
 
         this._settings.connect('changed::map-link-provider', this._updateProviderLink.bind(this));
+        this._settings.connect('changed::notify', this._notifyCurrentImage.bind(this));
         
         getActorCompat(this).add_child(this.icon);
         this._setIcon();
@@ -100,14 +107,19 @@ class GEWallpaperIndicator extends panelMenu.Button {
         this.swallpaperItem = new popupMenu.PopupMenuItem(_("Set lockscreen image now"));
         this.refreshItem = new popupMenu.PopupMenuItem(_("Refresh Now"));
         this.settingsItem = new popupMenu.PopupMenuItem(_("Extension settings"));
+        this._wrapLabelItem(this.descriptionItem);
+        this._wrapLabelItem(this.copyrightItem);
 
         // menu toggles for settings
         this.wallpaperToggle = this._newMenuSwitch(_("Set background image"), "set-background", this._settings.get_boolean('set-background'), true);
         this.lockscreenToggle = this._newMenuSwitch(_("Set lockscreen image"), "set-lock-screen", this._settings.get_boolean('set-lock-screen'), !Convenience.currentVersionGreaterEqual("3.36"));
+        this.notifyToggle = this._newMenuSwitch(_("Send notification"), "notify", this._settings.get_boolean('notify'), true);
         
         this.menu.addMenuItem(this.descriptionItem);
         this.menu.addMenuItem(this.locationItem);
+        this.menu.addMenuItem(this.copyrightItem);
         this.menu.addMenuItem(this.extLinkItem);
+        this.menu.addMenuItem(new popupMenu.PopupSeparatorMenuItem());
         this.menu.addMenuItem(this.refreshDueItem);
         this.menu.addMenuItem(this.refreshItem);
         this.menu.addMenuItem(new popupMenu.PopupSeparatorMenuItem());
@@ -116,6 +128,7 @@ class GEWallpaperIndicator extends panelMenu.Button {
         // disable until fresh is done
         this.refreshDueItem.setSensitive(false);
         this.descriptionItem.setSensitive(false);
+        this.copyrightItem.setSensitive(false);
         this.locationItem.setSensitive(false);
         
         this.extLinkItem.connect('activate', this._open_link.bind(this));
@@ -126,12 +139,14 @@ class GEWallpaperIndicator extends panelMenu.Button {
         }
         this.menu.addMenuItem(new popupMenu.PopupSeparatorMenuItem());
         this.refreshItem.connect('activate', this._refresh.bind(this));
-        this.settingsItem.connect('activate', this._open_prefs.bind(this));
+        this.settingsItem.connect('activate', this._openPrefs.bind(this));
         this.menu.addMenuItem(new popupMenu.PopupMenuItem(_("On refresh:"), {reactive : false} ));
         this.menu.addMenuItem(this.wallpaperToggle);
         if (!Convenience.currentVersionGreaterEqual("3.36")) { // lockscreen and desktop wallpaper are the same in GNOME 3.36+
             this.menu.addMenuItem(this.lockscreenToggle);
         }
+        this.menu.addMenuItem(this.notifyToggle);
+        this.menu.addMenuItem(new popupMenu.PopupSeparatorMenuItem());
         this.menu.addMenuItem(this.settingsItem);        
 
         getActorCompat(this).connect('button-press-event', this._updateMenu.bind(this));
@@ -149,8 +164,8 @@ class GEWallpaperIndicator extends panelMenu.Button {
         Util.spawn(["xdg-open", this.link]);
     }
 
-    _open_prefs () {
-        Util.spawn(["gnome-shell-extension-prefs", Me.metadata.uuid]);
+    _openPrefs() {
+        ExtensionUtils.openPrefs();
     }
 
     _restorePreviousState () {
@@ -189,6 +204,31 @@ class GEWallpaperIndicator extends panelMenu.Button {
         this.descriptionItem.label.set_text(this.explanation);
         this.copyrightItem.label.set_text(this.copyright);
         this.extLinkItem.label.set_text(this.provider_text);
+    }
+
+    _notifyCurrentImage() {
+        if (this._settings.get_boolean('notify') && this.filename != "") {
+            this._createNotification();
+        }
+    }
+
+    _createNotification() {
+        // set notifications icon
+        let source = new messageTray.Source('Google Earth Wallpaper', 'preferences-desktop-wallpaper-symbolic');
+        main.messageTray.add(source);
+        let msg = 'Google Earth Wallpaper';
+        let details = this.explanation+'\n'+Utils.friendly_coordinates(this.lat, this.lon)+'\n'+this.copyright;
+        let notification = new messageTray.Notification(source, msg, details);
+        notification.setTransient(this._settings.get_boolean('transient'));
+        source.showNotification(notification);
+    }
+
+    _wrapLabelItem(menuItem) {
+        let clutter_text = menuItem.label.get_clutter_text();
+        clutter_text.set_line_wrap(true);
+        clutter_text.set_ellipsize(0);
+        clutter_text.set_max_length(0);
+        menuItem.label.set_style('max-width: 420px;');
     }
 
     _getProviderLink(provider = this._settings.get_enum('map-link-provider')) {
@@ -360,6 +400,7 @@ class GEWallpaperIndicator extends panelMenu.Button {
             this._updatePending = false;
         }
         this._updateMenu();
+        this._notifyCurrentImage();
         this._restartTimeout(this._settings.get_int('refresh-interval'));
     }
 
@@ -408,7 +449,7 @@ class GEWallpaperIndicator extends panelMenu.Button {
 });
 
 function init(extensionMeta) {
-    Convenience.initTranslations("GoogleEarthWallpaper");
+    ExtensionUtils.initTranslations("GoogleEarthWallpaper");
 }
 
 function enable() {

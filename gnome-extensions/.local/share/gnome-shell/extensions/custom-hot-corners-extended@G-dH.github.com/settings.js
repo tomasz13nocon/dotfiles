@@ -23,13 +23,12 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
 const Config = imports.misc.config;
-var   shellVersion = Config.PACKAGE_VERSION;
-var   GNOME40 = shellVersion.startsWith("4") ? true : false;
+var shellVersion = parseFloat(Config.PACKAGE_VERSION);
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 var _ = Gettext.gettext;
 
-var Triggers ={
+var Triggers = {
     PRESSURE:         0,
     BUTTON_PRIMARY:   1,
     BUTTON_SECONDARY: 2,
@@ -37,8 +36,6 @@ var Triggers ={
     SCROLL_UP:        4,
     SCROLL_DOWN:      5,
 };
-
-Object.freeze(Triggers);
 
 var TriggerLabels = [
     _('Hot Corner'),
@@ -59,8 +56,27 @@ function listTriggers() {
 var MscOptions = class MscOptions {
     constructor() {
         this._gsettings = this._loadSettings('misc');
-        this._gsettingsKB = this._loadSettings('shortcuts');
         this._connectionIds = [];
+
+        this.options = {
+            watchCorners: ['boolean', 'watch-corners'],
+            cornersVisible: ['boolean', 'corners-visible'],
+            winSwitchWrap: ['boolean', 'win-switch-wrap'],
+            winSkipMinimized: ['boolean', 'win-switch-skip-minimized'],
+            winStableSequence: ['boolean', 'win-switch-stable-sequence'],
+            winThumbnailScale: ['int', 'win-thumbnail-scale'],
+            actionEventDelay: ['int', 'action-event-delay'],
+            rippleAnimation: ['boolean', 'ripple-animation'],
+            barrierFallback: ['boolean', 'barrier-fallback'],
+            customMenu1: ['strv', 'custom-menu-1'],
+            customMenu2: ['strv', 'custom-menu-2'],
+            customMenu3: ['strv', 'custom-menu-3'],
+            customMenu4: ['strv', 'custom-menu-4'],
+            supportedExetensions: ['strv', 'supported-active-extensions'],
+            keyboardShortcuts: ['strv', 'keyboard-shortcuts'],
+            internalFlags: ['strv', 'internal-flags'],
+            showOsdMonitorIndexes: ['boolean', 'show-osd-monitor-indexes']
+        }
     }
 
     connect(name, callback) {
@@ -79,157 +95,32 @@ var MscOptions = class MscOptions {
         return getSettings(schema, path);
     }
 
-    get watchCorners() {
-        return this._gsettings.get_boolean('watch-corners');
+    get(option) {
+        const [format, key] = this.options[option];
+        return this._gsettings.get_value(key).deep_unpack();
     }
 
-    set watchCorners(bool_val) {
-        this._gsettings.set_boolean('watch-corners', bool_val);
+    set(option, value) {
+        const [format, key] = this.options[option];
+        switch (format) {
+            case 'string':
+                this._gsettings.set_string(key, value);
+                break;
+            case 'int':
+                this._gsettings.set_int(key, value);
+                break;
+            case 'boolean':
+                this._gsettings.set_boolean(key, value);
+                break;
+            case 'strv':
+                this._gsettings.set_strv(key, value);
+                break;
+        }
     }
 
-    get fullscreenGlobal() {
-        return this._gsettings.get_boolean('fullscreen-global');
-    }
-
-    set fullscreenGlobal(bool_val) {
-        this._gsettings.set_boolean('fullscreen-global', bool_val);
-    }
-
-    get cornersVisible() {
-        return this._gsettings.get_boolean('corners-visible');
-    }
-
-    set cornersVisible(bool_val) {
-        this._gsettings.set_boolean('corners-visible', bool_val);
-    }
-
-    get winSwitchWrap() {
-        return this._gsettings.get_boolean('win-switch-wrap');
-    }
-
-    set winSwitchWrap(bool_val) {
-        this._gsettings.set_boolean('win-switch-wrap', bool_val);
-    }
-
-    get winSkipMinimized() {
-        return this._gsettings.get_boolean('win-switch-skip-minimized');
-    }
-
-    set winSkipMinimized(bool_val) {
-        this._gsettings.set_boolean('win-switch-skip-minimized', bool_val);
-    }
-
-    get winThumbnailScale() {
-        return this._gsettings.get_int('win-thumbnail-scale');
-    }
-
-    set winThumbnailScale(scale) {
-        this._gsettings.set_int('win-thumbnail-scale', scale);
-    }
-
-    get wsSwitchIgnoreLast() {
-        return this._gsettings.get_boolean('ws-switch-ignore-last');
-    }
-
-    set wsSwitchIgnoreLast(bool_val) {
-        this._gsettings.set_boolean('ws-switch-ignore-last', bool_val);
-    }
-
-    get wsSwitchWrap() {
-        return this._gsettings.get_boolean('ws-switch-wrap');
-    }
-
-    set wsSwitchWrap(bool_val) {
-        this._gsettings.set_boolean('ws-switch-wrap', bool_val);
-    }
-
-    get wsSwitchIndicator() {
-        return this._gsettings.get_boolean('ws-switch-indicator');
-    }
-
-    set wsSwitchIndicator(bool_val) {
-        this._gsettings.set_boolean('ws-switch-indicator', bool_val);
-    }
-
-    get wsSwitchIndicatorMode() {
-        return this._gsettings.get_int('ws-switch-indicator-mode');
-    }
-
-    set wsSwitchIndicatorMode(mode) {
-        this._gsettings.set_int('ws-switch-indicator-mode', mode);
-    }
-
-    get actionEventDelay() {
-        return this._gsettings.get_int('action-event-delay');
-    }
-
-    set actionEventDelay(delay) {
-        this._gsettings.set_int('action-event-delay', delay);
-    }
-
-    get rippleAnimation() {
-        return this._gsettings.get_boolean('ripple-animation');
-    }
-
-    set rippleAnimation(bool_val) {
-        this._gsettings.set_boolean('ripple-animation', bool_val);
-    }
-
-    get barrierFallback() {
-        return this._gsettings.get_boolean('barrier-fallback');
-    }
-
-    set barrierFallback(bool_val) {
-        this._gsettings.set_boolean('barrier-fallback', bool_val);
-    }
-
-    get customMenu1() {
-        return this._gsettings.get_strv('custom-menu-1');
-    }
-
-    set customMenu1(list) {
-        this._gsettings.set_strv('custom-menu-1', list);
-    }
-
-    get customMenu2() {
-        return this._gsettings.get_strv('custom-menu-2');
-    }
-
-    set customMenu2(list) {
-        this._gsettings.set_strv('custom-menu-2', list);
-    }
-
-    get customMenu3() {
-        return this._gsettings.get_strv('custom-menu-3');
-    }
-
-    set customMenu3(list) {
-        this._gsettings.set_strv('custom-menu-3', list);
-    }
-
-    get customMenu4() {
-        return this._gsettings.get_strv('custom-menu-4');
-    }
-
-    set customMenu4(list) {
-        this._gsettings.set_strv('custom-menu-4', list);
-    }
-
-    // extensions that we support and need to know whether they are available
-    get supportedExetensions() {
-        return this._gsettings.get_strv('supported-active-extensions');
-    }
-
-    set supportedExetensions(list) {
-        this._gsettings.set_strv('supported-active-extensions', list);
-    }
-
-    getKeyBind(key) {
-        return this._gsettingsKB.get_strv(key);
-    }
-
-    setKeyBind(key, value) {
-        this._gsettingsKB.set_strv(key, value);
+    getDefault(option) {
+        const [format, key] = this.options[option];
+        return this._gsettings.get_default_value(key).deep_unpack();
     }
 };
 
@@ -260,6 +151,19 @@ var Corner = class Corner {
             this.fullscreen[trigger] = this.getFullscreen(trigger);
             this.workspaceIndex[trigger] = this.getWorkspaceIndex(trigger);
         }
+        //prepered for possible future use
+        /*this.options = {
+            action: ['string', 'action'],
+            command: ['string', 'command'],
+            fullscreen: ['boolean', 'fullscreen'],
+            ctrl: ['boolean', 'ctrl'],
+            workspaceIndex: ['int', 'workspace-index'],
+            hExpand: ['boolean', 'h-expand'],
+            vExpand: ['boolean', 'v-expand'],
+            barrierSizeH: ['int', 'barrier-size-h'],
+            barrierSizeV: ['int', 'barrier-size-v'],
+            pressureThreshold: ['int', 'pressure-threshold'],
+        }*/
     }
 
     static forMonitor(loadIndex, index, geometry) {
@@ -282,7 +186,6 @@ var Corner = class Corner {
     }
 
     destroy() {
-        // log(`[${Me.metadata.name}] Settings.Corner.destroy: Disconnecting corner gsettings..`);
         this._connectionIds.forEach(id => id[0].disconnect(id[1]));
     }
 
@@ -292,7 +195,6 @@ var Corner = class Corner {
             gsettings[trigger] = this._loadSettings(trigger);
         return gsettings;
     }
-
 
     getAction(trigger) {
         return this._gsettings[trigger].get_string('action');
@@ -403,10 +305,12 @@ function getSettings(schema, path) {
 
     const schemaObj = schemaSource.lookup(schema, true);
     if (!schemaObj) {
-        throw new Error(
-            'Schema' + schema + ' could not be found for extension ' +
+        //throw new Error(
+        log(
+            'Schema ' + schema + ' could not be found for extension ' +
             Me.metadata.uuid + '. Please check your installation.'
         );
+        return null;
     }
 
     const args = {settings_schema: schemaObj};
@@ -434,152 +338,183 @@ function extensionEnabled(uuid = null) {
 }
 
 const winSwitcherPopup = extensionEnabled('advanced-alt-tab@G-dH.github.com-dev');
-
-//      [root/submenu, action key,      action name,                                accelerator, icon name
+// in extension itself I'd test real workspace configuration
+// but settings.js is also used by prefs from which the GS code is unaccessible
+const horizontal = shellVersion >= 40;
+//      [0.root/submenu, 1.action key,      2.action name,                       3.accelerator allowed,    4.icon name                                5.action needs window
 var actionList = [
-        [   0, 'disabled'              ,   _('-'),                                       false,  ''],
-        [   0, 'toggle-arcmenu'        ,   _('Open ArcMenu'),                            false,  'view-grid-symbolic'],
-        [   0, 'toggle-overview'       ,   _('Show Activities Overview'),                 true,  'view-grid-symbolic'],
-        [   0, 'show-applications'     ,   _('Show Application Grid'),                    true,  'view-app-grid-symbolic'],
+        [   0, 'disabled'                   , _('-'),                                       false,  '',                                                       false],
 
-        [null, 'desktop-submenu'       ,   _('Desktop'),                                  true,  'video-display-symbolic'],
-        [   1, 'show-desktop'          ,   _('Show Desktop (all monitors)'),              true,  'preferences-desktop-wallpaper-symbolic'],
-        [   1, 'show-desktop-mon'      ,   _('Show Desktop (current monitor)'),           true,  'preferences-desktop-wallpaper-symbolic'],
-        [   1, 'black-screen'          ,   _('Black Screen (all monitors)'),              true,  'video-display-symbolic'],
-        [   1, 'black-screen-mon'      ,   _('Black Screen (current monitor)'),           true,  'video-display-symbolic'],
+        [null, 'core-submenu'               , _('Core Actions'),                             true,  'video-display-symbolic',                                 false],
+        [   1, 'toggle-arcmenu'             , _('Open ArcMenu'),                            false,  'view-grid-symbolic',                                     false],
+        [   1, 'toggle-overview'            , _('Show Activities Overview'),                false,  'view-grid-symbolic',                                     false],
+        [   1, 'show-applications'          , _('Show Application Grid'),                   false,  'view-app-grid-symbolic',                                 false],
+        [   1, 'run-command'                , _('Run Preset Command / Activate App ...'),   false,  'utilities-terminal-symbolic',                            false],
+        [   1, 'show-desktop'               , _('Show Desktop (all monitors)'),              true,  'preferences-desktop-wallpaper-symbolic',                 false],
+        [   1, 'show-desktop-mon'           , _('Show Desktop (current monitor)'),           true,  'preferences-desktop-wallpaper-symbolic',                 false],
+        [   1, 'prefs'                      , _('Open CHC-E Preferences'),                   true,  'preferences-system-symbolic',                            false],
+        //[null, 'desktop-submenu'            , _('Desktop'),                                  true,  'video-display-symbolic',                                 false],
+        //[null, 'run-submenu'                , _('Run Command'),                             false,  'utilities-terminal-symbolic',                            false],
 
-        [null, 'run-submenu'           ,   _('Run Command'),                             false,  'utilities-terminal-symbolic'],
-        [   1, 'run-command'           ,   _('Run preset Command'),                      false,  'utilities-terminal-symbolic'],
-        [   1, 'run-prompt'            ,   _('Show Run Command Prompt'),                 false,  'utilities-terminal-symbolic'],
+        [null, 'workspaces-submenu'         , _('Workspaces'),                               true,  'video-display-symbolic',                                 false],
+        [   1, 'prev-workspace'             , _('Previous Workspace'),                      false,   horizontal ? 'go-previous-symbolic': 'go-up-symbolic'  , false],
+        [   1, 'next-workspace'             , _('Next Workspace'),                          false,   horizontal ? 'go-next-symbolic'    : 'go-down-symbolic', false],
+        [   1, 'prev-workspace-popup'       , _('Previous Workspace with Window Switcher'),  true,   horizontal ? 'go-previous-symbolic': 'go-up-symbolic'  , false],
+        [   1, 'next-workspace-popup'       , _('Next Workspace with Window Switcher'),      true,   horizontal ? 'go-next-symbolic'    : 'go-down-symbolic', false],
+        [   1, 'prev-workspace-current-mon' , _('Previous Workspace - Current Monitor Only (hack)'), true, horizontal ? 'go-previous-symbolic': 'go-up-symbolic'  , false],
+        [   1, 'next-workspace-current-mon' , _('Next Workspace - Current Monitor Only (hack)'), true,   horizontal ? 'go-previous-symbolic': 'go-up-symbolic'  , false],
+        //[   1, 'prev-workspace-overview'    , _('Previous Workspace Overview'),              true,   horizontal ? 'go-previous-symbolic': 'go-up-symbolic'  , false],
+        //[   1, 'next-workspace-overview'    , _('Next Workspace Overview'),                  true,   horizontal ? 'go-next-symbolic'    : 'go-down-symbolic', false],
+        [   1, 'recent-workspace'           , _('Switch to Most Recent Workspace'),          true,  'document-open-recent-symbolic',                          false],
+        [   1, 'move-to-workspace'          , _('Switch to Preset Workspace ...'),          false,  'go-jump-symbolic',                                       false],
+        [   1, 'move-to-second-last-ws'     , _('Switch to Second Last Workspace'),          true,  'go-jump-symbolic',                                       false],
+        [   1, 'reorder-ws-prev'            , _(`Reorder Workspace - ${horizontal? _('Left') : _('Up')}`),  true,  horizontal ? 'go-previous-symbolic':'go-up-symbolic', false],
+        [   1, 'reorder-ws-next'            , _(`Reorder Workspace - ${horizontal? _('Right'): _('Down')}`),true,  horizontal ? 'go-next-symbolic':'go-down-symbolic',   false],
+        [   1, 'rotate-ws-prev-mon'         , _(`Rotate Windows Across Workspaces ${horizontal? _('Left') : _('Up')} (monitor)`),  true,  horizontal ? 'go-previous-symbolic':'go-up-symbolic', false],
+        [   1, 'rotate-ws-next-mon'         , _(`Rotate Windows Across Workspaces ${horizontal? _('Right'): _('Down')} (monitor)`),  true,  horizontal ? 'go-previous-symbolic':'go-up-symbolic', false],
+        [   1, 'close-workspace'            , _('Close Current Workspace (and its windows)'),true,  'window-close-symbolic',                                  false],
 
-        [null, 'workspaces-submenu'    ,   _('Workspaces'),                               true,  'video-display-symbolic'],
-        [   1, 'prev-workspace'        ,   _('Previous Workspace'),                      false,   GNOME40 ? 'go-previous-symbolic': 'go-up-symbolic'  ],
-        [   1, 'prev-workspace-overview',  _('Previous Workspace Overview'),              true,   GNOME40 ? 'go-previous-symbolic': 'go-up-symbolic'  ],
-        [   1, 'prev-workspace-popup'  ,   _('Previous Workspace with Win Switcher'),     true,   GNOME40 ? 'go-previous-symbolic': 'go-up-symbolic'  ],
-        [   1, 'next-workspace'        ,   _('Next Workspace'),                          false,   GNOME40 ? 'go-next-symbolic'    : 'go-down-symbolic'],
-        [   1, 'next-workspace-overview',  _('Next Workspace Overview'),                  true,   GNOME40 ? 'go-next-symbolic'    : 'go-down-symbolic'],
-        [   1, 'next-workspace-popup'  ,   _('Next Workspace with Win Switcher'),         true,   GNOME40 ? 'go-next-symbolic'    : 'go-down-symbolic'],
-        [   1, 'recent-workspace'      ,   _('Switch to Recent Workspace'),               true,  'document-open-recent-symbolic'],
-        [   1, 'move-to-workspace'     ,   _('Switch to Workspace #'),                   false,  'go-jump-symbolic'],
-        [   1, 'reorder-ws-prev'       ,   _(`Reorder Workspace - ${GNOME40? _('Left') : _('Up')}`),  true,  GNOME40 ? 'go-previous-symbolic':'go-up-symbolic'],
-        [   1, 'reorder-ws-next'       ,   _(`Reorder Workspace - ${GNOME40? _('Right'): _('Down')}`),true,  GNOME40 ? 'go-next-symbolic':'go-down-symbolic'  ],
+        [null, 'win-navigation-submenu'     , _('Windows - Navigation'),                     true,  'focus-windows-symbolic',                                 false],
+        [   1, 'recent-win'                 , _('Switch to Most Recent Window'),             true,  'document-open-recent-symbolic',                          false],
+        [   1, 'prev-win-mon'               , _('Previous Window (current monitor)'),        true,  'go-previous-symbolic',                                   false],
+        [   1, 'prev-win-ws'                , _('Previous Window (current WS)'),             true,  'go-previous-symbolic',                                   false],
+        [   1, 'prev-win-all'               , _('Previous Window (all)'),                    true,  'go-previous-symbolic',                                   false],
+        [   1, 'next-win-mon'               , _('Next Window (current monitor)'),            true,  'go-next-symbolic',                                       false],
+        [   1, 'next-win-ws'                , _('Next Window (current WS)'),                 true,  'go-next-symbolic',                                       false],
+        [   1, 'next-win-all'               , _('Next Window (all)'),                        true,  'go-next-symbolic',                                       false],
 
-        [null, 'win-navigation-submenu',   _('Windows - Navigation'),                     true,  'focus-windows-symbolic'],
-        [   1, 'recent-win'            ,   _('Switch to Recent Window'),                  true,  'document-open-recent-symbolic'],
-        [   1, 'prev-win-mon'          ,   _('Previous Window (current monitor)'),        true,  'go-previous-symbolic'],
-        [   1, 'prev-win-ws'           ,   _('Previous Window (current WS)'),             true,  'go-previous-symbolic'],
-        [   1, 'prev-win-all'          ,   _('Previous Window (all)'),                    true,  'go-previous-symbolic'],
-        [   1, 'next-win-mon'          ,   _('Next Window (current monitor)'),            true,  'go-next-symbolic'],
-        [   1, 'next-win-ws'           ,   _('Next Window (current WS)'),                 true,  'go-next-symbolic'],
-        [   1, 'next-win-all'          ,   _('Next Window (all)'),                        true,  'go-next-symbolic'],
+        [null, 'win-switcher-popup-submenu' , _('Windows/App - Switcher Popups'),            true,  'focus-windows-symbolic',                                 false],
+        [   1, 'win-switcher-popup-all'     , _('Window Switcher Popup (all/default)'),      true,  'focus-windows-symbolic',                                 false],
+        [   1, 'win-switcher-popup-ws'      , _('Window Switcher Popup (current ws)'),       true,  'focus-windows-symbolic',                                 false],
+        [   1, 'win-switcher-popup-mon'     , _('Window Switcher Popup (current monitor)'),  true,  'focus-windows-symbolic',                                 false],
+        [   1, 'win-switcher-popup-ws-first', _('Window Switcher Popup (current ws first)'), true,  'focus-windows-symbolic',                                 false],
+        [   1, 'win-switcher-popup-apps'    , _('Window Switcher Popup (sorted by apps)'),   true,  'focus-windows-symbolic',                                 false],
+        [   1, 'win-switcher-popup-class'   , _('Window Switcher Popup (focused app only)'), true,  'focus-windows-symbolic',                                 false],
+        //[   1, 'win-switcher-popup-search', _('Window Switcher Popup (type to search)'),   true,  'focus-windows-symbolic'],
+        [   1, 'app-switcher-popup-all'     , _('App Switcher Popup (all/default)'),         true,  'focus-windows-symbolic',                                 false],
+        [   1, 'app-switcher-popup-ws'      , _('App Switcher Popup (current ws)'),          true,  'focus-windows-symbolic',                                 false],
+        [   1, 'app-switcher-popup-mon'     , _('App Switcher Popup (current monitor)'),     true,  'focus-windows-symbolic',                                 false],
+        //[   1, 'app-switcher-popup-all-fav',_('App Switcher Popup (current monitor)'),     true,  'focus-windows-symbolic'],
 
-        [null, 'win-switcher-popup-submenu', _('Windows/App - Switcher Popups'),          true,  'focus-windows-symbolic'],
-        [   1, 'win-switcher-popup-all',   _('Window Switcher Popup (all/default)'),      true,  'focus-windows-symbolic'],
-        [   1, 'win-switcher-popup-ws' ,   _('Window Switcher Popup (current ws)'),       true,  'focus-windows-symbolic'],
-        [   1, 'win-switcher-popup-mon',   _('Window Switcher Popup (current monitor)'),  true,  'focus-windows-symbolic'],
-        [   1, 'win-switcher-popup-ws-first', _('Window Switcher Popup (current ws first)') ,true,  'focus-windows-symbolic'],
-        [   1, 'win-switcher-popup-apps',  _('Window Switcher Popup (sorted by apps)'),   true,  'focus-windows-symbolic'],
-        [   1, 'win-switcher-popup-class', _('Window Switcher Popup (focused app only)'), true,  'focus-windows-symbolic'],
-        //[   1, 'win-switcher-popup-search', _('Window Switcher Popup (type to search)'),  true,  'focus-windows-symbolic'],
-        [   1, 'app-switcher-popup-all',   _('App Switcher Popup (all/default)'),         true,  'focus-windows-symbolic'],
-        [   1, 'app-switcher-popup-ws' ,   _('App Switcher Popup (current ws)'),          true,  'focus-windows-symbolic'],
-        [   1, 'app-switcher-popup-mon',   _('App Switcher Popup (current monitor)'),     true,  'focus-windows-symbolic'],
-        //[   1, 'app-switcher-popup-all-fav',_('App Switcher Popup (current monitor)'),    true,  'focus-windows-symbolic'],
+        [null, 'win-control-submenu'        , _('Windows - Control'),                        true,  'focus-windows-symbolic',                                 false],
+        [   1, 'close-win'                  , _('Close Window'),                            false,  'window-close-symbolic',                                   true],
+        [   1, 'maximize-win'               , _('Maximize Window (toggle)'),                false,  'window-maximize-symbolic',                                true],
+        [   1, 'minimize-win'               , _('Minimize Window'),                         false,  'window-minimize-symbolic',                                true],
+        [   1, 'fullscreen-win'             , _('Fullscreen Window (toggle)'),              false,  'view-fullscreen-symbolic',                                true],
+        [   1, 'above-win'                  , _('Always on Top Window (toggle)'),           false,  'go-top-symbolic',                                         true],
+        [   1, 'stick-win'                  , _('Always on Visible WS Window (toggle)'),    false,  'view-pin-symbolic',                                       true],
+        [   1, 'quit-app'                   , _('Quit Focused Application'),                 true,  'window-close-symbolic',                                   true],
+        [   1, 'kill-app'                   , _('Force Quit Focused Application'),           true,  'process-stop-symbolic',                                   true],
+        [   1, 'open-new-window'            , _('Open New Window (if supported)'),           true,  'media-playback-start-symbolic',                           true],
+        [   1, 'unminimize-all-ws'          , _('Unminimize All Windows (workspace)'),       true,  'window-restore-symbolic',                                 true],
 
-        [null, 'win-control-submenu'   ,   _('Windows - Control'),                        true,  'focus-windows-symbolic'],
-        [   1, 'close-win'             ,   _('Close window'),                             true,  'window-close-symbolic'],
-        [   1, 'maximize-win'          ,   _('Maximize window (toggle)'),                 true,  'window-maximize-symbolic'],
-        [   1, 'minimize-win'          ,   _('Minimize window'),                          true,  'window-minimize-symbolic'],
-        [   1, 'fullscreen-win'        ,   _('Fullscreen window (toggle)'),               true,  'view-fullscreen-symbolic'],
-        [   1, 'fullscreen-on-empty-ws',   _('Fullscreen window on Empty WS (toggle)'),   true,  'window-maximize-symbolic'],
-        [   1, 'above-win'             ,   _('Always on Top window (toggle)'),            true,  'go-top-symbolic'],
-        [   1, 'stick-win'             ,   _('Always on Visible WS window (toggle)'),     true,  'view-pin-symbolic'],
-        [   1, 'quit-app'               ,   _('Quit focused application'),                true,  'window-close-symbolic'],
-        [   1, 'kill-app'              ,   _('Kill focused application (kill -9)'),       true,  'process-stop-symbolic'],
-        [   1, 'unminimize-all-ws'     ,   _('Unminimize all windows (workspace)'),       true,  'window-restore-symbolic'],
+        [null, 'win-reloc-submenu'          , _('Windows - Relocations'),                    true,  'focus-windows-symbolic',                                 false],
+        [   1, 'fullscreen-on-empty-ws'     , _('Fullscreen Window on New WS (toggle)'),     true,  'view-fullscreen-symbolic',                                true],
+        [   1, 'move-win-to-prev-ws'        , _('Move Window to Previous workspace'),        true,  horizontal ? 'go-previous-symbolic': 'go-up-symbolic',     true],
+        [   1, 'move-win-to-prev-new-ws'    , _('Move Window to New workspace Prev'),        true,  horizontal ? 'go-previous-symbolic': 'go-up-symbolic',     true],
+        [   1, 'move-win-to-next-ws'        , _('Move Window to Next workspace'),            true,  horizontal ? 'go-next-symbolic'    : 'go-down-symbolic',   true],
+        [   1, 'move-win-to-next-new-ws'    , _('Move Window to New workspace Next'),        true,  horizontal ? 'go-next-symbolic'    : 'go-down-symbolic',   true],
+        [   1, 'move-app-to-prev-ws'        , _('Move App windows to Prev Workspace'),       true,  horizontal ? 'go-previous-symbolic': 'go-up-symbolic',     true],
+        [   1, 'move-app-to-prev-new-ws'    , _('Move App windows to New Workspace Prev'),   true,  horizontal ? 'go-previous-symbolic': 'go-up-symbolic',     true],
+        [   1, 'move-app-to-next-ws'        , _('Move App windows to Next Workspace'),       true,  horizontal ? 'go-next-symbolic'    : 'go-down-symbolic',   true],
+        [   1, 'move-app-to-next-new-ws'    , _('Move App windows to New Workspace Next'),   true,  horizontal ? 'go-next-symbolic'    : 'go-down-symbolic',   true],
 
-        [null, 'win-thumbnails-submenu',   _('DND Window Thumbnails (Clones / PIP)'),     true,  ''],
-        [   1, 'make-thumbnail-win'    ,   _('Create Window Thumbnail (at bottom-right)'),true,  ''],
-        [   1, 'minimize-to-thumbnail' ,   _('Minimize Window to Thumbnail')             ,true,  ''],
-        [   1, 'remove-win-thumbnails' ,   _('Remove all Window Thumbnails'),             true,  ''],
+        [null, 'win-thumbnails-submenu'     , _('DND Window Thumbnails (PIP)'),              true,  '',                                                       false],
+        [   1, 'make-thumbnail-win'         , _('Create Window Thumbnail (at bottom-right)'),true,  '',                                                        true],
+        [   1, 'minimize-to-thumbnail'      , _('Minimize Window to Thumbnail'),             true,  '',                                                        true],
+        [   1, 'remove-win-thumbnails'      , _('Remove All Window Thumbnails'),             true,  '',                                                       false],
 
-        [null, 'win-adjust-submenu'    ,   _('Windows - Visual Adjustments'),             true,  'view-reveal-symbolic'],
-        [   1, 'bright-up-win'         ,   _('Brightness Up (window)'),                   true,  'display-brightness-symbolic'],
-        [   1, 'bright-down-win'       ,   _('Brightness Down (window)'),                 true,  'display-brightness-symbolic'],
-        [   1, 'contrast-up-win'       ,   _('Contrast Up (window)'),                     true,  'view-reveal-symbolic'],
-        [   1, 'contrast-down-win'     ,   _('Contrast Down (window)'),                   true,  'view-reveal-symbolic'],
-        [   1, 'contrast-high-win'     ,   _('High Contrast (window)'),                   true,  'view-reveal-symbolic'],
-        [   1, 'contrast-low-win'      ,   _('Low Contrast (window)'),                    true,  'view-reveal-symbolic'],
-        [   1, 'opacity-up-win'        ,   _('Opacity Up (window)'),                      true,  'view-reveal-symbolic'],
-        [   1, 'opacity-down-win'      ,   _('Opacity Down (window)'),                    true,  'view-reveal-symbolic'],
-        [   1, 'opacity-toggle-win'    ,   _('Transparency o200 (window)'),               true,  'view-reveal-symbolic'],
-        [   1, 'opacity-toggle-hc-win' ,   _('Transparency o200/c0.20 (window)'),         true,  'view-reveal-symbolic'],
-        [   1, 'opacity-toggle-lc-win' ,   _('Transparency o240/c0.05 (window)'),         true,  'view-reveal-symbolic'],
+        [null, 'win-adjust-submenu'         , _('Windows - Visual Adjustments'),             true,  'view-reveal-symbolic',                                   false],
+        [   1, 'bright-up-win'              , _('Brightness Up (window)'),                   true,  'display-brightness-symbolic',                             true],
+        [   1, 'bright-down-win'            , _('Brightness Down (window)'),                 true,  'display-brightness-symbolic',                             true],
+        [   1, 'contrast-up-win'            , _('Contrast Up (window)'),                     true,  'view-reveal-symbolic',                                    true],
+        [   1, 'contrast-down-win'          , _('Contrast Down (window)'),                   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'contrast-high-win'          , _('High Contrast (window)'),                   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'contrast-low-win'           , _('Low Contrast (window)'),                    true,  'view-reveal-symbolic',                                    true],
+        [   1, 'opacity-up-win'             , _('Opacity Up (window)'),                      true,  'view-reveal-symbolic',                                    true],
+        [   1, 'opacity-down-win'           , _('Opacity Down (window)'),                    true,  'view-reveal-symbolic',                                    true],
+        [   1, 'opacity-toggle-win'         , _('Opacity 78% (window)'),                     true,  'view-reveal-symbolic',                                    true],
+        [   1, 'opacity-toggle-hc-win'      , _('Opacity 78% for dark themes (window)'),     true,  'view-reveal-symbolic',                                    true],
+        [   1, 'opacity-toggle-lc-win'      , _('Opacity 94% + bit of contrast (window)'),   true,  'view-reveal-symbolic',                                    true],
 
-        [null, 'win-effects-submenu'   ,   _('Windows - Color Effects'),                  true,  'view-reveal-symbolic'],
-        [   1, 'invert-light-win'      ,   _('Invert Lightness (window)'),                true,  'view-reveal-symbolic'],
-        [   1, 'invert-light-shift-win',   _('Invert Lightness - White to Grey (window)'),true,  'view-reveal-symbolic'],
-        [   1, 'invert-colors-win'     ,   _('Invert Colors (window)'),                   true,  'view-reveal-symbolic'],
-        [   1, 'tint-red-toggle-win'   ,   _('Red Tint Mono (window)'),                   true,  'view-reveal-symbolic'],
-        [   1, 'tint-green-toggle-win' ,   _('Green Tint Mono (window)'),                 true,  'view-reveal-symbolic'],
-        [   1, 'desaturate-win'        ,   _('Desaturate (window)'),                      true,  'view-reveal-symbolic'],
-        [   1, 'remove-effects-win'    ,   _('Remove All Effects (window)'),              true,  'window-close-symbolic'],
+        [null, 'win-effects-submenu'        , _('Windows - Color Effects'),                  true,  'view-reveal-symbolic',                                    true],
+        [   1, 'invert-light-win'           , _('Invert Lightness (window)'),                true,  'view-reveal-symbolic',                                    true],
+        [   1, 'invert-light-shift-win'     , _('Invert Lightness - White to Grey (window)'),true,  'view-reveal-symbolic',                                    true],
+        [   1, 'invert-colors-win'          , _('Invert Colors (window)'),                   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'tint-red-toggle-win'        , _('Red Tint Mono (window)'),                   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'tint-green-toggle-win'      , _('Green Tint Mono (window)'),                 true,  'view-reveal-symbolic',                                    true],
+        [   1, 'desaturate-win'             , _('Desaturate (window)'),                      true,  'view-reveal-symbolic',                                    true],
+        [   1, 'remove-effects-win'         , _('Remove All Effects (window)'),              true,  'window-close-symbolic',                                   true],
 
-        [null, 'global-effects-submenu',   _('Global Effects'),                           true,  'view-reveal-symbolic'],
-        [   1, 'bright-up-all'         ,   _('Brightness Up (global)'),                   true,  'display-brightness-symbolic'],
-        [   1, 'bright-down-all'       ,   _('Brightness Down (global)'),                 true,  'display-brightness-symbolic'],
-        [   1, 'contrast-up-all'       ,   _('Contrast Up (global)'),                     true,  'view-reveal-symbolic'],
-        [   1, 'contrast-down-all'     ,   _('Contrast Down (global)'),                   true,  'view-reveal-symbolic'],
-        [   1, 'contrast-high-all'     ,   _('High Contrast (global)'),                   true,  'view-reveal-symbolic'],
-        [   1, 'contrast-low-all'      ,   _('Low Contrast (global)'),                    true,  'view-reveal-symbolic'],
-        [   1, 'invert-light-all'      ,   _('Invert Lightness (global)'),                true,  'view-reveal-symbolic'],
-        [   1, 'invert-light-shift-all',   _('Invert Lightness - White to Grey (global)'),true,  'view-reveal-symbolic'],
-        [   1, 'tint-red-toggle-all'   ,   _('Red Tint Mono (global)'),                   true,  'view-reveal-symbolic'],
-        [   1, 'tint-green-toggle-all' ,   _('Green Tint Mono (global)'),                 true,  'view-reveal-symbolic'],
-        [   1, 'desaturate-all'        ,   _('Desaturate (global)'),                      true,  'view-reveal-symbolic'],
-        [   1, 'remove-effects-all'    ,   _('Remove All Effects (global)'),              true,  'window-close-symbolic'],
+        [null, 'global-effects-submenu'     , _('Global Visual Effects'),                    true,  'view-reveal-symbolic',                                   false],
+        [   1, 'bright-up-all'              , _('Brightness Up (global)'),                   true,  'display-brightness-symbolic',                            false],
+        [   1, 'bright-down-all'            , _('Brightness Down (global)'),                 true,  'display-brightness-symbolic',                            false],
+        [   1, 'contrast-up-all'            , _('Contrast Up (global)'),                     true,  'view-reveal-symbolic',                                   false],
+        [   1, 'contrast-down-all'          , _('Contrast Down (global)'),                   true,  'view-reveal-symbolic',                                   false],
+        [   1, 'contrast-high-all'          , _('High Contrast (global)'),                   true,  'view-reveal-symbolic',                                   false],
+        [   1, 'contrast-low-all'           , _('Low Contrast (global)'),                    true,  'view-reveal-symbolic',                                   false],
+        [   1, 'invert-light-all'           , _('Invert Lightness (global)'),                true,  'view-reveal-symbolic',                                   false],
+        [   1, 'invert-light-shift-all'     , _('Invert Lightness - White to Grey (global)'),true,  'view-reveal-symbolic',                                   false],
+        [   1, 'tint-red-toggle-all'        , _('Red Tint Mono (global)'),                   true,  'view-reveal-symbolic',                                   false],
+        [   1, 'tint-green-toggle-all'      , _('Green Tint Mono (global)'),                 true,  'view-reveal-symbolic',                                   false],
+        [   1, 'desaturate-all'             , _('Desaturate (global)'),                      true,  'view-reveal-symbolic',                                   false],
+        [   1, 'remove-effects-all'         , _('Remove All Effects (global)'),              true,  'window-close-symbolic',                                  false],
+        [   1, 'black-screen'               , _('Black Screen (all monitors)'),              true,  'video-display-symbolic',                                 false],
+        [   1, 'black-screen-mon'           , _('Black Screen (current monitor)'),           true,  'video-display-symbolic',                                 false],
 
-        [null, 'access-submenu'        ,   _('Universal Access'),                         true,  'preferences-desktop-accessibility-symbolic'],
-        [   1, 'toggle-zoom'           ,   _('Magnifier - Zoom 2x (toggle)'),             true,  'zoom-in-symbolic'],
-        [   1, 'zoom-in'               ,   _('Magnifier - Zoom In'),                      true,  'zoom-in-symbolic'],
-        [   1, 'zoom-out'              ,   _('Magnifier - Zoom Out'),                     true,  'zoom-out-symbolic'],
-        [   1, 'screen-reader'         ,   _('Screen Reader (toggle)'),                   true,  'audio-speakers-symbolic'],
-        [   1, 'large-text'            ,   _('Large Text (toggle)'),                      true,  'insert-text-symbolic'],
-        [   1, 'keyboard'              ,   _('Screen Keyboard (toggle)'),                 true,  'input-keyboard-symbolic'],
-        [   1, 'invert-light-all'      ,   _('Invert Lightness (global)'),                true,  'view-reveal-symbolic'],
-        [   1, 'protan-toggle-all'     ,   _('Color Correction - Protanopia (window)'),   true,  'view-reveal-symbolic'],
-        [   1, 'deuter-toggle-all'     ,   _('Color Correction - Deuteranopia (window)'), true,  'view-reveal-symbolic'],
-        [   1, 'tritan-toggle-all'     ,   _('Color Correction - Tritanopia (window)'),   true,  'view-reveal-symbolic'],
-        [   1, 'protan-sim-toggle-all' ,   _('Color Simulation - Protanopia (window)'),   true,  'view-reveal-symbolic'],
-        [   1, 'deuter-sim-toggle-all' ,   _('Color Simulation - Deuteranopia (window)'), true,  'view-reveal-symbolic'],
-        [   1, 'tritan-sim-toggle-all' ,   _('Color Simulation - Tritanopia (window)'),   true,  'view-reveal-symbolic'],
-        [   1, 'mixer-gbr-toggle-all'  ,   _('Color Mixer GBR'),                          true,  'view-reveal-symbolic'],
+        [null, 'access-submenu'             , _('Universal Access'),                         true,  'preferences-desktop-accessibility-symbolic',             false],
+        [   1, 'toggle-zoom'                , _('Magnifier - Zoom 2x (toggle)'),             true,  'zoom-in-symbolic',                                       false],
+        [   1, 'zoom-in'                    , _('Magnifier - Zoom In'),                      true,  'zoom-in-symbolic',                                       false],
+        [   1, 'zoom-out'                   , _('Magnifier - Zoom Out'),                     true,  'zoom-out-symbolic',                                      false],
+        [   1, 'screen-reader'              , _('Screen Reader (toggle)'),                   true,  'audio-speakers-symbolic',                                false],
+        [   1, 'large-text'                 , _('Large Text (toggle)'),                      true,  'insert-text-symbolic',                                   false],
+        [   1, 'keyboard'                   , _('Screen Keyboard (toggle)'),                 true,  'input-keyboard-symbolic',                                false],
+        [   1, 'invert-light-all'           , _('Invert Lightness (global)'),                true,  'view-reveal-symbolic',                                   false],
+        [   1, 'protan-toggle'              , _('Color Correction - Protanopia (window)'),   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'deuter-toggle'              , _('Color Correction - Deuteranopia (window)'), true,  'view-reveal-symbolic',                                    true],
+        [   1, 'tritan-toggle'              , _('Color Correction - Tritanopia (window)'),   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'protan-sim-toggle'          , _('Color Simulation - Protanopia (window)'),   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'deuter-sim-toggle'          , _('Color Simulation - Deuteranopia (window)'), true,  'view-reveal-symbolic',                                    true],
+        [   1, 'tritan-sim-toggle'          , _('Color Simulation - Tritanopia (window)'),   true,  'view-reveal-symbolic',                                    true],
+        [   1, 'mixer-gbr-toggle'           , _('Color Mixer GBR'),                          true,  'view-reveal-symbolic',                                    true],
 
-        [null, 'gnome-submenu'         ,   _('Gnome'),                                    true,  'start-here-symbolic'],
-        [   1, 'hide-panel'            ,   _('Hide Main Panel toggle'),                   true,  'focus-top-bar-symbolic'],
-        [   1, 'toggle-theme'          ,   _('Light/Dark Gtk Theme toggle'),              true,  'view-reveal-symbolic'],
-        [   1, 'night-light-toggle'    ,   _('Night Light toggle'),                       true,  'night-light-symbolic'],
+        [null, 'gnome-submenu'              , _('GNOME'),                                    true,  'start-here-symbolic',                                    false],
+        [   1, 'night-light-toggle'         , _('Toggle Night Light'),                       true,  'night-light-symbolic',                                   false],
+        [   1, 'toggle-theme'               , _('Toggle Light/Dark Gtk Theme'),              true,  'view-reveal-symbolic',                                   false],
+        [   1, 'hide-panel'                 , _('Hide/Show Main Panel'),                     true,  'focus-top-bar-symbolic',                                 false],
+        [   1, 'open-panel-aggregate-menu'  , _('Open Panel Aggregate Menu'),                true,  'open-menu-symbolic',                                     false],
+        [   1, 'open-panel-date-menu'       , _('Open Panel Date Menu'),                     true,  'open-menu-symbolic',                                     false],
+        [   1, 'open-panel-app-menu'        , _('Open Panel App Menu'),                      true,  'open-menu-symbolic',                                     false],
 
-        [null, 'system-submenu'        ,   _('System'),                                   true,  'system-run-symbolic'],
-        [   1, 'lock-screen'           ,   _('Lock Screen'),                              true,  'changes-prevent-symbolic'],
-        [   1, 'suspend'               ,   _('Suspend to RAM'),                           true,  'weather-clear-night-symbolic'],
-        [   1, 'power-off'             ,   _('Power Off Dialog'),                         true,  'system-shutdown-symbolic'],
-        [   1, 'log-out'               ,   _('Log Out Dialog'),                           true,  'system-log-out-symbolic'],
-        [   1, 'switch-user'           ,   _('Switch User (if exists)'),                  true,  'system-switch-user-symbolic'],
+        [null, 'system-submenu'             , _('System'),                                   true,  'system-run-symbolic',                                    false],
+        [   1, 'lock-screen'                , _('Lock Screen'),                             false,  'changes-prevent-symbolic',                               false],
+        [   1, 'suspend'                    , _('Suspend to RAM'),                           true,  'weather-clear-night-symbolic',                           false],
+        [   1, 'power-off'                  , _('Power Off Dialog'),                         true,  'system-shutdown-symbolic',                               false],
+        [   1, 'log-out'                    , _('Log Out Dialog'),                           true,  'system-log-out-symbolic',                                false],
+        [   1, 'switch-user'                , _('Switch User (if exists)'),                  true,  'system-switch-user-symbolic',                            false],
 
-        [null, 'sound-submenu'         ,   _('Sound'),                                    true,  'audio-volume-medium-symbolic'],
-        [   1, 'volume-up'             ,   _('Volume Up'),                                true,  'audio-volume-high-symbolic'],
-        [   1, 'volume-down'           ,   _('Volume Down'),                              true,  'audio-volume-low-symbolic'],
-        [   1, 'mute-sound'            ,   _('Volume Mute toggle'),                       true,  'audio-volume-muted-symbolic'],
+        [null, 'media-submenu'              , _('Sound / Media'),                           true,  'audio-volume-medium-symbolic',                           false],
+        [   1, 'volume-up'                  , _('Volume Up'),                               false,  'audio-volume-high-symbolic',                             false],
+        [   1, 'volume-down'                , _('Volume Down'),                             false,  'audio-volume-low-symbolic',                              false],
+        [   1, 'mute-sound'                 , _('Mute Audio (toggle)'),                     false,  'audio-volume-muted-symbolic',                            false],
+        [   1, 'mpris-play-pause'           , _('Media Key - Play/Pause'),                  false,  'media-playback-start-symbolic',                          false],
+        [   1, 'mpris-next'                 , _('Media Key - Next Track'),                  false,  'media-skip-forward-symbolic',                            false],
+        [   1, 'mpris-prev'                 , _('Media Key - Previous Track'),              false,  'media-skip-backward-symbolic',                           false],
 
-        [null, 'debug-submenu'         ,   _('Debug'),                                    true,  'edit-find-symbolic'],
-        [   1, 'looking-glass'         ,   _('Looking Glass (GS debugger)'),              true,  'edit-find-symbolic'],
-        [   1, 'restart-shell'         ,   _('Restart Gnome Shell (X11 only)'),           true,  'view-refresh-symbolic'],
+        [null, 'debug-submenu'              , _('Debug'),                                    true,  'edit-find-symbolic',                                     false],
+        [   1, 'looking-glass'              , _('Looking Glass (GNOME Shell debugger)'),     true,  'edit-find-symbolic',                                     false],
+        [   1, 'lg-inspector'               , _('GNOME Shell UI Inspector'),                 true,  'find-location-symbolic',                                 false],
+        [   1, 'restart-shell'              , _('Restart GNOME Shell (X11 only)'),           true,  'view-refresh-symbolic',                                  false],
+        [   1, 'run-prompt'                 , _('Show Run Command Prompt'),                 false,  'utilities-terminal-symbolic',                            false],
 
-        [null, 'custom-menus-submenu'  ,   _('Custom Menus'),                             true,  'open-menu-symbolic'],
-        [   1, 'show-custom-menu-1'    ,   _('Show Custom Menu 1'),                       true,  'open-menu-symbolic'],
-        [   1, 'show-custom-menu-2'    ,   _('Show Custom Menu 2'),                       true,  'open-menu-symbolic'],
-        [   1, 'show-custom-menu-3'    ,   _('Show Custom Menu 3'),                       true,  'open-menu-symbolic'],
-        [   1, 'show-custom-menu-4'    ,   _('Show Custom Menu 4'),                       true,  'open-menu-symbolic'],
-        [   0, 'prefs'                 ,   _('Open Preferences'),                         true,  'preferences-system-symbolic']
+        [null, 'custom-menus-submenu'       , _('Custom Menus'),                             true,  'open-menu-symbolic',                                     false],
+        [   1, 'show-custom-menu-1'         , _('Show Custom Menu 1'),                       true,  'open-menu-symbolic',                                     false],
+        [   1, 'show-custom-menu-2'         , _('Show Custom Menu 2'),                       true,  'open-menu-symbolic',                                     false],
+        [   1, 'show-custom-menu-3'         , _('Show Custom Menu 3'),                       true,  'open-menu-symbolic',                                     false],
+        [   1, 'show-custom-menu-4'         , _('Show Custom Menu 4'),                       true,  'open-menu-symbolic',                                     false],
+
+        [null, 'hardware-submenu'           , _('Hardware Control'),                         true,  'system-run-symbolic',                                    false],
+        [   1, 'display-brightness-up'      , _('Display Brightness Up (HW)'),              false,  'display-brightness-symbolic',                            false],
+        [   1, 'display-brightness-down'    , _('Display Brightness Down (HW)'),            false,  'display-brightness-symbolic',                            false],
+
     ]; // end

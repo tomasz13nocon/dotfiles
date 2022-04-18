@@ -5,9 +5,10 @@
   "name": "Better OSD - Gnome 40",
   "shell-version": [
     "40",
-    "41"
+    "41",
+    "41.1"
   ],
   "url": "https://github.com/hllvc/better-osd",
   "uuid": "better-osd@hllvc",
-  "version": 5
+  "version": 6
 }

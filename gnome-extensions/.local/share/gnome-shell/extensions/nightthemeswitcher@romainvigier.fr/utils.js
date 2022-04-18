@@ -9,6 +9,8 @@ const Me = extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
+const { ExtensionState } = extensionUtils;
+
 
 /**
  * Build the full settings schema from a subschema.
@@ -71,7 +73,7 @@ function getInstalledResources(type) {
  * @returns {Set<string>} A set containing all the installed GTK themes names.
  */
 function getInstalledGtkThemes() {
-    const themes = new Set(['Adwaita', 'HighContrast', 'HighContrastInverse']);
+    const themes = new Set();
     getInstalledResources('themes').forEach(theme => {
         const version = [0, Gtk.MINOR_VERSION].find(gtkVersion => {
             if (gtkVersion % 2)
@@ -153,7 +155,7 @@ function getUserthemesExtension() {
  */
 function getUserthemesSettings() {
     let extension = getUserthemesExtension();
-    if (!extension)
+    if (!extension || extension.state !== ExtensionState.ENABLED)
         return null;
     const schemaDir = extension.dir.get_child('schemas');
     const GioSSS = Gio.SettingsSchemaSource;

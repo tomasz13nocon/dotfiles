@@ -11,6 +11,23 @@
 const Cairo                                               = imports.cairo;
 const {GLib, Gdk, Gtk, Gio, Pango, PangoCairo, GdkPixbuf} = imports.gi;
 
+// Returns the given argument, except for "alpha", "beta", and "rc". In these cases -3,
+// -2, and -1 are returned respectively.
+function toNumericVersion(x) {
+  switch (x) {
+    case 'alpha':
+      return -3;
+    case 'beta':
+      return -2;
+    case 'rc':
+      return -1;
+  }
+  return x;
+}
+
+const Config               = imports.misc.config;
+const [GS_MAJOR, GS_MINOR] = Config.PACKAGE_VERSION.split('.').map(toNumericVersion);
+
 // We import the St module optionally. When this file is included from the daemon
 // side, it is available and can be used below. If this file is included via the pref.js,
 // it will not be available.
@@ -84,6 +101,30 @@ function getSessionType() {
     _sessionType = GLib.getenv('XDG_SESSION_TYPE');
   }
   return _sessionType;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Two methods for checking the current version of GNOME Shell.                         //
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// This method returns true if the current GNOME Shell version matches the given
+// arguments.
+function shellVersionIs(major, minor) {
+  return GS_MAJOR == major && GS_MINOR == toNumericVersion(minor);
+}
+
+// This method returns true if the current GNOME Shell version is at least as high as the
+// given arguments. Supports "alpha" and "beta" for the minor version number.
+function shellVersionIsAtLeast(major, minor) {
+  if (GS_MAJOR > major) {
+    return true;
+  }
+
+  if (GS_MAJOR == major) {
+    return GS_MINOR >= toNumericVersion(minor);
+  }
+
+  return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -526,6 +567,42 @@ function roundToMultiple(number, base) {
                                         number - number % base;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// These two methods are used for high-dpi scaling support. They cannot be used from    //
+// the preferences dialog.                                                              //
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// This returns an actor up-scaling factor. Actors should be enlarged by this amount.
+// On Wayland with fractional scaling enabled, this returns 1. In all other cases (like on
+// X11 or on Wayland with non-fractional scaling), it returns values like this:
+//
+// Scaling Factor      Return Value
+//     100 %                1
+//     150 %                2
+//     200 %                2
+//     250 %                3
+//      ...                ...
+function getHDPIScale() {
+  return St.ThemeContext.get_for_stage(global.stage).scale_factor;
+}
+
+// This returns a resource up-scaling factor. Textures should be enlarged by this amount.
+// In most cases, this returns 1. Only on Wayland with fractional scaling enabled, it may
+// return larger values. Like this:
+//
+// Scaling Factor      Return Value
+//     100 %                1
+//     150 %                2
+//     200 %                2
+//     250 %                3
+//      ...                ...
+function getHDPIResourceScale() {
+  if (shellVersionIsAtLeast(3, 38)) {
+    return global.stage.get_resource_scale();
+  }
+  return global.stage.get_resource_scale()[1];
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // This method receives an array of objects, each representing an item in a menu level. //

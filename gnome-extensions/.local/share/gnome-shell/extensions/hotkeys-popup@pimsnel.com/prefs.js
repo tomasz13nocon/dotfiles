@@ -117,6 +117,12 @@ const ShortcutsPrefsWidget = new GObject.Class({
     _settings.bind('transparent-popup', showTransparentCheckButton, 'active', Gio.SettingsBindFlags.DEFAULT);
     this._grid._add(showTransparentCheckButton);
 
+    let jsonLabel = new UI.LargeLabel("Shortcuts from json File");
+    this._grid._add(jsonLabel)
+
+    let label_instruction_json_file = new UI.Label('You can add extra shortcuts from a JSON File.\nCopy\n\nhttps://raw.githubusercontent.com/mipmip/gnome-shell-extensions-hotkeys-popup/main/hotkeys-popup-custom-example.json\n\n to ~/.hotkeys-popup-custom.json. \n\nYou can add your own keys in this file.\n')
+    this._grid._add(label_instruction_json_file);
+
     let hide_items = {};
     let hide_schemas = {};
 

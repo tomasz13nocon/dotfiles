@@ -8,27 +8,32 @@
 
 'use strict';
 
-const Util             = imports.misc.util;
-const Main             = imports.ui.main;
-const OverviewControls = imports.ui.overviewControls;
-const WorkspacesView   = imports.ui.workspacesView.WorkspacesView;
-const FitMode          = imports.ui.workspacesView.FitMode;
-const MonitorGroup     = imports.ui.workspaceAnimation.MonitorGroup;
+const {Clutter, Graphene, GObject, Shell, St, Meta} = imports.gi;
+
+const Util           = imports.misc.util;
+const Main           = imports.ui.main;
+const Layout         = imports.ui.layout;
+const WorkspacesView = imports.ui.workspacesView.WorkspacesView;
+const FitMode        = imports.ui.workspacesView.FitMode;
 const WorkspaceAnimationController =
-    imports.ui.workspaceAnimation.WorkspaceAnimationController;
+  imports.ui.workspaceAnimation.WorkspaceAnimationController;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = imports.misc.extensionUtils.getCurrentExtension();
-const utils          = Me.imports.utils;
+const utils          = Me.imports.src.utils;
+const DragGesture    = Me.imports.src.DragGesture.DragGesture;
+const Skybox         = Me.imports.src.Skybox.Skybox;
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// This extensions modifies three methods of the WorkspacesView class of GNOME Shell.   //
-// By doing this, it tweaks the positioning of workspaces in overview mode to make them //
-// look like cube faces.                                                                //
+// This extensions tweaks the positioning of workspaces in overview mode and while      //
+// switching workspaces in desktop mode to make them look like cube faces.              //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// The scale of inactive workspaces in app grid mode.
-const INACTIVE_SCALE = imports.ui.workspacesView.WORKSPACE_INACTIVE_SCALE;
+// Maximum degrees the cube can be rotated up and down.
+const MAX_VERTICAL_ROTATION = 50;
+
+// Spacing to the screen sides of the vertically rotated cube.
+const PADDING_V_ROTATION = 0.2;
 
 class Extension {
   // The constructor is called once when the extension is loaded, not enabled.
@@ -45,14 +50,13 @@ class Extension {
     // Store a reference to the settings object.
     this._settings = ExtensionUtils.getSettings();
 
-    // We will monkey-patch these three methods. Let's store the original ones.
+    // We will monkey-patch these methods. Let's store the original ones.
     this._origUpdateWorkspacesState = WorkspacesView.prototype._updateWorkspacesState;
     this._origGetSpacing            = WorkspacesView.prototype._getSpacing;
     this._origUpdateVisibility      = WorkspacesView.prototype._updateVisibility;
-    this._origMonitorGroupInit      = MonitorGroup.prototype._init;
-    this._origUpdateSwipeForMonitor = MonitorGroup.prototype.updateSwipeForMonitor;
     this._origAnimateSwitch = WorkspaceAnimationController.prototype.animateSwitch;
     this._origPrepSwitch = WorkspaceAnimationController.prototype._prepareWorkspaceSwitch;
+    this._origFinalSwitch = WorkspaceAnimationController.prototype._finishWorkspaceSwitch;
 
     // We may also override these animation times.
     this._origWorkspaceSwitchTime = imports.ui.workspacesView.WORKSPACE_SWITCH_TIME;
@@ -72,12 +76,12 @@ class Extension {
       {
         const t = this._settings.get_int('appgrid-transition-time');
         imports.ui.overviewControls.SIDE_CONTROLS_ANIMATION_TIME =
-            (t > 0 ? t : this._origToAppDrawerTime);
+          (t > 0 ? t : this._origToAppDrawerTime);
       }
       {
         const t = this._settings.get_int('workspace-transition-time');
         imports.ui.workspacesView.WORKSPACE_SWITCH_TIME =
-            (t > 0 ? t : this._origWorkspaceSwitchTime);
+          (t > 0 ? t : this._origWorkspaceSwitchTime);
       }
     };
 
@@ -87,26 +91,7 @@ class Extension {
 
     loadAnimationTimes();
 
-    // Here, we extend the WorkspaceAnimationController's animateSwitch method in order to
-    // be able to modify the animation duration for switching workspaces in desktop mode.
-    // We have to do it like this since the time is hard-coded with a constant:
-    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L11
-    WorkspaceAnimationController.prototype.animateSwitch = function(...params) {
-      // Call the original method. This sets up the progress transitions which we tweak
-      // thereafter.
-      extensionThis._origAnimateSwitch.apply(this, params);
-
-      // We do not override this time if the cube is unfolded in desktop mode.
-      if (extensionThis._settings.get_boolean('unfold-to-desktop')) {
-        return;
-      }
-
-      // Now update the transition durations.
-      const duration = extensionThis._settings.get_int('workspace-transition-time');
-      for (const monitorGroup of this._switchData.monitors) {
-        monitorGroup.get_transition('progress').set_duration(duration);
-      }
-    };
+    // --------------------------------------------------------------- cubify the overview
 
     // Normally, all workspaces outside the current field-of-view are hidden. We want to
     // show all workspaces, so we patch this method. The original code is about here:
@@ -129,7 +114,7 @@ class Extension {
     WorkspacesView.prototype._getSpacing = function(box, fitMode, vertical) {
       // We use the "normal" workspace spacing in desktop and app-grid mode.
       const origValue =
-          extensionThis._origGetSpacing.apply(this, [box, fitMode, vertical]);
+        extensionThis._origGetSpacing.apply(this, [box, fitMode, vertical]);
 
       if (fitMode == FitMode.ALL) {
         return origValue;
@@ -154,6 +139,19 @@ class Extension {
         return;
       }
 
+      // Here's a minor hack to improve the performance: During the transitions to / from
+      // the app drawer, this._updateWorkspacesState is called twice a frame. Once from
+      // the notify handler of this._fitModeAdjustment and thereafter once from the notify
+      // handler of this._overviewAdjustment. As this seems not so useful (and degrades
+      // performance a lot), we skip the first call. I am not aware of any cases where
+      // this._fitModeAdjustment is changed without any of the over adjustments to change
+      // as well...
+      // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspacesView.js#L109
+      // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspacesView.js#L45
+      if ((new Error()).stack.includes('fitModeNotify')) {
+        return;
+      }
+
       // Compute blending state from and to the overview, from and to the app grid, and
       // from and to the desktop mode. We will use cubeMode to fold and unfold the
       // cube, overviewMode to add some depth between windows and backgrounds, and
@@ -174,7 +172,7 @@ class Extension {
 
         // Add gaps between workspaces in overview mode.
         workspaceWidth +=
-            overviewMode * 2 * extensionThis._settings.get_int('workpace-separation');
+          overviewMode * 2 * extensionThis._settings.get_int('workpace-separation');
 
         extensionThis._lastWorkspaceWidth = workspaceWidth;
       }
@@ -185,6 +183,20 @@ class Extension {
       // That's the z-distance from the cube faces to the rotation pivot.
       const centerDepth = extensionThis._getCenterDist(workspaceWidth, faceAngle);
 
+      // Apply vertical rotation if required. This comes from the pitch value of the
+      // modified SwipeTracker created by _addOverviewDragGesture() further below.
+      this.pivot_point_z = -centerDepth;
+      this.set_pivot_point(0.5, 0.5);
+      this.rotation_angle_x = extensionThis._pitch.value * MAX_VERTICAL_ROTATION;
+
+      // During rotations, the cube is scaled down and the windows are "exploded". If we
+      // are directly facing a cube side, the strengths of both effects are approaching
+      // zero. The strengths of both effects are small during horizontal rotations to make
+      // workspace-switching not so obtrusive. However, during vertical rotations, the
+      // effects are stronger.
+      const [depthOffset, explode] = extensionThis._getExplodeFactors(
+        this._scrollAdjustment.value, extensionThis._pitch.value, centerDepth);
+
       // Now loop through all workspace and compute the individual rotations.
       this._workspaces.forEach((w, index) => {
         // First update the corner radii. Corners are only rounded in overview.
@@ -194,20 +206,13 @@ class Extension {
         // units behind the front face.
         w.pivot_point_z = -centerDepth;
 
+        // Make cube smaller during rotations.
+        w.translation_z = -depthOffset;
+
         // The rotation angle is transitioned proportional to cubeMode^1.5. This slows
         // down the rotation a bit closer to the desktop and to the app drawer.
         w.rotation_angle_y =
-            Math.pow(cubeMode, 1.5) * (-this._scrollAdjustment.value + index) * faceAngle;
-
-        // Add some separation between background and windows (only in overview mode).
-        let bgScale =
-            (centerDepth - extensionThis._settings.get_int('depth-separation')) /
-            centerDepth;
-        bgScale = Util.lerp(1, Math.max(0.1, bgScale), overviewMode);
-
-        w._background.pivot_point_z = -centerDepth;
-        w._background.set_pivot_point(0.5, 0.5);
-        w._background.scale_x = w._background.scale_y = w._background.scale_z = bgScale;
+          Math.pow(cubeMode, 1.5) * (-this._scrollAdjustment.value + index) * faceAngle;
 
         // Distance to being the active workspace in [-1...0...1].
         const dist = Math.clamp(index - this._scrollAdjustment.value, -1, 1);
@@ -217,7 +222,7 @@ class Extension {
         // The value is set to zero if we have five or more workspaces.
         if (faceCount <= 4) {
           w.translation_x =
-              dist * overviewMode * extensionThis._settings.get_int('horizontal-stretch');
+            dist * overviewMode * extensionThis._settings.get_int('horizontal-stretch');
         } else {
           w.translation_x = 0;
         }
@@ -228,154 +233,443 @@ class Extension {
         const opacity  = Util.lerp(opacityA, opacityB, Math.abs(dist));
         w._background.set_opacity(Util.lerp(255, opacity, overviewMode));
 
-        // Update workspace scale only in app grid mode.
-        const scale = Util.lerp(1, INACTIVE_SCALE, Math.abs(dist) * appDrawerMode);
+        // Update workspace scale only in app grid mode. The 0.94 is supposed to be the
+        // same value as the WORKSPACE_INACTIVE_SCALE defined here:
+        // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspacesView.js#L21
+        // As this is defined as 'const', we cannot access it here. But the exact value
+        // also not really matters...
+        const scale = Util.lerp(1, 0.94, Math.abs(dist) * appDrawerMode);
         w.set_scale(scale, scale);
+
+        // Now we add some depth separation between the window clones. If the explode
+        // factor becomes too small, the depth sorting becomes non-deterministic.
+        if (explode > 0.001) {
+
+          const sortedActors = w._container.layout_manager._sortedWindows;
+
+          // Distribute the window clones translation_z values between zero and
+          // explode.
+          sortedActors.forEach((windowActor, j) => {
+            windowActor.translation_z = explode * (j + 1) / sortedActors.length;
+          });
+
+          // Now sort the window clones according to the orthogonal distance of the actor
+          // planes to the camera. This ensures proper depth sorting among the window
+          // clones.
+          if (sortedActors.length > 0) {
+            extensionThis._sortActorsByPlaneDist(w._container.get_children());
+          }
+        }
+
+        // Now we sort the children of the workspace (e.g. the background actor
+        // and the container for the window clones) by their orthogonal distance to the
+        // virtual camera. We add a tiny translation to the window-clone container to
+        // allow for proper sorting.
+        w._container.translation_z = 1;
+        extensionThis._sortActorsByPlaneDist(w.get_children());
       });
 
-      // The remainder of this method cares about proper depth sorting. First, we sort the
-      // workspaces so that they are drawn back-to-front. Thereafter, we ensure that for
-      // front-facing workspaces the background is drawn behind the window previews. For
-      // back-facing workspaces this order is swapped.
-
       // The depth-sorting of cube faces is quite simple, we sort them by increasing
-      // rotation angle.
+      // rotation angle so that they are drawn back-to-front.
       extensionThis._sortActorsByAngle(this._workspaces);
+    };
 
-      // Now we compute wether the individual cube faces are front-facing or back-facing.
-      // This is surprisingly difficult ... can this be simplified? Here, we compute the
-      // angle between the vectors (camera -> cube face) and (rotation center -> cube
-      // face). If this is > 90° it's front-facing.
+    // ------------------------------------------- cubify workspace-switch in desktop mode
 
-      // First, compute distance of virtual camera to the front workspaces plane.
-      const camDist = Main.layoutManager.monitors[this._monitorIndex].height /
-          (2 * Math.tan(global.stage.perspective.fovy / 2 * Math.PI / 180));
+    // Here, we extend the WorkspaceAnimationController's animateSwitch method in order to
+    // be able to modify the animation duration for switching workspaces in desktop mode.
+    // We have to do it like this since the time is hard-coded with a constant:
+    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L11
+    WorkspaceAnimationController.prototype.animateSwitch = function(...params) {
+      // Call the original method. This sets up the progress transitions which we tweak
+      // thereafter.
+      extensionThis._origAnimateSwitch.apply(this, params);
 
-      // Then loop through all workspaces.
-      for (let i = 0; i < this._workspaces.length; i++) {
-        const w = this._workspaces[i];
-
-        if (w.rotation_angle_y == 0) {
-
-          // Special case: The workspace is directly in front of us.
-          w.set_child_below_sibling(w._background, null);
-
-        } else {
-
-          // a is the length of vector from camera to rotation center.
-          const a = camDist + centerDepth;
-
-          // Enclosed angle between the a and b.
-          const gamma = Math.abs(w.rotation_angle_y);
-
-          // b is the length of vector from center of cube face to rotation center. This
-          // would be only centerDepth if the sides of the cube were not spaced further
-          // apart horizontally by the "horizontal-stretch". Computed with law of cosines:
-          // b²=d²+s²-2ds*cos(90+gamma).
-          const s = Math.abs(w.translation_x);
-          const d = centerDepth;
-          const b = Math.sqrt(
-              d * d + s * s - 2 * d * s * Math.cos((90 + gamma) * Math.PI / 180));
-
-          // Length of vector from virtual camera to center of the cube face. Computed
-          // with law of cosines: c²=a²+b²-2ab*cos(gamma).
-          const c =
-              Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(gamma * Math.PI / 180));
-
-          // Enclosed angle between vector from virtual camera to center of the cube face
-          // and from center of cube face to rotation center. Computed with the Law of
-          // cosines again: alpha=acos((b²+c²-a²)(2bc))
-          const alpha = Math.acos((b * b + c * c - a * a) / (2 * b * c)) * 180 / Math.PI;
-
-          // Draw the background actor first if it's a front-facing cube side. Draw it
-          // last if it's a back-facing cube side.
-          if (alpha > 90) {
-            w.set_child_below_sibling(w._background, null);
-          } else {
-            w.set_child_above_sibling(w._background, null);
-          }
+      // Now update the transition durations.
+      const duration = extensionThis._settings.get_int('workspace-transition-time');
+      if (duration > 0) {
+        for (const monitorGroup of this._switchData.monitors) {
+          monitorGroup.get_transition('progress').set_duration(duration);
         }
       }
     };
 
-    // This lambda makes the transition between workspaces look like a rotating cube if
-    // the unfold-to-desktop option is not set.
-    const makeWorkspaceSwitchCuboid = () => {
-      // Use original methods if the unfold-to-desktop option is set.
-      if (this._settings.get_boolean('unfold-to-desktop')) {
-        MonitorGroup.prototype._init = this._origMonitorGroupInit;
-        WorkspaceAnimationController.prototype._prepareWorkspaceSwitch =
-            this._origPrepSwitch;
+    // This override rotates the workspaces during the transition to look like cube
+    // faces. The original movement of the workspaces is implemented in the setter of
+    // the progress property. We do not touch this, as keeping track of this progress
+    // is rather important. Instead, we listen to progress changes and tweak the
+    // transformation accordingly.
+    // This lambda is called in two places (further down), once for updates of the
+    // progress property, once for updates during gesture swipes. The latter does not
+    // trigger notify signals of the former for some reason...
+    const updateMonitorGroup = (group) => {
+      // First, we prevent any horizontal movement by countering the translation. We
+      // cannot simply set the x property to zero as this is used to track the
+      // progress.
+      group._container.translation_x = -group._container.x;
 
-      } else {
+      // That's the desired angle between consecutive workspaces.
+      const faceAngle = extensionThis._getFaceAngle(group._workspaceGroups.length);
 
-        // This override looks kind of funny. It simply calls the original method without
-        // any arguments. Usually, GNOME Shell "skips" workspaces when switching to a
-        // workspace which is more than one workspace to the left or the right. This
-        // behavior is not desirable for thr cube, as it messes with your spatial memory.
-        // If no workspaceIndices are given to this method, all workspaces will be shown
-        // during the workspace switch.
-        // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L300
-        WorkspaceAnimationController.prototype._prepareWorkspaceSwitch = function() {
-          extensionThis._origPrepSwitch.apply(this, []);
-        };
+      // That's the z-distance from the cube faces to the rotation pivot.
+      const centerDepth =
+        extensionThis._getCenterDist(group._workspaceGroups[0].width, faceAngle);
 
-        // This override rotates the workspaces during the transition to look like cube
-        // faces. The original movement of the workspaces is implemented in the setter of
-        // the progress property. We do not touch this, as keeping track of this progress
-        // is rather important. Instead, we listen to progress changes and tweak the
-        // transformation accordingly.
-        // This lambda is called in two places (further down), once for updates of the
-        // progress property, once for updates during gesture swipes. The latter does not
-        // trigger notify signals of the former for some reason...
-        const updateMonitorGroup = (group) => {
-          // First, we prevent any horizontal movement by countering the translation. We
-          // cannot simply set the x property to zero as this is used to track the
-          // progress.
-          group._container.translation_x = -group._container.x;
+      // Apply vertical rotation if required. This comes from the pitch value of the
+      // modified SwipeTracker created by _addDesktopDragGesture() further below.
+      group._container.pivot_point_z = -centerDepth;
+      group._container.set_pivot_point(0.5, 0.5);
+      group._container.rotation_angle_x =
+        extensionThis._pitch.value * MAX_VERTICAL_ROTATION;
 
-          // That's the desired angle between consecutive workspaces.
-          const faceAngle = extensionThis._getFaceAngle(group._workspaceGroups.length);
+      // During rotations, the cube is scaled down and the windows are "exploded". If we
+      // are directly facing a cube side, the strengths of both effects are approaching
+      // zero. The strengths of both effects are small during horizontal rotations to make
+      // workspace-switching not so obtrusive. However, during vertical rotations, the
+      // effects are stronger.
+      const [depthOffset, explode] = extensionThis._getExplodeFactors(
+        group.progress, extensionThis._pitch.value, centerDepth);
 
-          // That's the z-distance from the cube faces to the rotation pivot.
-          const centerDepth =
-              extensionThis._getCenterDist(group._workspaceGroups[0].width, faceAngle);
+      // Rotate the individual faces.
+      group._workspaceGroups.forEach((child, i) => {
+        child.set_pivot_point_z(-centerDepth);
+        child.set_pivot_point(0.5, 0.5);
+        child.rotation_angle_y   = (i - group.progress) * faceAngle;
+        child.translation_z      = -depthOffset;
+        child.clip_to_allocation = false;
 
-          // Rotate the individual faces.
-          group._workspaceGroups.forEach((child, i) => {
-            child.set_pivot_point_z(-centerDepth);
-            child.set_pivot_point(0.5, 0.5);
-            child.rotation_angle_y = (i - group.progress) * faceAngle;
+        // Counter the horizontal movement.
+        child.translation_x = -child.x;
 
-            // Counter any movement.
-            child.translation_x = -child.x;
+        // Make cube transparent during vertical rotations.
+        child._background.opacity = 255 * (1.0 - Math.abs(extensionThis._pitch.value));
+
+        // Now we add some depth separation between the window clones. We get the stacking
+        // order from the global window list. If the explode factor becomes too small, the
+        // depth sorting becomes non-deterministic.
+        if (explode > 0.001) {
+          const windowActors = global.get_window_actors().filter(w => {
+            return child._shouldShowWindow(w.meta_window);
           });
 
-          // The depth-sorting of cube faces is quite simple, we sort them by increasing
-          // rotation angle.
-          extensionThis._sortActorsByAngle(group._workspaceGroups);
-        };
+          // Distribute the window clones translation_z values between zero and
+          // explode.
+          windowActors.forEach((windowActor, j) => {
+            const record = child._windowRecords.find(r => r.windowActor === windowActor);
+            if (record) {
+              record.clone.translation_z = explode * (j + 1) / windowActors.length;
+            }
+          });
 
-        // Call the method above whenever a gesture is active.
-        // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L265
-        MonitorGroup.prototype.updateSwipeForMonitor = function(...params) {
-          extensionThis._origUpdateSwipeForMonitor.apply(this, params);
-          updateMonitorGroup(this);
-        };
+          // Now sort the window clones and the background actor according to the
+          // orthogonal distance of the actor planes to the camera. This ensures proper
+          // depth sorting.
+          extensionThis._sortActorsByPlaneDist(child.get_children());
+        }
+      });
 
-        // Call the method above whenever the transition progress changes.
-        // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L135
-        MonitorGroup.prototype._init = function(...params) {
-          extensionThis._origMonitorGroupInit.apply(this, params);
-          this.connect_after('notify::progress', () => updateMonitorGroup(this));
-        };
+      // The depth-sorting of cube faces is quite simple, we sort them by increasing
+      // rotation angle.
+      extensionThis._sortActorsByAngle(group._workspaceGroups);
+
+      // Update horizontal rotation of the background panorama during workspace switches.
+      if (this._skybox) {
+        this._skybox.yaw =
+          2 * Math.PI * group.progress / global.workspaceManager.get_n_workspaces();
       }
     };
 
-    // The workspace-switch in desktop-mode (not in overview) looks like a cube only if
-    // the unfold-to-desktop option is not set.
-    this._settings.connect('changed::unfold-to-desktop', makeWorkspaceSwitchCuboid);
-    makeWorkspaceSwitchCuboid();
+    // Whenever a workspace-switch is about to happen, we tweak the MonitorGroup class a
+    // bit to arrange the workspaces in a cube-like fashion. We have to adjust to parts of
+    // the code as the automatic transitions (e.g. when switching with key combinations)
+    // are handled differently than the gesture based switches.
+    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L300
+    WorkspaceAnimationController.prototype._prepareWorkspaceSwitch = function() {
+      // Here, we call the original method without any arguments. Usually, GNOME Shell
+      // "skips" workspaces when switching to a workspace which is more than one workspace
+      // to the left or the right. This behavior is not desirable for thr cube, as it
+      // messes with your spatial memory. If no workspaceIndices are given to this method,
+      // all workspaces will be shown during the workspace switch.
+      extensionThis._origPrepSwitch.apply(this, []);
+
+      // Now tweak the monitor groups.
+      this._switchData.monitors.forEach(m => {
+        // Call the method above whenever the transition progress changes.
+        m.connect('notify::progress', () => updateMonitorGroup(m));
+
+        // Call the method above whenever a gesture is active.
+        const orig              = m.updateSwipeForMonitor;
+        m.updateSwipeForMonitor = function(progress, baseMonitorGroup) {
+          orig.apply(m, [progress, baseMonitorGroup]);
+          updateMonitorGroup(m);
+        };
+      });
+
+      // Make sure that the background panorama is drawn above the window group during a
+      // workspace switch.
+      if (extensionThis._skybox) {
+        extensionThis._skybox.get_parent().remove_child(extensionThis._skybox);
+        Main.uiGroup.insert_child_above(extensionThis._skybox, global.window_group);
+      }
+    };
+
+    // Re-attach the background panorama to the stage once the workspace switch is done.
+    WorkspaceAnimationController.prototype._finishWorkspaceSwitch = function(...params) {
+      extensionThis._origFinalSwitch.apply(this, params);
+
+      if (extensionThis._skybox) {
+        extensionThis._skybox.get_parent().remove_child(extensionThis._skybox);
+        global.stage.insert_child_below(extensionThis._skybox, null);
+      }
+    };
+
+    // -------------------------------------------------- enable cube rotation by dragging
+
+    // Usually, in GNOME Shell 40+, workspaces are move horizontally. We tweaked this to
+    // look like a horizontal rotation above. To store the current vertical rotation, we
+    // use the adjustment below.
+    this._pitch = new St.Adjustment({actor: global.stage, lower: -1, upper: 1});
+
+    // The overview's SwipeTracker will control the _overviewAdjustment of the
+    // WorkspacesDisplay. However, only horizontal swipes will update this adjustment. If
+    // only our pitch adjustment is changed (e.g. the user moved the mouse only
+    // vertically), the _overviewAdjustment will not change and therefore the workspaces
+    // will not been redrawn. Here we force redrawing by notifying changes if the pitch
+    // value changes.
+    this._pitch.connect('notify::value', () => {
+      if (Main.actionMode == Shell.ActionMode.OVERVIEW) {
+        Main.overview._overview._controls._workspacesDisplay._overviewAdjustment.notify(
+          'value');
+      }
+    });
+
+    // In GNOME Shell, SwipeTrackers are used all over the place to capture swipe
+    // gestures. There's one for entering the overview, one for switching workspaces in
+    // desktop mode, one for switching workspaces in overview mode, one for horizontal
+    // scrolling in the app drawer, and many more. The ones used for workspace-switching
+    // usually do not respond to single-click dragging but only to multi-touch gestures.
+    // We want to be able to rotate the cube with the left mouse button, so we add an
+    // additional gesture to these two SwipeTracker instances tracking single-click drags.
+
+    // Add single-click drag gesture to the desktop.
+    if (this._settings.get_boolean('enable-desktop-dragging')) {
+      this._addDesktopDragGesture();
+    }
+
+    this._settings.connect('changed::enable-desktop-dragging', () => {
+      if (this._settings.get_boolean('enable-desktop-dragging')) {
+        this._addDesktopDragGesture();
+      } else {
+        this._removeDesktopDragGesture();
+      }
+    });
+
+    // Add single-click drag gesture to the panel.
+    if (this._settings.get_boolean('enable-panel-dragging')) {
+      this._addPanelDragGesture();
+    }
+
+    this._settings.connect('changed::enable-panel-dragging', () => {
+      if (this._settings.get_boolean('enable-panel-dragging')) {
+        this._addPanelDragGesture();
+      } else {
+        this._removePanelDragGesture();
+      }
+    });
+
+    // Add single-click drag gesture to the overview.
+    if (this._settings.get_boolean('enable-overview-dragging')) {
+      this._addOverviewDragGesture();
+    }
+
+    this._settings.connect('changed::enable-overview-dragging', () => {
+      if (this._settings.get_boolean('enable-overview-dragging')) {
+        this._addOverviewDragGesture();
+      } else {
+        this._removeOverviewDragGesture();
+      }
+    });
+
+
+    // -------------------------------------------------------------------- add the skybox
+
+    // This is called whenever the skybox texture setting is changed.
+    const updateSkybox = () => {
+      // First, delete the existing skybox.
+      if (this._skybox) {
+        this._skybox.destroy();
+        delete this._skybox;
+      }
+
+      const file = this._settings.get_string('background-panorama');
+
+      // Then, load a new one (if any).
+      if (file != '') {
+        try {
+          this._skybox = new Skybox(file);
+
+          // We add the skybox below everything.
+          global.stage.insert_child_below(this._skybox, null);
+
+          // Make sure that the skybox covers the entire stage.
+          global.stage.bind_property('width', this._skybox, 'width',
+                                     GObject.BindingFlags.SYNC_CREATE);
+          global.stage.bind_property('height', this._skybox, 'height',
+                                     GObject.BindingFlags.SYNC_CREATE);
+
+        } catch (error) {
+          utils.debug('Failed to set skybox: ' + error);
+        }
+      }
+    };
+
+    // Update the skybox whenever the corresponding setting is changed.
+    this._settings.connect('changed::background-panorama', updateSkybox);
+    updateSkybox();
+
+    // Update vertical rotation of the background panorama.
+    this._pitch.connect('notify::value', () => {
+      if (this._skybox) {
+        this._skybox.pitch = (this._pitch.value * MAX_VERTICAL_ROTATION) * Math.PI / 180;
+      }
+    });
+
+    // Update horizontal rotation of the background panorama during workspace switches in
+    // the overview.
+    Main.overview._overview.controls._workspaceAdjustment.connect('notify::value', () => {
+      if (this._skybox) {
+        this._skybox.yaw = 2 * Math.PI *
+          Main.overview._overview.controls._workspaceAdjustment.value /
+          global.workspaceManager.get_n_workspaces();
+      }
+    });
+
+
+    // ----------------------------------------------- enable edge-drag workspace-switches
+
+    // We add two Meta.Barriers, one at each side of the stage. If the pointer hits one of
+    // these with enough pressure while dragging a window, we initiate a workspace-switch.
+    // The last parameter (0) is actually supposed to be a bitwise combination of
+    // Shell.ActionModes. The pressure barrier will only trigger, if Main.actionMode
+    // equals one of the given action modes. This works well for Shell.ActionMode.NORMAL
+    // and Shell.ActionMode.OVERVIEW, however it does not work for Shell.ActionMode.NONE
+    // (which actually equals zero). However, when we want the barriers to also trigger in
+    // Shell.ActionMode.NONE, as this is the mode during a drag-operation in the overview.
+    // Therefore, we modify the _onBarrierHit method of the pressure barrier to completely
+    // ignore this parameter. Instead, we check for the correct action mode in the trigger
+    // handler.
+    this._pressureBarrier = new Layout.PressureBarrier(
+      Layout.HOT_CORNER_PRESSURE_THRESHOLD, Layout.HOT_CORNER_PRESSURE_TIMEOUT, 0);
+
+    // This is an exact copy of the original _onBarrierHit, with only one line disabled to
+    // ignore the given ActionMode.
+    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/layout.js#L1362
+    this._pressureBarrier._onBarrierHit = function(barrier, event) {
+      barrier._isHit = true;
+
+      // If we've triggered the barrier, wait until the pointer has the
+      // left the barrier hitbox until we trigger it again.
+      if (this._isTriggered) return;
+
+      if (this._eventFilter && this._eventFilter(event)) return;
+
+      // Throw out all events not in the proper keybinding mode
+      // if (!(this._actionMode & Main.actionMode)) return;
+
+      let slide    = this._getDistanceAlongBarrier(barrier, event);
+      let distance = this._getDistanceAcrossBarrier(barrier, event);
+
+      if (distance >= this._threshold) {
+        this._trigger();
+        return;
+      }
+
+      // Throw out events where the cursor is move more
+      // along the axis of the barrier than moving with
+      // the barrier.
+      if (slide > distance) return;
+
+      this._lastTime = event.time;
+
+      this._trimBarrierEvents();
+      distance = Math.min(15, distance);
+
+      this._barrierEvents.push([event.time, distance]);
+      this._currentPressure += distance;
+
+      if (this._currentPressure >= this._threshold) this._trigger();
+    };
+
+    // Now we add the left and right barrier to the pressure barrier.
+    const createBarriers = () => {
+      if (this._leftBarrier) {
+        this._pressureBarrier.removeBarrier(this._leftBarrier);
+        this._leftBarrier.destroy();
+      }
+
+      if (this._rightBarrier) {
+        this._pressureBarrier.removeBarrier(this._rightBarrier);
+        this._rightBarrier.destroy();
+      }
+
+      this._leftBarrier = new Meta.Barrier({
+        display: global.display,
+        x1: 0,
+        x2: 0,
+        y1: 0,
+        y2: global.stage.height,
+        directions: Meta.BarrierDirection.POSITIVE_X,
+      });
+
+      this._rightBarrier = new Meta.Barrier({
+        display: global.display,
+        x1: global.stage.width,
+        x2: global.stage.width,
+        y1: 0,
+        y2: global.stage.height,
+        directions: Meta.BarrierDirection.NEGATIVE_X,
+      });
+
+      this._pressureBarrier.addBarrier(this._leftBarrier);
+      this._pressureBarrier.addBarrier(this._rightBarrier);
+    };
+
+    // Re-create the barriers whenever the stage's allocation is changed.
+    this._stageAllocationID = global.stage.connect('notify::allocation', createBarriers);
+    createBarriers();
+
+    // When the pressure barrier is triggered, the corresponding setting is enabled, and a
+    // window is currently dragged, we move the dragged window to the adjacent workspace
+    // and activate it as well.
+    this._pressureBarrier.connect('trigger', () => {
+      const direction =
+        this._leftBarrier._isHit ? Meta.MotionDirection.LEFT : Meta.MotionDirection.RIGHT;
+
+      const newWorkspace =
+        global.workspace_manager.get_active_workspace().get_neighbor(direction);
+
+      if (Main.actionMode == Shell.ActionMode.NORMAL && this._draggedWindow &&
+          this._settings.get_boolean('enable-desktop-edge-switch')) {
+        Main.wm.actionMoveWindow(this._draggedWindow, newWorkspace);
+      } else if (Main.actionMode == Shell.ActionMode.NONE &&
+                 this._settings.get_boolean('enable-overview-edge-switch')) {
+        newWorkspace.activate(global.get_current_time());
+      }
+    });
+
+    // Keep a reference to the currently dragged window.
+    global.display.connect('grab-op-begin', (d, win, op) => {
+      if (op == Meta.GrabOp.MOVING) {
+        this._draggedWindow = win;
+      }
+    });
+
+    // Release the reference to the currently dragged window.
+    global.display.connect('grab-op-end', (d, win, op) => {
+      if (op == Meta.GrabOp.MOVING) {
+        this._draggedWindow = null;
+      }
+    });
   }
 
   // This function could be called after the extension is uninstalled, disabled in GNOME
@@ -386,15 +680,37 @@ class Extension {
     WorkspacesView.prototype._updateWorkspacesState = this._origUpdateWorkspacesState;
     WorkspacesView.prototype._getSpacing            = this._origGetSpacing;
     WorkspacesView.prototype._updateVisibility      = this._origUpdateVisibility;
-    MonitorGroup.prototype._init                    = this._origMonitorGroupInit;
-    MonitorGroup.prototype.updateSwipeForMonitor    = this._origUpdateSwipeForMonitor;
     WorkspaceAnimationController.prototype.animateSwitch = this._origAnimateSwitch;
     WorkspaceAnimationController.prototype._prepareWorkspaceSwitch = this._origPrepSwitch;
+    WorkspaceAnimationController.prototype._finishWorkspaceSwitch = this._origFinalSwitch;
 
     imports.ui.workspacesView.WORKSPACE_SWITCH_TIME = this._origWorkspaceSwitchTime;
     imports.ui.overview.ANIMATION_TIME              = this._origToOverviewTime;
     imports.ui.overviewControls.SIDE_CONTROLS_ANIMATION_TIME = this._origToAppDrawerTime;
 
+    // Remove all drag-to-rotate gestures.
+    this._removeDesktopDragGesture();
+    this._removePanelDragGesture();
+    this._removeOverviewDragGesture();
+
+    // Clean up skybox.
+    if (this._skybox) {
+      this._skybox.destroy();
+      this._skybox = null;
+    }
+
+    // Clean up the edge-workspace-switching.
+    global.stage.disconnect(this._stageAllocationID);
+
+    this._pressureBarrier.destroy();
+    this._leftBarrier.destroy();
+    this._rightBarrier.destroy();
+
+    this._pressureBarrier = null;
+    this._leftBarrier     = null;
+    this._rightBarrier    = null;
+
+    // Make sure that the settings object is freed.
     this._settings = null;
   }
 
@@ -409,16 +725,12 @@ class Extension {
   // overview mode (1).
   _getOverviewMode(workspacesView) {
     return workspacesView._overviewAdjustment.value -
-        2 * this._getAppDrawerMode(workspacesView);
+      2 * this._getAppDrawerMode(workspacesView);
   }
 
   // Returns a value between [0...1]. If it's 0, the cube should be unfolded, if it's 1,
   // the cube should be drawn like, well, a cube :).
   _getCubeMode(workspacesView) {
-    if (this._settings.get_boolean('unfold-to-desktop')) {
-      return this._getOverviewMode(workspacesView);
-    }
-
     return 1 - this._getAppDrawerMode(workspacesView)
   }
 
@@ -459,6 +771,258 @@ class Extension {
     const parent = actors[0].get_parent();
     for (let i = 0; i < copy.length; i++) {
       parent.set_child_at_index(copy[i], -1);
+    }
+  }
+
+  // This sorts the given list of children actors (which are supposed to be attached to
+  // the same parent) by increasing orthogonal distance to the camera. To do this, the
+  // camera position is projected onto the plane defined by the actor and the absolute
+  // distance from the camera to its projected position is computed. This is used for
+  // depth-sorting a list of parallel actors.
+  _sortActorsByPlaneDist(actors) {
+
+    // Sanity check.
+    if (actors.length <= 1) {
+      return;
+    }
+
+    // First, compute distance of virtual camera to the front workspace plane.
+    const camera = new Graphene.Point3D({
+      x: global.stage.width / 2,
+      y: global.stage.height / 2,
+      z: global.stage.height /
+        (2 * Math.tan(global.stage.perspective.fovy / 2 * Math.PI / 180))
+    });
+
+    // Create a list of the orthogonal distances to the camera for each actor.
+    const distances = actors.map((a, i) => {
+      // A point on the actor plane.
+      const onActor = a.apply_relative_transform_to_point(
+        null, new Graphene.Point3D({x: 0, y: 0, z: 0}));
+
+      // A point one unit above the actor plane.
+      const aboveActor = a.apply_relative_transform_to_point(
+        null, new Graphene.Point3D({x: 0, y: 0, z: 1000}));
+
+      // The normal vector on the actor plane.
+      const normal = new Graphene.Point3D({
+        x: aboveActor.x - onActor.x,
+        y: aboveActor.y - onActor.y,
+        z: aboveActor.z - onActor.z,
+      });
+
+      const length =
+        Math.sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+      normal.x /= length;
+      normal.y /= length;
+      normal.z /= length;
+
+      onActor.x -= camera.x;
+      onActor.y -= camera.y;
+      onActor.z -= camera.z;
+
+      // Return the length of the projected vector.
+      return {
+        index: i,
+        distance: onActor.x * normal.x + onActor.y * normal.y + onActor.z * normal.z
+      };
+    });
+
+    // Sort by decreasing distance.
+    distances.sort((a, b) => {
+      return Math.abs(b.distance) - Math.abs(a.distance);
+    });
+
+    // Then use this to create a sorted list of actors.
+    const copy = distances.map(e => {
+      return actors[e.index];
+    });
+
+    // Finally, sort the children actors accordingly.
+    const parent = actors[0].get_parent();
+    for (let i = 0; i < copy.length; i++) {
+      parent.set_child_at_index(copy[i], -1);
+    }
+  }
+
+  // During rotations, the cube is scaled down and the windows are "exploded". If we
+  // are directly facing a cube side, the strengths of both effects are approaching
+  // zero. The strengths of both effects are small during horizontal rotations to make
+  // workspace-switching not so obtrusive. However, during vertical rotations, the
+  // effects are stronger.
+  _getExplodeFactors(hRotation, vRotation, centerDepth) {
+
+    // These are zero if we are facing a workspace and one if we look directly at an
+    // edge between adjacent workspaces or if the cube is rotated vertically
+    // respectively.
+    const hFactor = 1.0 - 2.0 * Math.abs(hRotation % 1 - 0.5);
+    const vFactor = Math.abs(vRotation);
+
+    // For horizontal rotations, we want to scale the cube (or rather move it backwards)
+    // a tiny bit to reveal a bit of parallax. However, if we have many cube sides, this
+    // looks weird, so we reduce the effect there. We use the offset which would make
+    // the cube's corners stay behind the original workspace faces during he rotation.
+    const width      = global.screen_width;
+    const height     = global.screen_height;
+    const cornerDist = Math.sqrt(Math.pow(centerDepth, 2) + Math.pow(width / 2, 2));
+    const hDepthOffset =
+      this._settings.get_double('window-parallax') * (cornerDist - centerDepth);
+
+    // The explode factor is set to the hDepthOffset value to make the front-most
+    // window stay at a constant depth.
+    const hExplode = hDepthOffset;
+
+    // For vertical rotations, we move the cube backwards to reveal everything. The
+    // maximum explode width is set to half of the workspace size.
+    const vExplode =
+      this._settings.get_boolean('do-explode') ? Math.max(width, height) / 2 : 0;
+    const diameter = 2 * (vExplode + centerDepth);
+    const camDist =
+      height / (2 * Math.tan(global.stage.perspective.fovy / 2 * Math.PI / 180));
+    const vDepthOffset =
+      (1 + PADDING_V_ROTATION) * diameter * camDist / width - centerDepth;
+
+    // Use current maximum of both values.
+    const depthOffset = Math.max(hFactor * hDepthOffset, vFactor * vDepthOffset);
+    const explode     = Math.max(hFactor * hExplode, vFactor * vExplode);
+
+    // Do not explode the cube in app drawer state. The stateAdjustment is...
+    // ... 0 on the desktop
+    // ... 1 in the window picker
+    // ... 2 in the app drawer
+    const windowPickerFactor =
+      Math.min(1.0, 2.0 - Main.overview._overview.controls._stateAdjustment.value);
+
+    return [depthOffset * windowPickerFactor, explode * windowPickerFactor];
+  }
+
+  // This creates a custom drag gesture and adds it to the given SwipeTracker. The swipe
+  // tracker will now also respond to horizontal drags. The additional gesture also
+  // reports vertical drag movements via the "pitch" property. This method returns an
+  // object containing the gesture, an St.Adjustment which will contain this pitch value,
+  // and a connection ID which is used by _removeDragGesture() to clean up. When the
+  // SwipeTracker's gesture ends, the St.Adjustment's value will be eased to zero.
+  _addDragGesture(actor, tracker, mode) {
+    const gesture = new DragGesture(actor, mode);
+    gesture.connect('begin', tracker._beginGesture.bind(tracker));
+    gesture.connect('update', tracker._updateGesture.bind(tracker));
+    gesture.connect('end', tracker._endTouchGesture.bind(tracker));
+    tracker.bind_property('distance', gesture, 'distance',
+                          GObject.BindingFlags.SYNC_CREATE);
+
+    // Connect the gesture's pitch property to the pitch adjustment.
+    gesture.bind_property('pitch', this._pitch, 'value', 0);
+
+    // Ease the pitch adjustment to zero if the SwipeTracker reports an ended gesture.
+    // This ensures that the cube smoothly rotates back when released. The end-signal
+    // returns a suitable duration for this, however this depends on the horizontal
+    // rotation required to move the cube back. Here, we compute a duration required for
+    // the vertical rotation and use the maximum of both values for the final easing.
+    const gestureEndID = tracker.connect('end', (g, duration) => {
+      this._pitch.remove_transition('value');
+      this._pitch.ease(0, {
+        duration: Math.max(500 * Math.abs(this._pitch.value), duration),
+        mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+      });
+    });
+
+    // We return all things which are required to remove the gesture again. This can be
+    // done with the _removeDragGesture() method below.
+    return {
+      actor: actor,
+      tracker: tracker,
+      gesture: gesture,
+      trackerConnection: gestureEndID
+    };
+  }
+
+  // Removes a single-click drag gesture created earlier via _addDragGesture(). The info
+  // parameter should be the object returned by _addDragGesture().
+  _removeDragGesture(info) {
+    info.gesture.destroy();
+    info.tracker.disconnect(info.trackerConnection);
+  }
+
+  // Calls _addDragGesture() for the SwipeTracker and actor responsible for
+  // workspace-switching in desktop mode when dragging on the background.
+  _addDesktopDragGesture() {
+    // The SwipeTracker for switching workspaces in desktop mode is created here:
+    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L286
+    const tracker = Main.wm._workspaceAnimation._swipeTracker;
+    let actor     = Main.layoutManager._backgroundGroup;
+    const mode    = Shell.ActionMode.NORMAL;
+
+    // We have to make the background reactive. Make sure to store the current state so
+    // that we can reset it later.
+    this._origBackgroundReactivity = actor.reactive;
+    actor.reactive                 = true;
+
+    this._desktopDragGesture = this._addDragGesture(actor, tracker, mode);
+  }
+
+  // Calls _addDragGesture() for the SwipeTracker and actor responsible for
+  // workspace-switching in desktop mode when dragging on the panel.
+  _addPanelDragGesture() {
+    // The SwipeTracker for switching workspaces in desktop mode is created here:
+    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspaceAnimation.js#L286
+    const tracker = Main.wm._workspaceAnimation._swipeTracker;
+    const actor   = Main.panel;
+    const mode    = Shell.ActionMode.NORMAL;
+
+    // We have to prevent moving fullscreen windows when dragging.
+    this._origPanelTryDragWindow = actor._tryDragWindow;
+    actor._tryDragWindow = () => Clutter.EVENT_PROPAGATE;
+
+    this._panelDragGesture = this._addDragGesture(actor, tracker, mode);
+  }
+
+  // Calls _addDragGesture() for the SwipeTracker and actor responsible for
+  // workspace-switching in overview mode.
+  _addOverviewDragGesture() {
+    // The SwipeTracker for switching workspaces in overview mode is created here:
+    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/workspacesView.js#L858
+    const tracker = Main.overview._overview._controls._workspacesDisplay._swipeTracker;
+    const actor   = Main.layoutManager.overviewGroup;
+    const mode    = Shell.ActionMode.OVERVIEW;
+
+    this._overviewDragGesture = this._addDragGesture(actor, tracker, mode);
+  }
+
+  // Calls _removeDragGesture() for the SwipeTracker and actor responsible for
+  // workspace-switching in desktop mode when dragging on the background.
+  _removeDesktopDragGesture() {
+    if (this._desktopDragGesture) {
+
+      // Make sure to restore the original state.
+      this._desktopDragGesture.actor.reactive = this._origBackgroundReactivity;
+
+      this._removeDragGesture(this._desktopDragGesture);
+
+      delete this._desktopDragGesture;
+    }
+  }
+
+  // Calls _removeDragGesture() for the SwipeTracker and actor responsible for
+  // workspace-switching in desktop mode when dragging on the panel.
+  _removePanelDragGesture() {
+    if (this._panelDragGesture) {
+
+      // Make sure to restore the original state.
+      this._panelDragGesture.actor._tryDragWindow = this._origPanelTryDragWindow;
+
+      this._removeDragGesture(this._panelDragGesture);
+
+      delete this._panelDragGesture;
+    }
+  }
+
+  // Calls _removeDragGesture() for the SwipeTracker and actor responsible for
+  // workspace-switching in overview mode.
+  _removeOverviewDragGesture() {
+    if (this._overviewDragGesture) {
+      this._removeDragGesture(this._overviewDragGesture);
+
+      delete this._overviewDragGesture;
     }
   }
 }

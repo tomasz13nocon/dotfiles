@@ -1,13 +1,16 @@
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
-const Signals = imports.signals;
 const Extension = imports.misc.extensionUtils.getCurrentExtension();
 const Utils = Extension.imports.utils;
 const _ = imports.gettext.domain('todotxt').gettext;
 
 /* exported PreferenceWidget */
 var PreferenceWidget = GObject.registerClass({
-    GTypeName: 'PreferenceWidget'
+    GTypeName: 'PreferenceWidget',
+    Signals: {'visibility-changed': {
+        flags: GObject.SignalFlags.RUN_FIRST
+    }
+    }
 }, class PreferenceWidget extends Gtk.Box {
 
     _init(settingName, settings, noLabel) {
@@ -154,6 +157,5 @@ var PreferenceWidget = GObject.registerClass({
         return preferenceLabel;
     }
 });
-Signals.addSignalMethods(PreferenceWidget.prototype);
 
 /* vi: set expandtab tabstop=4 shiftwidth=4: */

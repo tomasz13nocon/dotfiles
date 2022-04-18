@@ -250,12 +250,12 @@ class AppIndicatorsIndicatorStatusIcon extends BaseStatusIcon {
         // if middle mouse button clicked send SecondaryActivate dbus event and do not show appindicator menu
         if (buttonEvent.button === 2) {
             Main.panel.menuManager._closeMenu(true, Main.panel.menuManager.activeMenu);
-            this._indicator.secondaryActivate();
+            this._indicator.secondaryActivate(buttonEvent.time, buttonEvent.x, buttonEvent.y);
             return Clutter.EVENT_STOP;
         }
 
         if (buttonEvent.button === 1 && buttonEvent.click_count === 2) {
-            this._indicator.open();
+            this._indicator.open(buttonEvent.x, buttonEvent.y);
             return Clutter.EVENT_STOP;
         }
 
@@ -368,21 +368,22 @@ class AppIndicatorsIndicatorTrayIcon extends BaseStatusIcon {
 
         if (!this._touchPressSlot &&
             touchEvent.type === Clutter.EventType.TOUCH_BEGIN) {
-            const buttonEvent = this._getSimulatedButtonEvent(touchEvent);
             this.add_style_pseudo_class('active');
+            this._touchButtonEvent = this._getSimulatedButtonEvent(touchEvent);
             this._touchPressSlot = slot;
             this._touchDelayPromise = new PromiseUtils.TimeoutPromise(
                 AppDisplay.MENU_POPUP_TIMEOUT);
             this._touchDelayPromise.then(() => {
                 delete this._touchDelayPromise;
                 delete this._touchPressSlot;
-                buttonEvent.set_button(3);
-                this._icon.click(buttonEvent);
+                this._touchButtonEvent.set_button(3);
+                this._icon.click(this._touchButtonEvent);
                 this.remove_style_pseudo_class('active');
             });
         } else if (touchEvent.type === Clutter.EventType.TOUCH_END &&
                    this._touchPressSlot === slot) {
             delete this._touchPressSlot;
+            delete this._touchButtonEvent;
             if (this._touchDelayPromise) {
                 this._touchDelayPromise.cancel();
                 delete this._touchDelayPromise;
@@ -393,6 +394,7 @@ class AppIndicatorsIndicatorTrayIcon extends BaseStatusIcon {
         } else if (touchEvent.type === Clutter.EventType.TOUCH_UPDATE &&
                    this._touchPressSlot === slot) {
             this.add_style_pseudo_class('active');
+            this._touchButtonEvent = this._getSimulatedButtonEvent(touchEvent);
         }
 
         return Clutter.EVENT_PROPAGATE;
