@@ -30,7 +30,6 @@ const Pango = imports.gi.Pango;
 
 const INITIAL_DELAY_TIMEOUT = 150;
 const CHECK_DESTROYED_TIMEOUT = 100;
-let TRANSITION_TYPE = 'easeOutCubic';
 const ICON_SIZE = 64;
 const ICON_SIZE_BIG = 128;
 const ICON_TITLE_SPACING = 10;
@@ -70,7 +69,8 @@ var Switcher = class Switcher {
 
         Main.uiGroup.add_actor(this.actor);
 
-        if (!Main.pushModal(this.actor)) {
+        this.grab = Main.pushModal(this.actor)
+        if (!this.grab) {
             this._activateSelected();
             return;
         }
@@ -118,7 +118,7 @@ var Switcher = class Switcher {
                     this._manager.platform.tween(panelActor, {
                         opacity: 0,
                         time: this._settings.animation_time,
-                        transition: TRANSITION_TYPE
+                        transition: 'easeInOutQuint'
                     });
                 }
             } catch (e) {
@@ -195,6 +195,7 @@ var Switcher = class Switcher {
 
     _setCurrentWindowTitle(window) {
         let animation_time = this._settings.animation_time;
+        let overlay_icon_size = this._settings.overlay_icon_size;
 
         let monitor = this._updateActiveMonitor();
 
@@ -204,18 +205,13 @@ var Switcher = class Switcher {
             app_icon_size = ICON_SIZE;
             label_offset = ICON_SIZE + ICON_TITLE_SPACING;
         } else {
-            app_icon_size = ICON_SIZE_BIG;
+            app_icon_size = overlay_icon_size;
             label_offset = 0;
         }
 
         // window title label
         if (this._windowTitle) {
-            this._manager.platform.tween(this._windowTitle, {
-                opacity: 0,
-                time: animation_time,
-                transition: 'easeOutCubic',
-                onComplete: () => this.actor.remove_actor(this._windowTitle),
-            });
+            this.actor.remove_actor(this._windowTitle);
         }
 
         this._windowTitle = new St.Label({
@@ -232,7 +228,7 @@ var Switcher = class Switcher {
         this._manager.platform.tween(this._windowTitle, {
             opacity: 255,
             time: animation_time,
-            transition: 'easeOutCubic',
+            transition: 'easeInOutQuint',
         });
 
         let cx = Math.round((monitor.width + label_offset) / 2);
@@ -243,12 +239,7 @@ var Switcher = class Switcher {
 
         // window icon
         if (this._applicationIconBox) {
-            this._manager.platform.tween(this._applicationIconBox, {
-                opacity: 0,
-                time: animation_time,
-                transition: 'easeOutCubic',
-                onComplete: () => this.actor.remove_actor(this._applicationIconBox),
-            });
+            this.actor.remove_actor(this._applicationIconBox);
         }
 
         let app = this._tracker.get_window_app(this._windows[this._currentIndex]);
@@ -259,6 +250,10 @@ var Switcher = class Switcher {
                 icon_name: 'applications-other',
                 icon_size: app_icon_size
             });
+        }
+
+        if (this._settings.icon_has_shadow) {
+            this._icon.add_style_class_name("icon-dropshadow");
         }
 
         if (this._settings.icon_style == "Classic") {
@@ -273,20 +268,25 @@ var Switcher = class Switcher {
         } else {
             this._applicationIconBox = new St.Bin({
                 style_class: 'window-iconbox',
-                width: app_icon_size * 1.15,
-                height: app_icon_size * 1.15,
+                width: app_icon_size * 1.25,
+                height: app_icon_size * 1.25,
                 opacity: 0,
-                x: (monitor.width - app_icon_size) / 2,
-                y: (monitor.height - app_icon_size) / 2,
+                x: (monitor.width - app_icon_size * 1.25) / 2,
+                y: (monitor.height - app_icon_size * 1.25) / 2,
             });
         }
 
         this._applicationIconBox.add_actor(this._icon);
         this.actor.add_actor(this._applicationIconBox);
+        let alpha = 1;
+        if (this._settings.icon_style !== "Classic") {
+            alpha = this._settings.overlay_icon_opacity;
+        }
+
         this._manager.platform.tween(this._applicationIconBox, {
-            opacity: 255,
+            opacity: 255 * alpha,
             time: animation_time,
-            transition: 'easeOutCubic',
+            transition: 'easeInOutQuint',
         });
     }
 
@@ -296,7 +296,7 @@ var Switcher = class Switcher {
             case Clutter.KEY_Escape:
             case Clutter.Escape:
                 // Esc -> close CoverFlow
-                this.destroy();
+                this._activateSelected();
                 return true;
 
             case Clutter.KEY_q:
@@ -307,10 +307,6 @@ var Switcher = class Switcher {
             case Clutter.F4:
                 // Q -> Close window
                 this._manager.removeSelectedWindow(this._windows[this._currentIndex]);
-                this._checkDestroyedTimeoutId = Mainloop.timeout_add(
-                    CHECK_DESTROYED_TIMEOUT,
-                    () => this._checkDestroyed(this._windows[this._currentIndex])
-                );
                 return true;
 
             case Clutter.KEY_Right:
@@ -419,41 +415,15 @@ var Switcher = class Switcher {
                     this._updatePreviews(0);
                     this._setCurrentWindowTitle(this._windows[this._currentIndex]);
                 }
-
                 return;
             }
         }
     }
 
     _activateSelected() {
-        let preview = this._previews[this._currentIndex];
         let win = this._windows[this._currentIndex];
-        if (preview) {
-          if (this._settings.elastic_mode)
-              TRANSITION_TYPE = 'easeOutElastic';
-          else
-              TRANSITION_TYPE = 'easeOutCubic';
-          let monitor = this._updateActiveMonitor();
-
-          let compositor = win.get_compositor_private();
-          preview.make_top_layer(this.previewActor);
-
-          this._manager.platform.tween(preview, {
-              x: ((win.minimized) ? 0 : compositor.x) - monitor.x,
-              y: ((win.minimized) ? 0 : compositor.y) - monitor.y,
-              width: compositor.width,
-              height:  compositor.height,
-
-              translation_x: 0,
-              scale_x: 1,
-              scale_y: 1,
-              rotation_angle_y: 0.0,
-              time: this._settings.animation_time,
-              transition: TRANSITION_TYPE,
-          });
-        }
-
-        this._manager.activateSelectedWindow(win);
+        if (win)
+            this._manager.activateSelectedWindow(win);
         this.destroy();
     }
 
@@ -466,69 +436,14 @@ var Switcher = class Switcher {
         this.destroy();
     }
 
-    _onHideBackgroundCompleted() {
-    	this._manager.platform.removeBackground();
-    	Main.uiGroup.remove_actor(this.actor);
-
-        // show all window actors
-        global.window_group.show();
-    }
-
-    _onDestroy() {
-      	if (this._settings.elastic_mode)
-      		TRANSITION_TYPE = 'easeOutElastic';
-      	else
-      		TRANSITION_TYPE = 'easeOutCubic';
-
+    _onDestroy(transition) {
         let monitor = this._updateActiveMonitor();
 
         if (this._initialDelayTimeoutId === 0) {
             // window title and icon
             this._windowTitle.hide();
             this._applicationIconBox.hide();
-
-            // preview windows
-            let currentWorkspace = this._manager.workspace_manager.get_active_workspace();
-            for (let [i, preview] of this._previews.entries()) {
-                let metaWin = this._windows[i],
-                    compositor = metaWin.get_compositor_private();
-
-                // Move all non-activated windows behind the activated one
-                if (i !== this._currentIndex) {
-                    preview.make_bottom_layer(this.previewActor);
-                }
-
-                this._manager.platform.tween(preview, {
-                    opacity: (!metaWin.minimized && metaWin.get_workspace() == currentWorkspace
-                        || metaWin.is_on_all_workspaces()) ? 255 : 0,
-
-                    x: ((metaWin.minimized) ? 0 : compositor.x) - monitor.x,
-                    y: ((metaWin.minimized) ? 0 : compositor.y) - monitor.y,
-                    width: (metaWin.minimized) ? 0 : compositor.width,
-                    height: (metaWin.minimized) ? 0 : compositor.height,
-
-                    translation_x: 0,
-                    scale_x: 1,
-                    scale_y: 1,
-                    rotation_angle_y: 0.0,
-                    onComplete: this._onPreviewDestroyComplete.bind(this),
-                    time: this._settings.animation_time,
-                    transition: TRANSITION_TYPE,
-                });
-            }
-
-        } else {
-          this._onPreviewDestroyComplete();
-        }
-    }
-
-    _onPreviewDestroyComplete() {
-        this._numPreviewsComplete += 1;
-        if (this._numPreviewsComplete >= this._previews.length) {
-            if (this._haveModal) {
-               Main.popModal(this.actor);
-                this._haveModal = false;
-            }
+            this._manager.platform.lightenBackground();
 
             // panels
             let panels = this.getPanels();
@@ -541,8 +456,8 @@ var Switcher = class Switcher {
                         this._manager.platform.tween(panelActor, {
                             opacity: 255,
                             time: this._settings.animation_time,
-                            transition: TRANSITION_TYPE}
-                        );
+                            transition: 'easeInOutQuint'
+                        });
                     }
                 } catch (e) {
                     //ignore fake panels
@@ -557,9 +472,63 @@ var Switcher = class Switcher {
                 //ignore missing legacy tray
             }
 
-            this._manager.platform.undimBackground(
-                this._onHideBackgroundCompleted.bind(this)
-            );
+            // preview windows
+            let currentWorkspace = this._manager.workspace_manager.get_active_workspace();
+            for (let [i, preview] of this._previews.entries()) {
+                let metaWin = this._windows[i],
+                compositor = metaWin.get_compositor_private();
+
+                // Move all non-activated windows behind the activated one
+                if (i !== this._currentIndex) {
+                    preview.make_bottom_layer(this.previewActor);
+                } else {
+                    preview.make_top_layer(this.previewActor);
+                }
+                if (!metaWin.minimized) {
+                    let rect = metaWin.get_buffer_rect();
+                    this._manager.platform.tween(preview, {
+                        x: rect.x - monitor.x,
+                        y: rect.y - monitor.y,
+                        width: compositor.width,
+                        height: compositor.height,
+                        translation_x: 0,
+                        scale_x: 1,
+                        scale_y: 1,
+                        rotation_angle_y: 0.0,
+                        onComplete: this._onPreviewDestroyComplete.bind(this, false),
+                        time: this._settings.animation_time,
+                        transition: transition,
+                    });
+                } else {
+                    this._manager.platform.tween(preview, {
+                        x: 0,
+                        y: 0,
+                        width: 0,
+                        height: 0,
+                        opacity:  0,
+                        translation_x: 0,
+                        scale_x: 0,
+                        scale_y: 0,
+                        rotation_angle_y: 0.0,
+                        onComplete: this._onPreviewDestroyComplete.bind(this, false),
+                        time: this._settings.animation_time,
+                        transition: 'easeInOutQuint'
+                    });
+                }
+            }
+        } else {
+            this._onPreviewDestroyComplete(true);
+        }
+    }
+
+    _onPreviewDestroyComplete(force) {
+        if (!force) this._numPreviewsComplete += 1;
+        if (this._previews != null && this._numPreviewsComplete >= this._previews.length || force) {
+            if (this._haveModal) {
+               Main.popModal(this.grab);
+                this._haveModal = false;
+            }
+
 
             if (this._initialDelayTimeoutId !== 0) {
                 Mainloop.source_remove(this._initialDelayTimeoutId);
@@ -578,6 +547,13 @@ var Switcher = class Switcher {
             this._checkDestroyedTimeoutId = null;
             this._windowManager.disconnect(this._dcid);
             this._windowManager.disconnect(this._mcid);
+
+            this._manager.platform.removeBackground();
+
+            Main.uiGroup.remove_actor(this.actor);
+            // show all window actors
+            global.window_group.show();
+            this._numPreviewsComplete = 0
         }
     }
 
@@ -592,6 +568,6 @@ var Switcher = class Switcher {
     }
 
     destroy() {
-        this._onDestroy();
+        this._onDestroy('userChoice');
     }
 }

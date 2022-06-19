@@ -3,9 +3,10 @@
   "description": "Hides the classic title bar of maximized X.Org windows",
   "name": "No Titlebar When Maximized",
   "shell-version": [
-    "41"
+    "41",
+    "42"
   ],
   "url": "https://github.com/alecdotninja/no-titlebar-when-maximized",
   "uuid": "no-titlebar-when-maximized@alec.ninja",
-  "version": 4
+  "version": 5
 }

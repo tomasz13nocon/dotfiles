@@ -188,7 +188,9 @@ Plug 'KabbAmine/vCoolor.vim'
 " Plug 'lewis6991/gitsigns.nvim'
 Plug 'airblade/vim-gitgutter'
 " Plug 'f-person/git-blame.nvim'
-Plug 'ActivityWatch/aw-watcher-vim'
+" Plug 'ActivityWatch/aw-watcher-vim'
+Plug 'Quramy/tsuquyomi'
+Plug 'Quramy/tsuquyomi-vue'
 
 if has('nvim')
   Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -201,6 +203,7 @@ if has('nvim')
   Plug 'lukas-reineke/indent-blankline.nvim'
 endif
 
+Plug 'NLKNguyen/papercolor-theme'
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'ghifarit53/tokyonight-vim'
 Plug 'rafi/awesome-vim-colorschemes'
@@ -217,7 +220,8 @@ require("sidebar-nvim").setup({
 side = "right",
 -- section_separator = {"", "-----", ""},
 section_separator = {""},
-sections = { "git", "diagnostics", "files", "symbols", "todos" },
+sections = { "git", "diagnostics", "symbols", "todos" },
+update_interval = 100,
 })
 require'lspconfig'.tsserver.setup{}
 require'lspconfig'.vimls.setup{}
@@ -384,6 +388,7 @@ if (has("termguicolors"))
 
   let g:tokyonight_style = 'night' " available: night, storm
   let g:tokyonight_enable_italic = 0
+
   colo tokyonight
   hi Comment cterm=none gui=none
   hi Comment guifg=#646b8a
@@ -403,6 +408,7 @@ endif
 "colorscheme gruvbox
 "set background=dark
 "let g:gruvbox_italic = 0
+
 " Inherit background color from the terminal
 " Useful for preserving transparent background
 highlight Normal ctermbg=none guibg=NONE

@@ -4,6 +4,8 @@
 
 . ~/bin/util.sh
 
+startservers
+
 insomnia &>/dev/null &
 id=$(wait_and_get_id $!)
 wmctrl -ir $id -t 2
@@ -17,7 +19,8 @@ id=$(wait_and_get_id $!)
 wmctrl -ir $id -t 2
 wmctrl -ir $id -e "0,0,0,-1,-1"
 
-startservers
 editproject
+
+xdg-open "http://localhost:8080/"
 
 exit

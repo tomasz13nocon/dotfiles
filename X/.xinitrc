@@ -45,3 +45,10 @@ exec gnome-session
 
 # export DESKTOP_SESSION=plasma
 # exec startplasma-x11
+
+# export XDG_CURRENT_DESKTOP=Budgie:GNOME
+# exec budgie-desktop
+
+# io.elementary.wingpanel &
+# plank &
+# exec gala

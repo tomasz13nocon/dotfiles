@@ -23,6 +23,7 @@
  */
 
 const Main = imports.ui.main;
+const Mainloop = imports.mainloop;
 
 function sortWindowsByUserTime(win1, win2) {
     let t1 = win1.get_user_time();

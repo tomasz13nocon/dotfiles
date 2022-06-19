@@ -5,9 +5,10 @@
   "shell-version": [
     "3.38",
     "40",
-    "41"
+    "41",
+    "42"
   ],
   "url": "",
   "uuid": "switchtwolayouts@qtmax.dev",
-  "version": 3
+  "version": 4
 }

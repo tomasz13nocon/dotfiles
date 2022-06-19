@@ -57,7 +57,7 @@ del() {
 }
 alias bri='ddcutil setvcp 10'
 alias bri?='ddcutil getvcp 10'
-alias r='ranger'
+alias r='. ranger' # sourcing to "follow" ranger around
 # Requires `shopt -s globstar`
 grepepubs() {
 	for z in **/*.epub; do unzip -p "$z" | grep -aH --label="$z" "$@"; done

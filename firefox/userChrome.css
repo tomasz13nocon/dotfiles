@@ -15,15 +15,30 @@
 .tabbrowser-tab {
 	padding-inline: 0px !important;
   height: 32px !important;
-  border-right: 1px solid rgb(66,65,77) !important;
+/*   border-right: 1px solid rgb(66,65,77) !important; */
 }
-.tabbrowser-tab .tab-background {
-  background: #42414D;
+
+@media (prefers-color-scheme: dark) {
+  .tab-background:is([selected], [multiselected]):-moz-lwtheme {
+    border: none !important;
+  }
+  #urlbar-background, #searchbar {
+    background-color: #0D0E0E !important;
+  }
+  .tabbrowser-tab .tab-background {
+    background: #42414D;
+  }
+  .tabbrowser-tab[selected="true"] .tab-background {
+/*     background: linear-gradient(to right, red , yellow, green, cyan, blue, violet) !important; */
+    background: #0D0E0E !important;
+  }
 }
-.tabbrowser-tab[selected="true"] .tab-background {
-  /*background: linear-gradient(to right, red , yellow, green, cyan, blue, violet) !important;*/
-  background: #1C1B22 !important;
+@media (prefers-color-scheme: light) {
+  .tab-text:is([selected], [multiselected]) {
+    color: black !important;
+  }
 }
+
 .tabbrowser-tab[selected] .tab-content {
 /*  	border-top: 2px solid  blueviolet; */
 }
@@ -100,4 +115,31 @@ overflow: hidden !important;
   margin-right: -6px !important;
 }
 */
+
+
+/* Use GTK titlebar buttons */
+.titlebar-min {
+ appearance: auto !important;
+ -moz-default-appearance: -moz-window-button-minimize !important;
+  }
+
+ .titlebar-max {
+ appearance: auto !important;
+ -moz-default-appearance: -moz-window-button-maximize !important;  
+ }
+
+ .titlebar-restore {
+ appearance: auto !important;
+-moz-default-appearance: -moz-window-button-restore !important;
+ }
+
+ .titlebar-close {
+  appearance: auto !important;
+ -moz-default-appearance: -moz-window-button-close !important;
+  }
+
+ .titlebar-button{
+ list-style-image: none !important;
+ }
+
 

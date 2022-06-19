@@ -47,28 +47,22 @@ function getDownloadFolder() {
 function setBackgroundBasedOnSettings(filename = null) {
     let settings = ExtensionUtils.getSettings();
     let backgroundSettings = getBackgroundSettings();
-    let screensaverSettings = getScreenSaverSettings();
 
     if ((typeof filename === 'string' || filename instanceof String) && !filename.startsWith('file://'))
         filename = `file://${filename}`;
 
     if (settings.get_boolean('set-background')) {
-        if (filename !== null)
+        if (filename !== null) {
             backgroundSettings.set_string('picture-uri', filename);
+            backgroundSettings.set_string('picture-uri-dark', filename);
+        }
         let option = settings.get_string('background-options');
         if (option !== 'default')
             backgroundSettings.set_string('picture-options', option);
     }
-    if (settings.get_boolean('set-lock-screen')) {
-        if (filename !== null)
-            screensaverSettings.set_string('picture-uri', filename);
-        let option = settings.get_string('screensaver-options');
-        if (option !== 'default')
-            screensaverSettings.set_string('picture-options', option);
-    }
+
     Gio.Settings.sync();
     backgroundSettings.apply();
-    screensaverSettings.apply();
 }
 
 /**
@@ -125,14 +119,4 @@ function getBackgroundSettings() {
         return getBackgroundSettings._instance;
     getBackgroundSettings._instance = new Gio.Settings({schema: 'org.gnome.desktop.background'});
     return getBackgroundSettings._instance;
-}
-
-/**
- * @returns {Object} gsettings singleton with schema 'org.gnome.desktop.screensaver'
- */
-function getScreenSaverSettings() {
-    if (getScreenSaverSettings._instance)
-        return getScreenSaverSettings._instance;
-    getScreenSaverSettings._instance = new Gio.Settings({schema: 'org.gnome.desktop.screensaver'});
-    return getScreenSaverSettings._instance;
 }
