@@ -182,7 +182,7 @@ Plug 'suy/vim-context-commentstring'
 Plug 'Galooshi/vim-import-js'
 Plug 'kyazdani42/nvim-web-devicons'
 Plug 'romgrk/barbar.nvim'
-Plug 'RRethy/vim-hexokinase', { 'do': 'make hexokinase' }
+" Plug 'RRethy/vim-hexokinase', { 'do': 'make hexokinase' }
 Plug 'romainl/vim-devdocs'
 Plug 'KabbAmine/vCoolor.vim'
 " Plug 'lewis6991/gitsigns.nvim'
@@ -195,8 +195,8 @@ Plug 'Quramy/tsuquyomi-vue'
 if has('nvim')
   Plug 'neoclide/coc.nvim', {'branch': 'release'}
   Plug 'sidebar-nvim/sidebar.nvim'
-  Plug 'neovim/nvim-lspconfig'
-  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+  " Plug 'neovim/nvim-lspconfig'
+  " Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
   Plug 'xuyuanp/scrollbar.nvim'
   Plug 'windwp/nvim-autopairs'
   Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
@@ -223,9 +223,9 @@ section_separator = {""},
 sections = { "git", "diagnostics", "symbols", "todos" },
 update_interval = 100,
 })
-require'lspconfig'.tsserver.setup{}
-require'lspconfig'.vimls.setup{}
-require'lspconfig'.cssls.setup{}
+-- require'lspconfig'.tsserver.setup{}
+-- require'lspconfig'.vimls.setup{}
+-- require'lspconfig'.cssls.setup{}
 require('nvim-autopairs').setup{
 map_bs = false,
 }

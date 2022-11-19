@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cd ~
+
+setxkbmap pl -option caps:swapescape -option terminate:ctrl_alt_bksp -option kpdl:dot -option numpad:mac
+
+export XCURSOR_SIZE=24
+# export MOZ_USE_XINPUT2=1
+xmodmap -e "keycode 94 = Shift_L"
+
+export QT_AUTO_SCREEN_SCALE_FACTOR=1.25
+
+export TERMINAL=kitty
+export FILE_MANAGER=nautilus
+
+exec Hyprland
+

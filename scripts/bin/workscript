@@ -6,15 +6,15 @@
 
 startservers
 
-insomnia &>/dev/null &
-id=$(wait_and_get_id $!)
-wmctrl -ir $id -t 2
+# insomnia &>/dev/null &
+# id=$(wait_and_get_id $!)
+# wmctrl -ir $id -t 2
 
-mongodb-compass &>/dev/null &
-id=$(wait_and_get_id $!)
-wmctrl -ir $id -t 2
+# mongodb-compass &>/dev/null &
+# id=$(wait_and_get_id $!)
+# wmctrl -ir $id -t 2
 
-alacritty --working-directory "/home/user/code/swtimeline/server" -t "Server scripts" &
+kitty --working-directory "/home/user/code/swtimeline/server" --title "Server scripts" &
 id=$(wait_and_get_id $!)
 wmctrl -ir $id -t 2
 wmctrl -ir $id -e "0,0,0,-1,-1"

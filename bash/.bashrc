@@ -1,4 +1,4 @@
-export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin
+export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin:~/.local/share/gem/ruby/3.0.0/bin
 
 #export TERM=xterm-256color
 
@@ -7,7 +7,7 @@ export LESS='-R -z3'
 export PAGER='less'
 export EDITOR='nvim'
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-export FZF_DEFAULT_COMMAND='rg --files -g !builds'
+export FZF_DEFAULT_COMMAND='rg --hidden --files -g !builds -g !node_modules -g !package-lock.json'
 
 
 #. /usr/share/LS_COLORS/dircolors.sh
@@ -60,6 +60,9 @@ open_with_fzf() {
 }
 bind '"\C-o":"open_with_fzf\n"'
 bind '"\C-p":"cdf\n"'
+
+source /usr/share/bash-complete-alias/complete_alias
+complete -F _complete_alias wifi
 
 
 

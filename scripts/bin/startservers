@@ -7,7 +7,9 @@
 SCREEN_WIDTH=$(xwininfo -root | awk '$1=="Width:" {print $2}')
 SCREEN_HEIGHT=$(xwininfo -root | awk '$1=="Height:" {print $2}')
 
-alacritty --working-directory "/home/user/code/swtimeline/client/" -t "Client" -e bash -c "npm start; bash" &
+# systemctl start mongodb
+
+kitty --working-directory "/home/user/code/swtimeline/client/" --title "Client" bash -c "npm start; bash" &
 id=$(wait_and_get_id $!)
 # calculate dimensions
 eval $(xwininfo -id $(xdotool getactivewindow) |
@@ -18,7 +20,7 @@ h1=$(($SCREEN_HEIGHT / 2 - ($h/2) - 50))
 wmctrl -ir $id -t 3
 wmctrl -ir $id -e "0,$w1,$h1,-1,-1" 
 
-alacritty --working-directory "/home/user/code/swtimeline/server/" -t "Server" -e bash -c "nodemon; bash" &
+kitty --working-directory "/home/user/code/swtimeline/server/" --title "Server" bash -c "nodemon; bash" &
 id=$(wait_and_get_id $!)
 w1=$(($SCREEN_WIDTH / 2))
 wmctrl -ir $id -t 3
