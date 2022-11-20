@@ -32,6 +32,9 @@
 /*     background: linear-gradient(to right, red , yellow, green, cyan, blue, violet) !important; */
     background: #0D0E0E !important;
   }
+  .tab-background {
+    color: black !important;
+  }
 }
 @media (prefers-color-scheme: light) {
   .tab-text:is([selected], [multiselected]) {

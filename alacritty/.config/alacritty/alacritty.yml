@@ -6,14 +6,14 @@
 font:
   normal:
     # family: Bok MonteCarlo
-    family: MesloLGS Nerd Font
-    # family: Dina
+    # family: MesloLGS Nerd Font
+    family: Dina
     # family: Cozette
   #bold:
     #family: Cozette
     #style: Regular
-  # size: 7.5
-  size: 9
+  size: 7.5
+  # size: 9
 
 #background_opacity: 0.7
 
