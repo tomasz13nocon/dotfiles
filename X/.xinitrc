@@ -61,25 +61,27 @@ export FILE_MANAGER=thunar
 #xsetroot -cursor_name left_ptr
 #exec xmonad
 
-# export QT_QPA_PLATFORMTHEME=qt5ct
-# export XDG_SESSION_TYPE=x11
-# export GDK_BACKEND=x11
-# exec gnome-session
-
-blueman-applet &
 export QT_QPA_PLATFORMTHEME=qt5ct
-export QT_STYLE_OVERRIDE=adwaita-dark
-export GTK_IM_MODULE=fcitx
-export QT_IM_MODULE=fcitx
-export XMODIFIERS=@im=fcitx
-fcitx5 -d
+export XDG_SESSION_TYPE=x11
+export GDK_BACKEND=x11
+# libadwaita workaround
+export GTK_THEME=Qogir-Dark
+exec gnome-session
+
+# blueman-applet &
+# export QT_QPA_PLATFORMTHEME=qt5ct
+# export QT_STYLE_OVERRIDE=adwaita-dark
+# export GTK_IM_MODULE=fcitx
+# export QT_IM_MODULE=fcitx
+# export XMODIFIERS=@im=fcitx
+# fcitx5 -d
 
 # GTK_IM_MODULE=ibus
 # QT_IM_MODULE=ibus
 # XMODIFIERS=@im=ibus
 # ibus-daemon -drxR
 
-exec bspwm
+# exec bspwm
 
 # exec startlxqt
 
@@ -95,3 +97,4 @@ exec bspwm
 # io.elementary.wingpanel &
 # plank &
 # exec gala
+
