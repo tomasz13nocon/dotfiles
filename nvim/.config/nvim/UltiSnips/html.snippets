@@ -1,0 +1,164 @@
+
+
+snippet ol
+<ol>$0</ol>
+endsnippet
+
+snippet ul
+<ul>$0</ul>
+endsnippet
+
+snippet li
+<li>$0</li>
+endsnippet
+
+snippet p
+<p>$0</p>
+endsnippet
+
+snippet script
+<script${1: src="$2"}>$0</script>
+endsnippet
+
+snippet tr
+<tr>$0</tr>
+endsnippet
+
+snippet tbody
+<tbody>$0</tbody>
+endsnippet
+
+snippet thead
+<thead>$0</thead>
+endsnippet
+
+snippet table
+<table>$0</table>
+endsnippet
+
+snippet td
+<td>$0</td>
+endsnippet
+
+snippet radio
+<input type="radio" name="$1" value="$2" />
+endsnippet
+
+snippet input
+<input type="$1" />
+endsnippet
+
+snippet clear
+<div class="clearfix"></div>
+endsnippet
+
+snippet button
+<button>$0</button>
+endsnippet
+
+snippet lor "" i
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris malesuada ante neque, ac vestibulum velit pulvinar a. Aliquam a neque velit. Suspendisse dictum est justo, ac imperdiet purus molestie eu.
+endsnippet
+
+snippet lorem "" i
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris malesuada ante neque, ac vestibulum velit pulvinar a. Aliquam a neque velit. Suspendisse dictum est justo, ac imperdiet purus molestie eu. Aliquam eget risus justo. Integer turpis nibh, tempor quis tincidunt vitae, cursus eu dui. Proin nibh ante, volutpat eget sem auctor, sagittis feugiat quam. Curabitur sit amet sollicitudin est. Duis non orci tempus, facilisis magna ut, porta dolor. Cras scelerisque dapibus ante, id malesuada ligula blandit ac. Donec vulputate bibendum sagittis. Curabitur eget tincidunt nulla, tempor pulvinar enim. Aliquam in congue risus. Aliquam erat volutpat. Donec vitae pellentesque lectus.
+endsnippet
+
+snippet !!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>$1</title>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+</head>
+<body>
+
+	$0
+	
+</body>
+</html>
+endsnippet
+
+snippet label
+<label>$0</label>
+endsnippet
+
+snippet footer
+<footer>$0</footer>
+endsnippet
+
+snippet blockquote
+<blockquote>$0</blockquote>
+endsnippet
+
+snippet hr
+<hr>
+endsnippet
+
+snippet link
+<link rel="stylesheet" href="$1" />
+endsnippet
+
+snippet br
+<br>
+endsnippet
+
+snippet span
+<span>$0</span>
+endsnippet
+
+snippet fa
+<i class="fa fa-$1"></i>
+endsnippet
+
+snippet img
+<img src="$1" ${2:alt="$3" }/>
+endsnippet
+
+snippet a
+<a href="$1">$0</a>
+endsnippet
+
+snippet div
+<div>$0</div>
+endsnippet
+
+snippet /div\.(.*)/ "" r
+<div class="`!p snip.rv=match.group(1)`">$0</div>
+endsnippet
+
+snippet /h[1-6]/ "" r
+<`!p m=match.group(0)
+snip.rv=m`>$0</`!p snip.rv=m`>
+endsnippet
+
+#snippet '\.([a-zA-Z0-9-_]+)' "Div with a class" r
+#<div class="`!p snip.rv=match.group(1)`">$0</div>
+#endsnippet
+
+snippet !
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>$1</title>
+</head>
+<body>
+
+$0
+	
+</body>
+</html>
+
+endsnippet
+
+# DJANGO
+snippet for
+{% for $1 in $2 %}
+	$0
+{% endfor %}
+endsnippet
+
