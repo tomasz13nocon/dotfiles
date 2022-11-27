@@ -1,0 +1,12 @@
+config:
+  dotpath: .
+  link_dotfile_default: relative
+  link_on_import: relative
+dotfiles:
+  d_tealdeer:
+    src: config/tealdeer
+    dst: ~/.config/tealdeer
+profiles:
+  linux-pc:
+    dotfiles:
+    - d_tealdeer
