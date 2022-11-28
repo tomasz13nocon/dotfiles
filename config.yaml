@@ -108,3 +108,30 @@ profiles:
     - f_aliases
     - f_bash_profile
     - d_alacritty
+  samsung-laptop:
+    dotfiles:
+    - d_tealdeer
+    - f_xmonad.hs
+    - f_fullscreen.hs
+    - f_user-dirs.dirs
+    - f_xinitrc
+    - f_xbindkeysrc
+    - f_vimrc
+    - d_after
+    - f_filetype.vim
+    - d_colors
+    - d_bin
+    - f_redshift.conf
+    - d_ranger
+    - f_picom.conf
+    - d_nvim
+    - d_mpv
+    - d_lsd
+    - d_kitty
+    - f_imwheelrc
+    - f_gpg.conf
+    - d_flashfocus
+    - f_bashrc
+    - f_aliases
+    - f_bash_profile
+    - d_alacritty
