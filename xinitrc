@@ -49,7 +49,11 @@ export MOZ_USE_XINPUT2=1
 
 export QT_AUTO_SCREEN_SCALE_FACTOR=1.25
 
+{%@@ if profile == "home-pc" @@%}
+export TERMINAL=alacritty
+{%@@ elif profile == "samsung-laptop" @@%}
 export TERMINAL=kitty
+{%@@ endif @@%}
 export FILE_MANAGER=thunar
 
 
@@ -60,28 +64,6 @@ export FILE_MANAGER=thunar
 # Set a normal cursor, because xmonad doesn't do it........
 #xsetroot -cursor_name left_ptr
 #exec xmonad
-
-export QT_QPA_PLATFORMTHEME=qt5ct
-export XDG_SESSION_TYPE=x11
-export GDK_BACKEND=x11
-# libadwaita workaround
-export GTK_THEME=Qogir-Dark
-exec gnome-session
-
-# blueman-applet &
-# export QT_QPA_PLATFORMTHEME=qt5ct
-# export QT_STYLE_OVERRIDE=adwaita-dark
-# export GTK_IM_MODULE=fcitx
-# export QT_IM_MODULE=fcitx
-# export XMODIFIERS=@im=fcitx
-# fcitx5 -d
-
-# GTK_IM_MODULE=ibus
-# QT_IM_MODULE=ibus
-# XMODIFIERS=@im=ibus
-# ibus-daemon -drxR
-
-# exec bspwm
 
 # exec startlxqt
 
@@ -98,3 +80,26 @@ exec gnome-session
 # plank &
 # exec gala
 
+{%@@ if profile == "home-pc" @@%}
+export QT_QPA_PLATFORMTHEME=qt5ct
+export XDG_SESSION_TYPE=x11
+export GDK_BACKEND=x11
+# libadwaita workaround
+export GTK_THEME=Qogir-Dark
+exec gnome-session
+{%@@ elif profile == "samsung-laptop" @@%}
+blueman-applet &
+export QT_QPA_PLATFORMTHEME=qt5ct
+export QT_STYLE_OVERRIDE=adwaita-dark
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+fcitx5 -d
+
+# GTK_IM_MODULE=ibus
+# QT_IM_MODULE=ibus
+# XMODIFIERS=@im=ibus
+# ibus-daemon -drxR
+
+exec bspwm
+{%@@ endif @@%}

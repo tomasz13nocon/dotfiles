@@ -15,7 +15,6 @@ dotfiles:
   f_user-dirs.dirs:
     src: user-dirs.dirs
     dst: ~/.config/user-dirs.dirs
-    chmod: '600'
   f_xinitrc:
     src: xinitrc
     dst: ~/.xinitrc
@@ -52,7 +51,6 @@ dotfiles:
   d_mpv:
     src: mpv
     dst: ~/.config/mpv
-    chmod: '700'
   d_lsd:
     src: lsd
     dst: ~/.config/lsd
@@ -81,7 +79,7 @@ dotfiles:
     src: alacritty
     dst: ~/.config/alacritty
 profiles:
-  linux-pc:
+  home-pc:
     dotfiles:
     - d_tealdeer
     - f_xmonad.hs
