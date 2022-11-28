@@ -1,0 +1,21 @@
+#!/bin/bash
+# Replace a symlink with its target and delete the target
+
+
+if [ -z "$1" ] ; then
+	echo "File not specified!"
+	exit 1
+fi
+
+LINK=$1
+
+if [ ! -L "$LINK" ] ; then
+	echo "$LINK is not a link!"
+	exit 1
+fi
+
+TARGET=$(readlink -f $LINK)
+
+rm $LINK
+mv $TARGET $(dirname $LINK)
+echo moved "$TARGET" to "$(dirname $LINK)"

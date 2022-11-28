@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# GTK 4
-gsettings set org.gnome.desktop.interface color-scheme prefer-light
-
-# GTK 3 (includes nautilus)
-crudini --set ~/.config/gtk-3.0/settings.ini Settings gtk-application-prefer-dark-theme 0
-

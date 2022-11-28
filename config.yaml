@@ -4,9 +4,107 @@ config:
   link_on_import: relative
 dotfiles:
   d_tealdeer:
-    src: config/tealdeer
+    src: tealdeer
     dst: ~/.config/tealdeer
+  f_xmonad.hs:
+    src: xmonad/xmonad.hs
+    dst: ~/.xmonad/xmonad.hs
+  f_fullscreen.hs:
+    src: xmonad/lib/Fullscreen.hs
+    dst: ~/.xmonad/lib/Fullscreen.hs
+  f_user-dirs.dirs:
+    src: user-dirs.dirs
+    dst: ~/.config/user-dirs.dirs
+    chmod: '600'
+  f_xinitrc:
+    src: xinitrc
+    dst: ~/.xinitrc
+  f_xbindkeysrc:
+    src: xbindkeysrc
+    dst: ~/.xbindkeysrc
+  f_vimrc:
+    src: vim/vimrc
+    dst: ~/.vimrc
+  d_after:
+    src: vim/vim/after
+    dst: ~/.vim/after
+  f_filetype.vim:
+    src: vim/vim/filetype.vim
+    dst: ~/.vim/filetype.vim
+  d_colors:
+    src: vim/vim/colors
+    dst: ~/.vim/colors
+  d_bin:
+    src: bin
+    dst: ~/bin
+  f_redshift.conf:
+    src: redshift.conf
+    dst: ~/.config/redshift.conf
+  d_ranger:
+    src: ranger
+    dst: ~/.config/ranger
+  f_picom.conf:
+    src: picom.conf
+    dst: ~/.config/picom.conf
+  d_nvim:
+    src: nvim
+    dst: ~/.config/nvim
+  d_mpv:
+    src: mpv
+    dst: ~/.config/mpv
+    chmod: '700'
+  d_lsd:
+    src: lsd
+    dst: ~/.config/lsd
+  d_kitty:
+    src: kitty
+    dst: ~/.config/kitty
+  f_imwheelrc:
+    src: imwheelrc
+    dst: ~/.imwheelrc
+  f_gpg.conf:
+    src: gnupg/gpg.conf
+    dst: ~/.gnupg/gpg.conf
+  d_flashfocus:
+    src: flashfocus
+    dst: ~/.config/flashfocus
+  f_bashrc:
+    src: bash/bashrc
+    dst: ~/.bashrc
+  f_aliases:
+    src: bash/aliases
+    dst: ~/.aliases
+  f_bash_profile:
+    src: bash/bash_profile
+    dst: ~/.bash_profile
+  d_alacritty:
+    src: alacritty
+    dst: ~/.config/alacritty
 profiles:
   linux-pc:
     dotfiles:
     - d_tealdeer
+    - f_xmonad.hs
+    - f_fullscreen.hs
+    - f_user-dirs.dirs
+    - f_xinitrc
+    - f_xbindkeysrc
+    - f_vimrc
+    - d_after
+    - f_filetype.vim
+    - d_colors
+    - d_bin
+    - f_redshift.conf
+    - d_ranger
+    - f_picom.conf
+    - d_nvim
+    - d_mpv
+    - d_lsd
+    - d_kitty
+    - f_imwheelrc
+    - f_gpg.conf
+    - d_flashfocus
+    - f_bashrc
+    - f_aliases
+    - f_bash_profile
+    - d_alacritty

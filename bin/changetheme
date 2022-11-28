@@ -1,0 +1,23 @@
+#!/bin/bash
+
+GTK_THEME=$1
+SHELL_THEME=$2
+LIBADWAITA_THEME=$3
+ALACRITTY_THEME=$4
+KVANTUM_THEME=$5
+QT_ICON_THEME=$6
+ICON_THEME=$7
+
+# gtk3 theme
+gsettings set org.gnome.desktop.interface gtk-theme $GTK_THEME
+gsettings set org.gnome.desktop.interface icon-theme $ICON_THEME
+gsettings set org.gnome.shell.extensions.user-theme name $SHELL_THEME
+ln -sf /usr/share/themes/$LIBADWAITA_THEME/assets ~/.config/gtk-4.0/
+ln -sf /usr/share/themes/$LIBADWAITA_THEME/gtk.css ~/.config/gtk-4.0/
+
+# perl -0777 -i -pe "s/(^\s*background: ')(0x[0-9a-fA-F]+)('[\s\S]*^\s*foreground: ')(0x[0-9a-fA-F]+)/\1\4\3\2/m" ~/.config/alacritty.yml
+# alacritty-themes $ALACRITTY_THEME
+
+kvantummanager --set $KVANTUM_THEME
+
+perl -0777 -i -pe "s/^icon_theme=.*$/icon_theme=$QT_ICON_THEME/m" ~/.config/qt5ct/qt5ct.conf

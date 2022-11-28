@@ -1,0 +1,11 @@
+#!/bin/bash
+
+GTK_THEME="Flat-Remix-GTK-Violet-Light"
+SHELL_THEME="Flat-Remix-Violet-Light-fullPanel"
+LIBADWAITA_THEME="Flat-Remix-LibAdwaita-Violet-Light"
+ALACRITTY_THEME="Iceberg-Light"
+KVANTUM_THEME="KvArc"
+QT_ICON_THEME="Qogir-ubuntu"
+ICON_THEME="Flat-Remix-Orange-Light"
+
+changetheme $GTK_THEME $SHELL_THEME $LIBADWAITA_THEME $ALACRITTY_THEME $KVANTUM_THEME $QT_ICON_THEME $ICON_THEME

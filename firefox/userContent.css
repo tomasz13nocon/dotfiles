@@ -1,0 +1,13 @@
+@-moz-document url-prefix("about:devtools-toolbox") {
+  * {
+    /*color: red !important;*/
+  }
+}
+
+@-moz-document url-prefix("chrome://devtools/content/") {
+  :root {
+     /*--theme-body-font-size: 6px !important; */
+     /*--theme-code-font-size: 6px !important; */
+     --monospace-font-family: "MesloLGS NF" !important; 
+  }
+}

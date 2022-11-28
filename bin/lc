@@ -1,0 +1,15 @@
+#!/bin/bash
+# ls if directory, cat if file
+
+ls="lsd -l"
+cat="bat"
+
+for arg in "$@"
+do
+	if [ -d $arg ] ; then
+		$ls $arg
+	else
+		$cat $arg
+	fi
+done
+
