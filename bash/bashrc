@@ -97,7 +97,10 @@ colors=("809bce" "95b8d1" "b8e0d2" "d6eadf" "eac4d5")
 coltext="111111"
 
 # Text segments
-segments=("\d" "\t" "\u@\h" "[\W]" "\!")
+git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+segments=("\d" "\t" "\u@\h" "[\W]" "\$(git_branch)")
 
 # Separators
 #sepleft=$'\uE0C7'

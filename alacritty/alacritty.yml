@@ -15,6 +15,9 @@ font:
   size: 7.5
   # size: 9
 
+cursor:
+  style:
+    blinking: Always
 #background_opacity: 0.7
 
 key_bindings:

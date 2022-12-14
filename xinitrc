@@ -32,8 +32,9 @@ setxkbmap pl -option caps:swapescape -option terminate:ctrl_alt_bksp -option kpd
 # Unified Remote
 #[ -f /opt/urserver/urserver ] && /opt/urserver/urserver --daemon
 
-# Keystroke repeat delay
-xset r rate 250
+# Keystroke repeat delay (default: 400 30)
+# In gnome dconf settings overwrite these
+xset r rate 220 25
 
 # Enable MangoHud in all vulkan programs
 MANGOHUD=1
