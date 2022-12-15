@@ -8,19 +8,33 @@ au("FileType", { callback = function() vim.opt.formatoptions:remove({ "o" }) end
 au("InsertEnter", { command = "set cursorline" })
 au("InsertLeave", { command = "set nocursorline" })
 
+-- au("BufWritePre", { pattern = "*.js", callback = function() vim.lsp.buf.format() end })
+
+au("FileType", {
+  pattern = "qf,help,man,lspinfo",
+  callback = function()
+    vim.keymap.set("n", "q", ":close<CR>", { buffer = true })
+  end
+})
+au("TextYankPost", {
+  callback = function ()
+    require('vim.highlight').on_yank({higroup = 'WildMenu', timeout = 300})
+  end
+})
+
 -- persist folds
 au(
-	{ "BufWinLeave", "BufLeave", "BufWritePost", "BufHidden", "QuitPre" },
-	{ pattern = "?*", command = "silent! mkview!" } -- add nested?
+  { "BufWinLeave", "BufLeave", "BufWritePost", "BufHidden", "QuitPre" },
+  { pattern = "?*", command = "silent! mkview!" } -- add nested?
 )
 au(
-	"BufWinEnter",
-	{ pattern = "?*", command = "silent! loadview" }
+  "BufWinEnter",
+  { pattern = "?*", command = "silent! loadview" }
 )
 
 -- au("BufWritePost", {
--- 	pattern = "plugins.lua",
--- 	command = "source <afile> | PackerSync"
+--  pattern = "plugins.lua",
+--  command = "source <afile> | PackerSync"
 -- })
 
 -- put help window to the left and make it narrow

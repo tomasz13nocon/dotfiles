@@ -27,14 +27,28 @@ return packer.startup(function(use)
   use 'wbthomason/packer.nvim'
   use 'nvim-lua/plenary.nvim'
   --	Color schemes --
-  use 'folke/tokyonight.nvim'
-  use 'Shatur/neovim-ayu'
-  use 'romgrk/doom-one.vim'
   use 'LunarVim/Colorschemes'
-  use 'lukas-reineke/onedark.nvim'
+  -- use 'rafi/awesome-vim-colorschemes'
+  use 'Shatur/neovim-ayu'
+  use 'folke/tokyonight.nvim'
+  use 'wbinnssmith/base16-oceanic-next'
+  use 'drewtempelmeyer/palenight.vim'
+  -- use 'romgrk/doom-one.vim'
+  -- use 'lukas-reineke/onedark.nvim'
+  -- use 'mkarmona/colorsbox'
+  -- use 'NLKNguyen/papercolor-theme'
+  -- use 'jacoborus/tender.vim'
+  -- use 'catppuccin/nvim'
   --------------------
-  use 'numToStr/Comment.nvim'
-  --	use 'JoosepAlviste/nvim-ts-context-commentstring' -- jsx comments
+  use {
+    'numToStr/Comment.nvim',
+    config = function()
+      require('Comment').setup{
+        pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(), -- jsx comments
+      }
+    end
+  }
+  use 'JoosepAlviste/nvim-ts-context-commentstring' -- jsx comments
   use {
     'rmagatti/auto-session',
     config = function()
@@ -52,13 +66,41 @@ return packer.startup(function(use)
       "nvim-lua/plenary.nvim",
       "nvim-tree/nvim-web-devicons",
       "MunifTanjim/nui.nvim",
-    }
+    },
+    config = function ()
+      vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
+      require("neo-tree").setup{
+        window = {
+          mappings = {
+            ['h'] = "close_node",
+            ['l'] = "open",
+          }
+        },
+        filesystem = {
+          follow_current_file = true,
+        },
+        git_status = {
+          window = {
+            position = "float",
+            mappings = {
+              ["A"]  = "git_add_all",
+              ["gu"] = "git_unstage_file",
+              ["ga"] = "git_add_file",
+              ["gr"] = "git_revert_file",
+              ["gc"] = "git_commit",
+              ["gp"] = "git_push",
+              ["gg"] = "git_commit_and_push",
+            }
+          }
+        },
+      }
+    end,
   }
-
+  use { 'simrat39/symbols-outline.nvim', config = function() require("symbols-outline").setup() end }
   use 'sheerun/vim-polyglot'
   use {'SirVer/ultisnips',
-    config = function()      
-      vim.g.UltiSnipsExpandTrigger = '<Plug>(ultisnips_expand)'      
+    config = function()
+      vim.g.UltiSnipsExpandTrigger = '<Plug>(ultisnips_expand)'
       vim.g.UltiSnipsJumpForwardTrigger = '<Plug>(ultisnips_jump_forward)'
       vim.g.UltiSnipsJumpBackwardTrigger = '<Plug>(ultisnips_jump_backward)'
       vim.g.UltiSnipsListSnippets = '<c-x><c-s>'
@@ -73,6 +115,8 @@ return packer.startup(function(use)
     'nvim-treesitter/nvim-treesitter',
     run = ':TSUpdate'
   }
+  -- use 'p00f/nvim-ts-rainbow'
+  -- use { 'nvim-treesitter/nvim-treesitter-context', config = function () require'treesitter-context'.setup{} end }
   use({
       "jose-elias-alvarez/null-ls.nvim",
       requires = { "nvim-lua/plenary.nvim" },
@@ -92,49 +136,56 @@ return packer.startup(function(use)
   use "folke/neodev.nvim"
   use "b0o/schemastore.nvim"
 
-  -- use 'hood/popui.nvim'
+  use 'hood/popui.nvim' -- alternative: stevearc/dressing.nvim
   use "lukas-reineke/indent-blankline.nvim"
   -- use 'leafOfTree/vim-matchtag' -- obsoleted by indent-blankline.nvim
   use 'RRethy/vim-illuminate'
   use 'dstein64/nvim-scrollview'
-  use 'NvChad/nvim-colorizer.lua'
+  -- use { 'NvChad/nvim-colorizer.lua', config = function() require'colorizer'.setup{ user_default_options = { css = true } } end }
+  use 'KabbAmine/vCoolor.vim'
+  use { 'uga-rosa/ccc.nvim', config = function() require'ccc'.setup{ highlighter = { auto_enable = true } } end }
   use {
     "zbirenbaum/neodim",
     event = "LspAttach",
     config = function ()
       require("neodim").setup({
-        alpha = 0.65,
-        blend_color = "#000000",
-        update_in_insert = {
-          enable = true,
-          delay = 200,
-        },
-        hide = {
-          virtual_text = true,
-          signs = true,
-          underline = true,
-        }
-      })
+          alpha = 0.65,
+          blend_color = "#000000",
+          update_in_insert = {
+            enable = true,
+            delay = 200,
+          },
+          hide = {
+            virtual_text = true,
+            signs = true,
+            underline = true,
+          }
+        })
     end
   }
   use {
     'romgrk/barbar.nvim',
-    requires = {'kyazdani42/nvim-web-devicons'}
+    requires = {'kyazdani42/nvim-web-devicons'},
+    config = function() require'bufferline'.setup() end
   }
   use {
-    'nvim-telescope/telescope.nvim', -- TODO setup native sorter, see README
+    'nvim-telescope/telescope.nvim',
+    -- tag = '0.1.0',
     requires = { {'nvim-lua/plenary.nvim'}, {'nvim-telescope/telescope-fzf-native.nvim', run = 'make' } }
   }
+  -- use {'nvim-telescope/telescope-ui-select.nvim' }
   -- use {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'}
 
   use {
     'nvim-lualine/lualine.nvim',
-    requires = { 'kyazdani42/nvim-web-devicons', opt = true }
+    requires = { 'kyazdani42/nvim-web-devicons', opt = true },
+    config = function() require'lualine'.setup{} end
   }
   -- use {
   --   "windwp/nvim-autopairs",
   --   config = function() require("nvim-autopairs").setup {} end
   -- }
+  use 'rstacruz/vim-closer'
   use {
     "kylechui/nvim-surround",
     tag = "*", -- Use for stability; omit to use `main` branch for the latest features
@@ -145,7 +196,12 @@ return packer.startup(function(use)
   use {
     'lewis6991/gitsigns.nvim',
     config = function()
-      require('gitsigns').setup()
+      require('gitsigns').setup{
+        signs = {
+          add = { hl = "GitSignsAdd", text = "▎", numhl = "GitSignsAddNr", linehl = "GitSignsAddLn" },
+          change = { hl = "GitSignsChange", text = "▎", numhl = "GitSignsChangeNr", linehl = "GitSignsChangeLn" },
+        }
+      }
     end
   }
   use {
@@ -169,7 +225,8 @@ return packer.startup(function(use)
     config = function()
       require("which-key").setup {}
     end
-}
+  }
+  use 'dkarter/bullets.vim'
 
 
 

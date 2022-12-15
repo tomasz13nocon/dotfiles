@@ -26,6 +26,9 @@ vim.opt.foldmethod = "manual";
 vim.opt.foldtext = [[getline(v:foldstart) . ' ...   ' . (v:foldend - v:foldstart + 1)]] -- . trim(getline(v:foldend)) 
 vim.opt.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 vim.opt.completeopt = "menu,menuone,noselect" -- recommended by cmp
+vim.opt.listchars = "tab:»•,trail:•" -- ·•»→›␣↲¤›
+vim.opt.list = true
+-- vim.opt.showbreak = "+ " -- doesn't work
 
 vim.g.do_filetype_lua = 1
 vim.g.loaded_netrw = 1

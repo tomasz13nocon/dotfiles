@@ -1,8 +1,8 @@
 -- vim.g.tokyonight_style = "night"
 -- local colorscheme = "tokyonight"
 
--- ayu tokyonight onedark tomorrow darkplus ferrum codemonkey ayu-mirage aurora system76 slate
-local colorscheme = "aurora"
+-- ayu tokyonight-night onedark tomorrow darkplus ferrum codemonkey ayu-mirage aurora system76 slate colorsbox-stbright hybrid-reverse jellybeans
+local colorscheme = "aurora-mod"
 
 
 local ok, _ = pcall(vim.cmd, "colorscheme " .. colorscheme)
@@ -17,10 +17,12 @@ end
 
 -- ADJUSTMENTS --
 hi("Comment", { fg = "#646b6a" } )
-hi("FloatBorder", { default = true, bg = "bg" })
-vim.cmd("match todo /TODO/");
-vim.cmd("2match todo /NOW/");
+vim.cmd("match todo /TODO/")
+vim.cmd("2match todo /NOW/")
+-- vim.cmd("match ErrorMsg '\\s\\+$'") -- trailing spaces
+vim.cmd("2match ErrorMsg '^\\s\\{-}\\zs\\t\\+'") -- leading tabs
 -- vim.cmd("match MoreMsg / \\d+/");
+vim.g.italic_comments = false
 if (colorscheme == "ayu") then
   hi("Grey", { fg = "#646b6a" })
   hi("LineNr", { fg = "#646b6a" }) -- #646b8a
@@ -30,6 +32,7 @@ elseif (colorscheme == "aurora") then
   hi("Folded", { bg = "#2F333B", fg = "#eeeeee" })
   hi("Search", { bg = "#E2D626", fg = "#000000" })
   hi("IncSearch", { bg = "#FF9641", fg = "#000000" })
+  hi("FloatBorder", { default = true, bg = "bg" })
 end
 
 -- CMP COOL COLOR BLOCKS --
