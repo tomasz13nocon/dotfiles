@@ -24,23 +24,26 @@ cmp.setup({
         { name = 'ultisnips' },
         { name = 'nvim_lsp' },
         { name = 'nvim_lsp_signature_help' },
+        { name = 'emmet_vim' },
         { name = 'path' },
+        { name = 'buffer' },
       },
-      {
-        { name = 'buffer' }, -- this won't be displayed when the ones above are availible
+      { -- these won't be displayed when the ones above are availible
       }),
 
     experimental = {
       ghost_text = true
     },
 
+    preselect = cmp.PreselectMode.None,
+
     mapping = {
       ["<Tab>"] = cmp.mapping({
           c = function()
             if cmp.visible() then
               cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
-            else
-              cmp.complete()
+            -- else
+            --   cmp.complete()
             end
           end,
           i = function(fallback)

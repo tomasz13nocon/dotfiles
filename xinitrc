@@ -57,6 +57,10 @@ export TERMINAL=kitty
 {%@@ endif @@%}
 export FILE_MANAGER=thunar
 
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+fcitx5 -d
 
 ### EXEC ###
 
@@ -92,10 +96,6 @@ exec gnome-session
 blueman-applet &
 export QT_QPA_PLATFORMTHEME=qt5ct
 export QT_STYLE_OVERRIDE=adwaita-dark
-export GTK_IM_MODULE=fcitx
-export QT_IM_MODULE=fcitx
-export XMODIFIERS=@im=fcitx
-fcitx5 -d
 
 # GTK_IM_MODULE=ibus
 # QT_IM_MODULE=ibus

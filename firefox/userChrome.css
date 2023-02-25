@@ -4,6 +4,13 @@
 @import url('components/window-transparencies.css');
  */
 
+:root {
+  --toolbarbutton-border-radius: 0;
+  --arrowpanel-menuitem-border-radius: 0;
+  --urlbar-icon-border-radius: 0;
+  --arrowpanel-border-radius: 0;
+}
+
 .browser-toolbar:not(.titlebar-color) {
     background: none !important;
 }
@@ -34,6 +41,28 @@
   }
   .tab-background {
     color: black !important;
+  }
+/*  NEW STUFF  */
+/*   #TabsToolbar #firefox-view-button[open]:not(:focus-visible) > .toolbarbutton-icon:-moz-lwtheme, .tab-background[selected]:not([multiselected="true"]):-moz-lwtheme {
+    outline: none !important;
+  }
+  #TabsToolbar #firefox-view-button[open] > .toolbarbutton-icon, #tabbrowser-tabs:not([noshadowfortests]) .tab-background:is([selected], [multiselected]) {
+    box-shadow: none !important;
+  } */
+  .tab-background[selected] {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  #tabbrowser-tabs {
+    border-width: 0 !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+  #firefox-view-button {
+    display: none !important;
+  }
+  toolbaritem > toolbarbutton.unified-extensions-item-action-button {
+    background: none !important;
   }
 }
 @media (prefers-color-scheme: light) {

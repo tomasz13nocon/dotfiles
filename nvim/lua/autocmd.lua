@@ -50,3 +50,20 @@ au("BufEnter", { command = "if &ft ==# 'help' | wincmd L | vert resize 84 | endi
 --   end,
 -- })
 
+-- Show diagnostics in a pop-up window on hover
+_G.LspDiagnosticsPopupHandler = function()
+  local current_cursor = vim.api.nvim_win_get_cursor(0)
+  local last_popup_cursor = vim.w.lsp_diagnostics_last_cursor or {nil, nil}
+  if not (current_cursor[1] == last_popup_cursor[1] and current_cursor[2] == last_popup_cursor[2]) then
+    vim.w.lsp_diagnostics_last_cursor = current_cursor
+    vim.diagnostic.open_float(0, {scope="cursor"})
+  end
+end
+-- CursorMoved or CursorHold
+vim.cmd [[
+augroup LSPDiagnosticsOnHover
+  autocmd!
+  autocmd CursorMoved *   lua _G.LspDiagnosticsPopupHandler()
+augroup END
+]]
+

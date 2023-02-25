@@ -1,5 +1,5 @@
 vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.relativenumber = false
 vim.opt.termguicolors = true
 vim.opt.timeoutlen = 600
 vim.opt.ignorecase = true
@@ -26,7 +26,7 @@ vim.opt.foldmethod = "manual";
 vim.opt.foldtext = [[getline(v:foldstart) . ' ...   ' . (v:foldend - v:foldstart + 1)]] -- . trim(getline(v:foldend)) 
 vim.opt.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 vim.opt.completeopt = "menu,menuone,noselect" -- recommended by cmp
-vim.opt.listchars = "tab:»•,trail:•" -- ·•»→›␣↲¤›
+vim.opt.listchars = "tab:» ,trail:•" -- ·•»→›␣↲¤›
 vim.opt.list = true
 -- vim.opt.showbreak = "+ " -- doesn't work
 

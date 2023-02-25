@@ -79,7 +79,7 @@ dotfiles:
     src: alacritty
     dst: ~/.config/alacritty
 profiles:
-  home-pc:
+  linux-pc:
     dotfiles:
     - d_tealdeer
     - f_xmonad.hs

@@ -1,12 +1,12 @@
 snippet fori
 for (var i = 0; i < $1; i++) {
-	$0
+  $0
 }
 endsnippet
 
 snippet forobj
 for (const [key, value] of Object.entries(${1:obj})) {
-	$0
+  $0
 }
 endsnippet
 
@@ -24,11 +24,25 @@ snippet rfc
 import React from "react";
 
 export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:]`($1) {
-	return (
-		<>
-			$0
-		</>
-	);
+  return (
+    <>
+      $0
+    </>
+  );
+}
+endsnippet
+
+snippet rfcc
+import React from "react";
+
+import "./styles/`!p snip.rv = snip.basename`.scss";
+
+export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:]`($1) {
+  return (
+    <>
+      $0
+    </>
+  );
 }
 endsnippet
 
@@ -38,7 +52,7 @@ endsnippet
 
 snippet rue
 React.useEffect(() => {
-	$0
+  $0
 }, [$1]);
 endsnippet
 

@@ -3,6 +3,7 @@
 
 -- ayu tokyonight-night onedark tomorrow darkplus ferrum codemonkey ayu-mirage aurora system76 slate colorsbox-stbright hybrid-reverse jellybeans
 local colorscheme = "aurora-mod"
+local colorscheme = "kanagawa"
 
 
 local ok, _ = pcall(vim.cmd, "colorscheme " .. colorscheme)
@@ -19,8 +20,13 @@ end
 hi("Comment", { fg = "#646b6a" } )
 vim.cmd("match todo /TODO/")
 vim.cmd("2match todo /NOW/")
--- vim.cmd("match ErrorMsg '\\s\\+$'") -- trailing spaces
-vim.cmd("2match ErrorMsg '^\\s\\{-}\\zs\\t\\+'") -- leading tabs
+-- trailing spaces
+-- vim.cmd("match ErrorMsg '\\s\\+$'")
+-- leading tabs
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "javascript,javascriptreact",
+  command = "2match ErrorMsg '^\\s\\{-}\\zs\\t\\+'"
+})
 -- vim.cmd("match MoreMsg / \\d+/");
 vim.g.italic_comments = false
 if (colorscheme == "ayu") then

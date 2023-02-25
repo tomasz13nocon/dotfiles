@@ -2,19 +2,24 @@
 require'mason'.setup()
 require'mason-lspconfig'.setup{
   ensure_installed = {
-    "sumneko_lua",
+    "lua_ls",
     "tsserver",
     "emmet_ls",
     "html",
     "cssls",
     "jsonls",
     "marksman",
+    "tailwindcss",
+    "astro",
+    "rust_analyzer",
+    "clangd",
+    "svelte",
   }
 }
 require("neodev").setup{}
 
 local lspconfig = require'lspconfig'
--- local configs = require'lspconfig/configs'
+-- local configs = require'lspconfig.configs'
 
 -- cmp has more LSP client capabilities than vanilla neovim, so we need to let servers know this, to get completion for more stuff like auto imports, etc.
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -29,29 +34,34 @@ local default_setup = {
   on_attach = on_attach,
 }
 
-lspconfig.sumneko_lua.setup(default_setup)
+lspconfig.lua_ls.setup(default_setup)
 lspconfig.html.setup(default_setup)
 lspconfig.cssls.setup(default_setup)
 lspconfig.tsserver.setup(default_setup)
+lspconfig.tailwindcss.setup(default_setup)
+lspconfig.astro.setup(default_setup)
+lspconfig.rust_analyzer.setup(default_setup)
+lspconfig.clangd.setup(default_setup)
+lspconfig.svelte.setup(default_setup)
   -- on_attach = function(client, bufnr)
   --   on_attach()
   --   client.server_capabilities.documentFormattingProvider = false
   -- end,
 
-lspconfig.emmet_ls.setup{
-  capabilities = capabilities,
-  on_attach = on_attach,
-  filetypes = { 'html', 'javascript', 'typescriptreact', 'javascriptreact', 'css', 'sass', 'scss', 'less' },
-  init_options = {
-    html = {
-      options = {
-        -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
-        -- ["bem.enabled"] = true,
-        ["jsx.enabled"] = true,
-      },
-    },
-  }
-}
+-- lspconfig.emmet_ls.setup{
+--   capabilities = capabilities,
+--   on_attach = on_attach,
+--   filetypes = { 'html', 'javascript', 'typescriptreact', 'javascriptreact', 'css', 'sass', 'scss', 'less' },
+--   init_options = {
+--     html = {
+--       options = {
+--         -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
+--         -- ["bem.enabled"] = true,
+--         ["jsx.enabled"] = true,
+--       },
+--     },
+--   }
+-- }
 
 lspconfig.jsonls.setup{
   capabilities = capabilities,
@@ -64,9 +74,75 @@ lspconfig.jsonls.setup{
 }
 
 
-require("null-ls").setup{
+local null_ls = require("null-ls")
+null_ls.setup{
+  capabilities = capabilities,
+  on_attach = function(client, bufnr)
+    -- format on save
+    if client.supports_method("textDocument/formatting") then
+      -- vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        -- group = augroup,
+        buffer = bufnr,
+        callback = function()
+          vim.lsp.buf.format{ bufnr = bufnr }
+        end,
+      })
+    end
+  end,
   sources = {
-    -- null_ls.builtins.diagnostics.eslint,
+    null_ls.builtins.diagnostics.eslint_d.with({
+      filetypes = { "javascript", "typescript", "vue", "html", "css" },
+      condition = function()
+        return require"null-ls.utils".root_pattern(
+          "eslint.config.js",
+          -- https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-file-formats
+          ".eslintrc",
+          ".eslintrc.js",
+          ".eslintrc.cjs",
+          ".eslintrc.yaml",
+          ".eslintrc.yml",
+          ".eslintrc.json"
+          -- "package.json"
+        )(vim.api.nvim_buf_get_name(0)) ~= nil
+      end
+    }),
+    null_ls.builtins.code_actions.eslint,
+    null_ls.builtins.formatting.prettierd.with{
+      filetypes = { -- add astro
+        "astro",
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue",
+        "css",
+        "scss",
+        "less",
+        "html",
+        "json",
+        "jsonc",
+        "yaml",
+        "markdown",
+        "markdown.mdx",
+        "graphql",
+        "handlebars",
+      },
+      condition = function() -- use prettier only with prettierrc present
+        return require"null-ls.utils".root_pattern(
+          ".prettierrc",
+          ".prettierrc.json",
+          ".prettierrc.yml",
+          ".prettierrc.yaml",
+          ".prettierrc.json5",
+          ".prettierrc.js",
+          ".prettierrc.cjs",
+          ".prettierrc.toml",
+          "prettier.config.js",
+          "prettier.config.cjs"
+        )(vim.api.nvim_buf_get_name(0)) ~= nil
+      end,
+    }
   }
 }
 

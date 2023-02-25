@@ -9,21 +9,31 @@ SCREEN_HEIGHT=$(xwininfo -root | awk '$1=="Height:" {print $2}')
 
 # systemctl start mongodb
 
-kitty --working-directory "/home/user/code/swtimeline/client/" --title "Client" bash -c "npm start; bash" &
+host=$(uname -n)
+if [[ $host == "samsung-laptop" ]]; then
+    kitty --working-directory "/home/user/code/swtimeline/client/" --title "Client" bash -c "npm start; bash" &
+else
+    alacritty --working-directory "/home/user/code/swtimeline/client/" --title "Client" -e bash -c "npm start; bash" &
+fi
 id=$(wait_and_get_id $!)
+
 # calculate dimensions
 eval $(xwininfo -id $(xdotool getactivewindow) |
     sed -n -e "s/^ \+Width: \+\([0-9]\+\).*/w=\1/p" \
            -e "s/^ \+Height: \+\([0-9]\+\).*/h=\1/p" )
-w1=$(($SCREEN_WIDTH / 2 - $w))
-h1=$(($SCREEN_HEIGHT / 2 - ($h/2) - 50))
+x=$(($SCREEN_WIDTH / 2 - $w))
+y=$(($SCREEN_HEIGHT / 2 - ($h/2) - 50))
 wmctrl -ir $id -t 3
-wmctrl -ir $id -e "0,$w1,$h1,-1,-1" 
+wmctrl -ir $id -e "0,$x,$y,-1,-1" 
 
-kitty --working-directory "/home/user/code/swtimeline/server/" --title "Server" bash -c "nodemon; bash" &
+if [[ $host == "samsung-laptop" ]]; then
+    kitty --working-directory "/home/user/code/swtimeline/server/" --title "Server" bash -c "nodemon; bash" &
+else
+    alacritty --working-directory "/home/user/code/swtimeline/server/" --title "Server" -e bash -c "nodemon; bash" &
+fi
 id=$(wait_and_get_id $!)
-w1=$(($SCREEN_WIDTH / 2))
+x=$(($SCREEN_WIDTH / 2))
 wmctrl -ir $id -t 3
-wmctrl -ir $id -e "0,$w1,$h1,-1,-1" 
+wmctrl -ir $id -e "0,$x,$y,-1,-1" 
 
 exit
