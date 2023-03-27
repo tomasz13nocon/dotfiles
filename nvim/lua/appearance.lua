@@ -2,8 +2,11 @@
 -- local colorscheme = "tokyonight"
 
 -- ayu tokyonight-night onedark tomorrow darkplus ferrum codemonkey ayu-mirage aurora system76 slate colorsbox-stbright hybrid-reverse jellybeans
-local colorscheme = "aurora-mod"
-local colorscheme = "kanagawa"
+local colorscheme
+colorscheme = "aurora-mod"
+colorscheme = "kanagawa"
+colorscheme = "zephyr"
+colorscheme = "ayu-dark"
 
 
 local ok, _ = pcall(vim.cmd, "colorscheme " .. colorscheme)
@@ -29,11 +32,17 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 -- vim.cmd("match MoreMsg / \\d+/");
 vim.g.italic_comments = false
-if (colorscheme == "ayu") then
+if (colorscheme:find("^ayu") ~= nil) then
   hi("Grey", { fg = "#646b6a" })
   hi("LineNr", { fg = "#646b6a" }) -- #646b8a
   hi("Folded", { bg = "#342843", fg = "#eeeeee" })
   hi("matchTag", { fg = "#eeeeee", bg = "#666666" })
+  hi("GitSignsCurrentLineBlame", { fg = "#646b6a" })
+  hi("DiffAdd", { bg = "#2D4C2C" })
+  hi("DiffChange", { bg = "#2C4B58" })
+  hi("DiffText", { bg = "#7A581D" })
+  hi("DiffDelete", { bg = "#5E2F2F" })
+  hi("Visual", {bg = "#6D0812" }) -- #4D5B6A #760046 #881e7e #87001D
 elseif (colorscheme == "aurora") then
   hi("Folded", { bg = "#2F333B", fg = "#eeeeee" })
   hi("Search", { bg = "#E2D626", fg = "#000000" })

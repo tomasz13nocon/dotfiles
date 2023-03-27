@@ -1,0 +1,7 @@
+function rpick() {
+	local TEMP=$(mktemp)
+	ranger --choosefiles=$TEMP
+	head -c -1 $TEMP
+}
+
+rpick

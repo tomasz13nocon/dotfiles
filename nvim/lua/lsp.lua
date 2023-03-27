@@ -35,6 +35,7 @@ local default_setup = {
 }
 
 lspconfig.lua_ls.setup(default_setup)
+-- try disabling html (emmet)
 lspconfig.html.setup(default_setup)
 lspconfig.cssls.setup(default_setup)
 lspconfig.tsserver.setup(default_setup)
@@ -51,7 +52,7 @@ lspconfig.svelte.setup(default_setup)
 -- lspconfig.emmet_ls.setup{
 --   capabilities = capabilities,
 --   on_attach = on_attach,
---   filetypes = { 'html', 'javascript', 'typescriptreact', 'javascriptreact', 'css', 'sass', 'scss', 'less' },
+--   filetypes = { 'html', 'javascript', 'typescriptreact', 'javascriptreact', 'css', 'sass', 'scss', 'less', 'svelte', 'astro' },
 --   init_options = {
 --     html = {
 --       options = {
@@ -92,7 +93,7 @@ null_ls.setup{
   end,
   sources = {
     null_ls.builtins.diagnostics.eslint_d.with({
-      filetypes = { "javascript", "typescript", "vue", "html", "css" },
+      filetypes = { "javascript", "typescript", "vue", "svelte", "astro", "javascriptreact", "typescriptreact" },
       condition = function()
         return require"null-ls.utils".root_pattern(
           "eslint.config.js",
@@ -107,9 +108,10 @@ null_ls.setup{
         )(vim.api.nvim_buf_get_name(0)) ~= nil
       end
     }),
-    null_ls.builtins.code_actions.eslint,
+    -- null_ls.builtins.code_actions.eslint,
     null_ls.builtins.formatting.prettierd.with{
-      filetypes = { -- add astro
+      filetypes = { -- add astro, svelte
+        "svelte",
         "astro",
         "javascript",
         "javascriptreact",
@@ -157,9 +159,10 @@ for _, sign in ipairs(signs) do
   vim.fn.sign_define(sign.name, { texthl = sign.name, text = sign.text, numhl = "" })
 end
 vim.diagnostic.config{
-  virtual_text = false,
+  virtual_text = { severity = vim.diagnostic.severity.ERROR },
   signs = {
     active = signs,
+    -- severity = { min = vim.diagnostic.severity.HrNT },
   },
   -- update_in_insert = true,
   -- underline = true,

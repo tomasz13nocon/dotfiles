@@ -11,9 +11,9 @@ SCREEN_HEIGHT=$(xwininfo -root | awk '$1=="Height:" {print $2}')
 
 host=$(uname -n)
 if [[ $host == "samsung-laptop" ]]; then
-    kitty --working-directory "/home/user/code/swtimeline/client/" --title "Client" bash -c "npm start; bash" &
+    kitty --working-directory "/home/user/code/starwarstl/client/" --title "Client" bash -c "npm start; bash" &
 else
-    alacritty --working-directory "/home/user/code/swtimeline/client/" --title "Client" -e bash -c "npm start; bash" &
+    alacritty --working-directory "/home/user/code/starwarstl/client/" --title "Client" -e bash -c "npm start; bash" &
 fi
 id=$(wait_and_get_id $!)
 
@@ -27,9 +27,9 @@ wmctrl -ir $id -t 3
 wmctrl -ir $id -e "0,$x,$y,-1,-1" 
 
 if [[ $host == "samsung-laptop" ]]; then
-    kitty --working-directory "/home/user/code/swtimeline/server/" --title "Server" bash -c "nodemon; bash" &
+    kitty --working-directory "/home/user/code/starwarstl/server/" --title "Server" bash -c "nodemon; bash" &
 else
-    alacritty --working-directory "/home/user/code/swtimeline/server/" --title "Server" -e bash -c "nodemon; bash" &
+    alacritty --working-directory "/home/user/code/starwarstl/server/" --title "Server" -e bash -c "nodemon; bash" &
 fi
 id=$(wait_and_get_id $!)
 x=$(($SCREEN_WIDTH / 2))

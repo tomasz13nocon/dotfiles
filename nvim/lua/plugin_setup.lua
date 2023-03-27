@@ -48,10 +48,6 @@ telescope.setup{
     file_ignore_patterns = {
       "wtf_wikipedia/",
     },
-    history = {
-      path = '~/.local/share/nvim/databases/telescope_history.sqlite3',
-      limit = 100,
-    },
   },
   pickers = {
     colorscheme = {
@@ -66,7 +62,6 @@ telescope.setup{
   -- },
 }
 -- telescope.load_extension("ui-select")
-telescope.load_extension("smart_history")
 
 
 require'lualine'.setup{
@@ -156,30 +151,71 @@ require("neodim").setup{
     delay = 200,
   },
   hide = {
-    virtual_text = true,
+    virtual_text = false,
     signs = true,
-    underline = true,
+    underline = false,
   }
 }
 
 require('gitsigns').setup{
+  current_line_blame_opts = {
+    delay = 200,
+  },
   signs = {
     add = { hl = "GitSignsAdd", text = "▎", numhl = "GitSignsAddNr", linehl = "GitSignsAddLn" },
     change = { hl = "GitSignsChange", text = "▎", numhl = "GitSignsChangeNr", linehl = "GitSignsChangeLn" },
-  }
+  },
+  on_attach = function(bufnr)
+    local gs = package.loaded.gitsigns
+
+    local function map(mode, l, r, opts)
+      opts = opts or {}
+      opts.buffer = bufnr
+      vim.keymap.set(mode, l, r, opts)
+    end
+
+    -- Navigation
+    map('n', ']h', function()
+      if vim.wo.diff then return ']c' end
+      vim.schedule(function() gs.next_hunk() end)
+      return '<Ignore>'
+    end, {expr=true})
+
+    map('n', '[h', function()
+      if vim.wo.diff then return '[c' end
+      vim.schedule(function() gs.prev_hunk() end)
+      return '<Ignore>'
+    end, {expr=true})
+
+    -- Actions
+    map({'n', 'v'}, '<leader>js', ':Gitsigns stage_hunk<CR>')
+    map({'n', 'v'}, '<leader>jr', ':Gitsigns reset_hunk<CR>')
+    map('n',        '<leader>jS', gs.stage_buffer)
+    map('n',        '<leader>ju', gs.undo_stage_hunk)
+    map('n',        '<leader>jR', gs.reset_buffer)
+    map('n',        '<leader>jp', gs.preview_hunk)
+    map('n',        '<leader>jb', function() gs.blame_line{full=true} end)
+    map('n',        '<leader>jtb', gs.toggle_current_line_blame)
+    map('n',        '<leader>jd', gs.diffthis)
+    map('n',        '<leader>jD', function() gs.diffthis('~') end)
+    map('n',        '<leader>jtd', gs.toggle_deleted)
+
+    -- Text object
+    map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+  end
 }
 
-require('foldhue').enable()
-require('foldhue').fade = function(hl)
-  local rgb = string.format('%0X', hl.foreground)  -- octal to hex
-  local r, g, b = rgb:sub(1, 2), rgb:sub(3, 4), rgb:sub(5, 6)
-  local f = (1)
-  -- hex to number, so we can do math:
-  r, g, b = vim.fn.str2nr(r, 16) * f, vim.fn.str2nr(g, 16) * f, vim.fn.str2nr(b, 16) * f
-  -- back to hex:
-  hl.foreground = vim.fn.printf('#%x%x%x', math.floor(r + 0.5), math.floor(g + 0.5), math.floor(b + 0.5))
-  return hl
-end
+-- require('foldhue').enable()
+-- require('foldhue').fade = function(hl)
+--   local rgb = string.format('%0X', hl.foreground)  -- octal to hex
+--   local r, g, b = rgb:sub(1, 2), rgb:sub(3, 4), rgb:sub(5, 6)
+--   local f = (1)
+--   -- hex to number, so we can do math:
+--   r, g, b = vim.fn.str2nr(r, 16) * f, vim.fn.str2nr(g, 16) * f, vim.fn.str2nr(b, 16) * f
+--   -- back to hex:
+--   hl.foreground = vim.fn.printf('#%x%x%x', math.floor(r + 0.5), math.floor(g + 0.5), math.floor(b + 0.5))
+--   return hl
+-- end
 
 vim.cmd [[highlight IndentBlanklineIndent1 guibg=#1D1E21 gui=nocombine]]
 vim.cmd [[highlight IndentBlanklineIndent2 guibg=#17171A gui=nocombine]]
@@ -205,14 +241,16 @@ vim.cmd [[highlight def IlluminatedWordWrite guibg=#3e3e46 gui=NONE]]
 
 ----- Simple setup -----
 require'treesitter-context'.setup{}
-require'bufferline'.setup() -- barbar.nvim
+require'bufferline'.setup{ -- barbar.nvim
+  animation = true,
+}
 require'symbols-outline'.setup() -- symbols-outline.nvim
 require'which-key'.setup{}
 require'nvim-surround'.setup{}
 require'various-textobjs'.setup{ useDefaultKeymaps = true } -- nvim-various-textobjs
 require'ccc'.setup{ highlighter = { auto_enable = true } }
-require'lsp_lines'.setup()
+-- require'lsp_lines'.setup()
 require'trouble'.setup{}
-require'nvim_context_vt'.setup{}
+-- require'nvim_context_vt'.setup{}
 -- require'nvim-autopairs'.setup{}
 ----- Simple setup -----

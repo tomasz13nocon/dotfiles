@@ -79,6 +79,7 @@ return packer.startup(function(use)
   use 'hrsh7th/cmp-nvim-lsp-signature-help'
   use 'mattn/emmet-vim' -- used by cmp emmet vim
   use 'dcampos/cmp-emmet-vim'
+  use 'arafatamim/emmet-ls'
   use 'onsails/lspkind.nvim'
   use 'folke/neodev.nvim'
   use 'b0o/schemastore.nvim'
@@ -93,12 +94,13 @@ return packer.startup(function(use)
   use 'dstein64/nvim-scrollview'
   use 'RRethy/vim-illuminate'
   use 'KabbAmine/vCoolor.vim'
+  use 'shmargum/vim-sass-colors'
   use {
     'zbirenbaum/neodim',
     event = 'LspAttach',
   }
   use 'lukas-reineke/indent-blankline.nvim' -- makes 'leafOfTree/vim-matchtag' obsolete
-  use 'haringsrob/nvim_context_vt'
+  -- use 'haringsrob/nvim_context_vt'
   --------------------------------
 
   ------------ Other -------------
@@ -106,7 +108,6 @@ return packer.startup(function(use)
     'nvim-telescope/telescope.nvim',
     requires = { {'nvim-telescope/telescope-fzf-native.nvim', run = 'make' } }
   }
-  use { 'nvim-telescope/telescope-smart-history.nvim', requires = { 'kkharji/sqlite.lua' } }
   use 'lewis6991/impatient.nvim'
   use 'numToStr/Comment.nvim'
   use 'rmagatti/auto-session'
@@ -123,6 +124,7 @@ return packer.startup(function(use)
   use 'tommcdo/vim-exchange'
   -- use {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'}
   use 'folke/trouble.nvim'
+  use 'terryma/vim-expand-region'
   --------------------------------
 
   if packer_bootstrap then

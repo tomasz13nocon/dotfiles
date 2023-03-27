@@ -22,7 +22,7 @@ vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
 vim.opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 vim.opt.foldopen:remove("search")
-vim.opt.foldmethod = "manual";
+vim.opt.foldmethod = "marker";
 vim.opt.foldtext = [[getline(v:foldstart) . ' ...   ' . (v:foldend - v:foldstart + 1)]] -- . trim(getline(v:foldend)) 
 vim.opt.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
 vim.opt.completeopt = "menu,menuone,noselect" -- recommended by cmp
@@ -35,3 +35,5 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
 vim.cmd("abbr q qa")
+
+vim.api.nvim_create_user_command("TTS", "set et | retab", {})

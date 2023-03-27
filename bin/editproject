@@ -6,13 +6,13 @@
 
 # sleep 1 before maximizing because gnome is buggy
 
-kitty --working-directory "/home/user/code/swtimeline/server" --title "SERVER EDIT" bash -c "nvim; bash" &
+kitty --working-directory "/home/user/code/starwarstl/server" --title "SERVER EDIT" bash -c "nvim; bash" &
 id=$(wait_and_get_id $!)
 sleep 1
 wmctrl -ir $id -t 2
 wmctrl -ir $id -b add,maximized_vert,maximized_horz 
 
-kitty --working-directory "/home/user/code/swtimeline/client" --title "CLIENT EDIT" bash -c "nvim; bash" &
+kitty --working-directory "/home/user/code/starwarstl/client" --title "CLIENT EDIT" bash -c "nvim; bash" &
 id=$(wait_and_get_id $!)
 sleep 1
 wmctrl -ir $id -t 1

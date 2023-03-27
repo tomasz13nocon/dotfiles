@@ -17,6 +17,8 @@ alias gst='git stash'
 
 alias v='vim'
 alias hx='helix'
+alias h='helix'
+alias n='nap'
 alias vim='nvim'
 #alias ls='ls -l --color=auto --group-directories-first'
 alias ls='lsd -l'
@@ -38,6 +40,11 @@ alias grep='grep --color=auto -Pn'
 alias grepi='grep -i'
 alias grepr='grep -rI'
 alias grepr2='grepr --exclude-dir=vendors --exclude-dir=plugins --exclude-dir=WEB-INF --exclude-dir=css'
+alias rg='rg --smart-case'
+rgf() {
+	files=$(fd $1)
+	rg $1 && [ -z $files ] || echo -e "\033[0;33m====== FILES ======\033[0m" && fd $1;
+}
 alias info='info --vi-keys'
 alias htop='htop -d 8'
 alias mpvtty='mpv -vo=drm'
@@ -72,3 +79,4 @@ alias wifi='nmcli dev wifi'
 alias browsersyncstart='npx browser-sync start --server --no-notify --files *.css, *.html, *.js'
 alias removeorphans='yay -Qtdq | yay -Rns -'
 alias red='redshift &'
+alias pn='pnpm'

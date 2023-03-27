@@ -1,0 +1,4 @@
+NAME=$1
+NAME="${NAME:=state}"
+
+echo "const [$NAME, set${NAME^}] = React.useState();"
