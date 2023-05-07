@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pwd=$(pwd | tr '/' '%')
+file="$HOME/.local/share/nvim/sessions/${pwd}.vim"
+
+rm $file
+

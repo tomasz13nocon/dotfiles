@@ -8,6 +8,9 @@ font:
     # family: Bok MonteCarlo
     # family: Cozette
     # family: MesloLGS Nerd Font
+    # family: Hack Nerd Font
+    # family: Cousine Nerd Font
+    # family: GoMono Nerd Font
     family: Dina
   #bold:
     #family: Cozette
@@ -31,6 +34,7 @@ key_bindings:
   - { key: F, mods: Control|Shift, chars: "\x1b[70;5u" }
   - { key: G, mods: Control|Shift, chars: "\x1b[71;5u" }
   - { key: H, mods: Control|Shift, chars: "\x1b[72;5u" }
+  - { key: I, mods: Control,       chars: "\x1b[105;5u" }
   - { key: I, mods: Control|Shift, chars: "\x1b[73;5u" }
   - { key: J, mods: Control|Shift, chars: "\x1b[74;5u" }
   - { key: K, mods: Control|Shift, chars: "\x1b[75;5u" }

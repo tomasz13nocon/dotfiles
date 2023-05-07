@@ -41,5 +41,6 @@
         "/usr/share/nvim/site/pack/packer/start/packer.nvim",
         "${3rd}/luassert/library",
         "${3rd}/luv/library"
-    ]
+    ],
+    "workspace.checkThirdParty": false
 }

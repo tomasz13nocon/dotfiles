@@ -29,6 +29,7 @@ vim.opt.completeopt = "menu,menuone,noselect" -- recommended by cmp
 vim.opt.listchars = "tab:» ,trail:•" -- ·•»→›␣↲¤›
 vim.opt.list = true
 -- vim.opt.showbreak = "+ " -- doesn't work
+vim.opt.conceallevel = 1
 
 vim.g.do_filetype_lua = 1
 vim.g.loaded_netrw = 1

@@ -6,6 +6,7 @@ local colorscheme
 colorscheme = "aurora-mod"
 colorscheme = "kanagawa"
 colorscheme = "zephyr"
+colorscheme = "doom-one"
 colorscheme = "ayu-dark"
 
 
@@ -48,6 +49,10 @@ elseif (colorscheme == "aurora") then
   hi("Search", { bg = "#E2D626", fg = "#000000" })
   hi("IncSearch", { bg = "#FF9641", fg = "#000000" })
   hi("FloatBorder", { default = true, bg = "bg" })
+elseif (colorscheme == "doom-one") then
+  hi("Normal", { bg="#161715" })
+  hi("LineNr", { bg = "#161715", fg = "#646b6a" })
+  hi("SignColumn", { bg = "#161715", fg = "#646b6a" })
 end
 
 -- CMP COOL COLOR BLOCKS --

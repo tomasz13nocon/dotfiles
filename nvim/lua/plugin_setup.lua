@@ -1,256 +1,67 @@
-require'nvim-treesitter'.setup()
-require'nvim-treesitter.configs'.setup {
-  ensure_installed = "all",
-  highlight = { enable = true },
-  indent = { enable = true },
-  context_commentstring = { -- jsx comments
-    enable = true,
-    enable_autocmd = false,
-  },
-  autotag = { -- auto close and rename html tags
-    enable = true,
-  },
-  -- incremental_selection = {
-  --   enable = true,
-  --   keymaps = {
-  --     init_selection = "gnn",
-  --     node_incremental = "grn",
-  --     scope_incremental = "grc",
-  --     node_decremental = "grm",
-  --   },
-  -- },
-  -- rainbow = {
-  --   enable = true,
-  --   -- disable = { "jsx", "cpp" }, list of languages you want to disable the plugin for
-  --   extended_mode = true, -- Also highlight non-bracket delimiters like html tags, boolean or table: lang -> boolean
-  --   max_file_lines = nil, -- Do not enable for files with more than n lines, int
-  --   -- colors = {}, -- table of hex strings
-  --   -- termcolors = {} -- table of colour name strings
-  -- }
-}
-
-local telescope = require('telescope')
-local actions = require('telescope.actions')
-telescope.setup{
-  defaults = {
-    mappings = {
-      i = {
-        ["<Esc>"] = "close",
-        ["<C-j>"] = "move_selection_next",
-        ["<C-k>"] = "move_selection_previous",
-        ["<C-u>"] = false,
-        ["<C-f>"] = "preview_scrolling_down",
-        ["<C-b>"] = "preview_scrolling_up",
-        ["Down"] = actions.cycle_history_next,
-        ["Up"] = actions.cycle_history_prev,
-      }
-    },
-    file_ignore_patterns = {
-      "wtf_wikipedia/",
-    },
-  },
-  pickers = {
-    colorscheme = {
-      enable_preview = true
-    }
-  },
-  -- extensions = {
-  --   ["ui-select"] = {
-  --     require("telescope.themes").get_dropdown {
-  --     }
-  --   }
-  -- },
-}
--- telescope.load_extension("ui-select")
+require 'plugin_setup.cmp'
+require 'plugin_setup.file_trees'
+-- require 'plugin_setup.foldhue'
+require 'plugin_setup.gitsigns'
+require 'plugin_setup.indent_blankline'
+require 'plugin_setup.lsp'
+-- require 'plugin_setup.lsp_inlayhints'
+require 'plugin_setup.lualine'
+require 'plugin_setup.navic'
+require 'plugin_setup.neodim'
+require 'plugin_setup.package_info'
+require 'plugin_setup.telescope'
+require 'plugin_setup.treesitter'
+-- require 'plugin_setup.ufo'
+require 'plugin_setup.ultisnips'
 
 
-require'lualine'.setup{
-  sections = {
-    lualine_a = {'mode'},
-    lualine_b = {'branch', 'diff', 'diagnostics'},
-    lualine_c = {
-      {
-        'filename',
-        file_status = true, -- displays file status (readonly status, modified status)
-        path = 1 -- 0 = just filename, 1 = relative path, 2 = absolute path
-      }
-    },
-    lualine_x = {'encoding', 'fileformat', 'filetype'},
-    lualine_y = {'progress'},
-    lualine_z = {'location'},
-  }
-}
+-- require'symbols-outline'.setup() -- symbols-outline.nvim
+-- require'nvim-autopairs'.setup{}
+require 'various-textobjs'.setup { useDefaultKeymaps = true } -- nvim-various-textobjs
+require 'ccc'.setup { highlighter = { auto_enable = true } }
+require 'treesitter-context'.setup {}
+require 'nvim-surround'.setup {}
+require 'ts-node-action'.setup{}
+require 'which-key'.setup {}
+require 'trouble'.setup {}
+require 'aerial'.setup()
 
 -- numToStr/Comment.nvim
-require('Comment').setup{
+require('Comment').setup {
   pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(), -- jsx comments
 }
 
-require("auto-session").setup{
+require("auto-session").setup {
   log_level = "error",
   -- auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/"},
 }
 
--- nvim-tree.lua
-require("nvim-tree").setup{
-  filters = {
-    dotfiles = true,
-  },
-  view = {
-    width = 32,
-  },
+require 'bufferline'.setup { -- barbar.nvim
+  animation = false,
+  highlight_inactive_file_icons = true,
 }
 
--- nvim-neo-tree/neo-tree.nvim
--- vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
--- require("neo-tree").setup{
---   window = {
---     mappings = {
---       ['h'] = "close_node",
---       ['l'] = "open",
---     }
---   },
---   filesystem = {
---     follow_current_file = true,
---   },
---   git_status = {
---     window = {
---       position = "float",
---       mappings = {
---         ["A"]  = "git_add_all",
---         ["gu"] = "git_unstage_file",
---         ["ga"] = "git_add_file",
---         ["gr"] = "git_revert_file",
---         ["gc"] = "git_commit",
---         ["gp"] = "git_push",
---         ["gg"] = "git_commit_and_push",
---       }
---     }
---   },
--- }
+vim.g.vista_default_executive = 'nvim_lsp'
 
--- ultisnips
-vim.g.UltiSnipsExpandTrigger = '<Plug>(ultisnips_expand)'
-vim.g.UltiSnipsJumpForwardTrigger = '<Plug>(ultisnips_jump_forward)'
-vim.g.UltiSnipsJumpBackwardTrigger = '<Plug>(ultisnips_jump_backward)'
-vim.g.UltiSnipsListSnippets = '<c-x><c-s>'
-vim.g.UltiSnipsRemoveSelectModeMappings = 0
+-- HLs not working
+-- vim.api.nvim_set_hl(0, "BufferCurrent", { default = true, bg = "#444444" })
+-- vim.api.nvim_set_hl(0, "BufferCurrentSign", { default = true, bg = "#444444" })
+-- vim.api.nvim_set_hl(0, "BufferCurrentIcon", { default = true, bg = "#444444" })
 
 -- popui.nvim
-vim.g.popui_border_style = "rounded"
-vim.ui.select = require"popui.ui-overrider"
-vim.ui.input = require"popui.input-overrider"
-vim.api.nvim_set_keymap("n", ",d", ':lua require"popui.diagnostics-navigator"()<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", ",m", ':lua require"popui.marks-manager"()<CR>', { noremap = true, silent = true })
+-- vim.g.popui_border_style = "rounded"
+-- vim.ui.select = require "popui.ui-overrider"
+-- vim.ui.input = require "popui.input-overrider"
+-- vim.api.nvim_set_keymap("n", ",d", ':lua require"popui.diagnostics-navigator"()<CR>', { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap("n", ",m", ':lua require"popui.marks-manager"()<CR>', { noremap = true, silent = true })
 
-require("neodim").setup{
-  alpha = 0.65,
-  blend_color = "#000000",
-  update_in_insert = {
-    enable = true,
-    delay = 200,
-  },
-  hide = {
-    virtual_text = false,
-    signs = true,
-    underline = false,
-  }
-}
-
-require('gitsigns').setup{
-  current_line_blame_opts = {
-    delay = 200,
-  },
-  signs = {
-    add = { hl = "GitSignsAdd", text = "▎", numhl = "GitSignsAddNr", linehl = "GitSignsAddLn" },
-    change = { hl = "GitSignsChange", text = "▎", numhl = "GitSignsChangeNr", linehl = "GitSignsChangeLn" },
-  },
-  on_attach = function(bufnr)
-    local gs = package.loaded.gitsigns
-
-    local function map(mode, l, r, opts)
-      opts = opts or {}
-      opts.buffer = bufnr
-      vim.keymap.set(mode, l, r, opts)
-    end
-
-    -- Navigation
-    map('n', ']h', function()
-      if vim.wo.diff then return ']c' end
-      vim.schedule(function() gs.next_hunk() end)
-      return '<Ignore>'
-    end, {expr=true})
-
-    map('n', '[h', function()
-      if vim.wo.diff then return '[c' end
-      vim.schedule(function() gs.prev_hunk() end)
-      return '<Ignore>'
-    end, {expr=true})
-
-    -- Actions
-    map({'n', 'v'}, '<leader>js', ':Gitsigns stage_hunk<CR>')
-    map({'n', 'v'}, '<leader>jr', ':Gitsigns reset_hunk<CR>')
-    map('n',        '<leader>jS', gs.stage_buffer)
-    map('n',        '<leader>ju', gs.undo_stage_hunk)
-    map('n',        '<leader>jR', gs.reset_buffer)
-    map('n',        '<leader>jp', gs.preview_hunk)
-    map('n',        '<leader>jb', function() gs.blame_line{full=true} end)
-    map('n',        '<leader>jtb', gs.toggle_current_line_blame)
-    map('n',        '<leader>jd', gs.diffthis)
-    map('n',        '<leader>jD', function() gs.diffthis('~') end)
-    map('n',        '<leader>jtd', gs.toggle_deleted)
-
-    -- Text object
-    map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
-  end
-}
-
--- require('foldhue').enable()
--- require('foldhue').fade = function(hl)
---   local rgb = string.format('%0X', hl.foreground)  -- octal to hex
---   local r, g, b = rgb:sub(1, 2), rgb:sub(3, 4), rgb:sub(5, 6)
---   local f = (1)
---   -- hex to number, so we can do math:
---   r, g, b = vim.fn.str2nr(r, 16) * f, vim.fn.str2nr(g, 16) * f, vim.fn.str2nr(b, 16) * f
---   -- back to hex:
---   hl.foreground = vim.fn.printf('#%x%x%x', math.floor(r + 0.5), math.floor(g + 0.5), math.floor(b + 0.5))
---   return hl
--- end
-
-vim.cmd [[highlight IndentBlanklineIndent1 guibg=#1D1E21 gui=nocombine]]
-vim.cmd [[highlight IndentBlanklineIndent2 guibg=#17171A gui=nocombine]]
-require("indent_blankline").setup {
-    show_current_context = true,
-    show_current_context_start = false,
-    char = "",
-    char_highlight_list = {
-        "IndentBlanklineIndent1",
-        "IndentBlanklineIndent2",
-    },
-    space_char_highlight_list = {
-        "IndentBlanklineIndent1",
-        "IndentBlanklineIndent2",
-    },
-    show_trailing_blankline_indent = false,
-}
-
+-- vim-illuminate
 vim.cmd [[highlight def IlluminatedWordText  guibg=#3e3e46 gui=NONE]]
 vim.cmd [[highlight def IlluminatedWordRead  guibg=#3e3e46 gui=NONE]]
 vim.cmd [[highlight def IlluminatedWordWrite guibg=#3e3e46 gui=NONE]]
 
-
------ Simple setup -----
-require'treesitter-context'.setup{}
-require'bufferline'.setup{ -- barbar.nvim
-  animation = true,
-}
-require'symbols-outline'.setup() -- symbols-outline.nvim
-require'which-key'.setup{}
-require'nvim-surround'.setup{}
-require'various-textobjs'.setup{ useDefaultKeymaps = true } -- nvim-various-textobjs
-require'ccc'.setup{ highlighter = { auto_enable = true } }
--- require'lsp_lines'.setup()
-require'trouble'.setup{}
 -- require'nvim_context_vt'.setup{}
--- require'nvim-autopairs'.setup{}
------ Simple setup -----
+
+-- copilot
+vim.g.copilot_no_tab_map = true
+vim.api.nvim_set_keymap("i", "<C-J>", 'copilot#Accept("<CR>")', { silent = true, expr = true })

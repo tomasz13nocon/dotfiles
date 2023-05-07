@@ -61,6 +61,7 @@ open_with_fzf() {
 }
 bind '"\C-o":"open_with_fzf\n"'
 bind '"\C-p":"cdf\n"'
+bind '"\x1b[105;5u":"PREV_DIR=$(pwd) && cd ~/dotfiles/nvim && vim && cd $PREV_DIR\n"'
 
 source /usr/share/bash-complete-alias/complete_alias
 complete -F _complete_alias wifi

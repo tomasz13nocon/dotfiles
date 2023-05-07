@@ -71,6 +71,10 @@
   }
 }
 
+#navigator-toolbox:-moz-lwtheme, #navigator-toolbox:-moz-window-inactive:-moz-lwtheme {
+  background-color: #0D0E0E !important;
+}
+
 .tabbrowser-tab[selected] .tab-content {
 /*  	border-top: 2px solid  blueviolet; */
 }

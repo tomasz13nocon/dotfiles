@@ -22,9 +22,10 @@ cmp.setup({
 
   sources = cmp.config.sources({
     { name = 'ultisnips' },
+    -- { name = 'emmet_vim' },
     { name = 'nvim_lsp' },
     { name = 'nvim_lsp_signature_help' },
-    { name = 'emmet_vim' },
+    -- { name = 'copilot_cmp' },
     { name = 'path' },
     { name = 'buffer' },
   }
@@ -267,3 +268,4 @@ cmp.setup.cmdline(':', {
       { name = 'cmdline' }
     })
 })
+

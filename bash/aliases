@@ -80,3 +80,10 @@ alias browsersyncstart='npx browser-sync start --server --no-notify --files *.cs
 alias removeorphans='yay -Qtdq | yay -Rns -'
 alias red='redshift &'
 alias pn='pnpm'
+alias ctls='sudo systemctl status'
+alias ctlstart='sudo systemctl start'
+alias ctlstop='sudo systemctl stop'
+alias ctlr='sudo systemctl restart'
+alias ctle='sudo systemctl enable'
+alias ctld='sudo systemctl disable'
+

@@ -4,9 +4,9 @@ local packer = require('packer')
 
 local ensure_packer = function()
   local fn = vim.fn
-  local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
+  local install_path = fn.stdpath('data') .. '/site/pack/packer/start/packer.nvim'
   if fn.empty(fn.glob(install_path)) > 0 then
-    fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
+    fn.system({ 'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path })
     vim.cmd [[packadd packer.nvim]]
     return true
   end
@@ -42,6 +42,7 @@ return packer.startup(function(use)
   use 'daschw/leaf.nvim'
   use 'EdenEast/nightfox.nvim'
   use 'glepnir/zephyr-nvim'
+  use 'romgrk/doom-one.vim'
   -- use 'rafi/awesome-vim-colorschemes'
   -- use 'romgrk/doom-one.vim'
   -- use 'lukas-reineke/onedark.nvim'
@@ -64,7 +65,9 @@ return packer.startup(function(use)
   use 'nvim-treesitter/nvim-treesitter-context'
   use 'JoosepAlviste/nvim-ts-context-commentstring' -- jsx comments
   use 'jose-elias-alvarez/null-ls.nvim'
-  use 'https://git.sr.ht/~whynothugo/lsp_lines.nvim'
+  use 'jose-elias-alvarez/typescript.nvim'
+  -- use 'lvimuser/lsp-inlayhints.nvim'
+  use 'chikamichi/mediawiki.vim'
   --------------------------------
 
   ---------- Completion ----------
@@ -77,37 +80,54 @@ return packer.startup(function(use)
   use 'quangnguyen30192/cmp-nvim-ultisnips'
   use 'hrsh7th/cmp-nvim-lsp-document-symbol'
   use 'hrsh7th/cmp-nvim-lsp-signature-help'
-  use 'mattn/emmet-vim' -- used by cmp emmet vim
-  use 'dcampos/cmp-emmet-vim'
-  use 'arafatamim/emmet-ls'
+  -- use 'mattn/emmet-vim' -- used by cmp-emmet-vim
+  -- use 'dcampos/cmp-emmet-vim'
+  -- use({
+  --   'jackieaskins/cmp-emmet',
+  --   run = 'npm run release'
+  -- })
+  -- use 'arafatamim/emmet-ls'
   use 'onsails/lspkind.nvim'
   use 'folke/neodev.nvim'
   use 'b0o/schemastore.nvim'
+  use 'github/copilot.vim'
+  -- use "zbirenbaum/copilot.lua"
+  -- use "zbirenbaum/copilot-cmp"
   --------------------------------
 
   --------- UI / Visual ----------
-  use { 'nvim-tree/nvim-tree.lua', tag = 'nightly' }
-  use 'simrat39/symbols-outline.nvim'
+  use 'liuchengxu/vista.vim' -- alt: simrat39/symbols-outline.nvim
+  use 'stevearc/aerial.nvim'
   use 'romgrk/barbar.nvim'
   use 'nvim-lualine/lualine.nvim'
-  use 'hood/popui.nvim' -- alternative: stevearc/dressing.nvim
+  use 'hood/popui.nvim' -- alt: stevearc/dressing.nvim
   use 'dstein64/nvim-scrollview'
   use 'RRethy/vim-illuminate'
   use 'KabbAmine/vCoolor.vim'
-  use 'shmargum/vim-sass-colors'
+  -- use 'shmargum/vim-sass-colors' -- This one might be the cause of the telescope errors
   use {
     'zbirenbaum/neodim',
     event = 'LspAttach',
   }
   use 'lukas-reineke/indent-blankline.nvim' -- makes 'leafOfTree/vim-matchtag' obsolete
   -- use 'haringsrob/nvim_context_vt'
+  use 'SmiteshP/nvim-navic'
+  --------------------------------
+
+  --------- File trees -----------
+  use { 'nvim-tree/nvim-tree.lua', tag = 'nightly' }
+  -- use 'rbgrouleff/bclose.vim'
+  -- use 'francoiscabrol/ranger.vim'
+  use 'kevinhwang91/rnvimr'
+  -- use 'ipod825/ranger.nvim'
   --------------------------------
 
   ------------ Other -------------
   use {
     'nvim-telescope/telescope.nvim',
-    requires = { {'nvim-telescope/telescope-fzf-native.nvim', run = 'make' } }
+    requires = { { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' } }
   }
+  use 'ibhagwan/fzf-lua'
   use 'lewis6991/impatient.nvim'
   use 'numToStr/Comment.nvim'
   use 'rmagatti/auto-session'
@@ -125,6 +145,11 @@ return packer.startup(function(use)
   -- use {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'}
   use 'folke/trouble.nvim'
   use 'terryma/vim-expand-region'
+  use({
+    "vuki656/package-info.nvim",
+    requires = "MunifTanjim/nui.nvim",
+  })
+  use 'ckolkey/ts-node-action'
   --------------------------------
 
   if packer_bootstrap then

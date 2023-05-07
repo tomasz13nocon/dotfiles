@@ -31,8 +31,18 @@ snippet rus
 const [$1, set`!p snip.rv=t[1][:1].upper() + t[1][1:]`] = React.useState($2);
 endsnippet
 
+snippet us
+const [$1, set`!p snip.rv=t[1][:1].upper() + t[1][1:]`] = useState($2);
+endsnippet
+
 snippet rue
 React.useEffect(() => {
+  $0
+}, [$1]);
+endsnippet
+
+snippet ue
+useEffect(() => {
   $0
 }, [$1]);
 endsnippet
