@@ -1,3 +1,21 @@
+snippet ef
+export function $1($2) {
+  $0
+}
+endsnippet
+
+snippet ec
+export const $0;
+endsnippet
+
+snippet el
+export let $0;
+endsnippet
+
+snippet est
+export const $1 = writable($0);
+endsnippet
+
 snippet fori
 for (var i = 0; i < $1; i++) {
   $0
@@ -19,7 +37,7 @@ console.log($0);
 endsnippet
 
 
-# React shit
+###### React shit ######
 snippet rfc
 export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:]`($1) {
   return (
@@ -65,3 +83,4 @@ useEffect(() => {
   $0
 }, [$1]);
 endsnippet
+

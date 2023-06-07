@@ -17,6 +17,7 @@ require 'mason-lspconfig'.setup {
     "yamlls",
     "pyright",
     "cssmodules_ls",
+    "prismals",
   }
 }
 require("neodev").setup {}
@@ -83,6 +84,7 @@ lspconfig.clangd.setup(default_setup)
 lspconfig.svelte.setup(default_setup)
 lspconfig.pyright.setup(default_setup)
 lspconfig.cssmodules_ls.setup(default_setup)
+lspconfig.prismals.setup(default_setup)
 lspconfig.yamlls.setup{
   on_attach = on_attach,
   capabilities = capabilities,
@@ -234,3 +236,4 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
   border = "rounded",
 })
+

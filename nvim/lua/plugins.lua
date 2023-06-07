@@ -43,6 +43,7 @@ return packer.startup(function(use)
   use 'EdenEast/nightfox.nvim'
   use 'glepnir/zephyr-nvim'
   use 'romgrk/doom-one.vim'
+  use 'ribru17/bamboo.nvim'
   -- use 'rafi/awesome-vim-colorschemes'
   -- use 'romgrk/doom-one.vim'
   -- use 'lukas-reineke/onedark.nvim'
@@ -68,6 +69,7 @@ return packer.startup(function(use)
   use 'jose-elias-alvarez/typescript.nvim'
   -- use 'lvimuser/lsp-inlayhints.nvim'
   use 'chikamichi/mediawiki.vim'
+  use 'prisma/vim-prisma'
   --------------------------------
 
   ---------- Completion ----------
@@ -98,7 +100,8 @@ return packer.startup(function(use)
   --------- UI / Visual ----------
   use 'liuchengxu/vista.vim' -- alt: simrat39/symbols-outline.nvim
   use 'stevearc/aerial.nvim'
-  use 'romgrk/barbar.nvim'
+  -- use 'romgrk/barbar.nvim'
+  use { 'akinsho/bufferline.nvim', tag = "*" }
   use 'nvim-lualine/lualine.nvim'
   use 'hood/popui.nvim' -- alt: stevearc/dressing.nvim
   use 'dstein64/nvim-scrollview'
@@ -111,7 +114,7 @@ return packer.startup(function(use)
   }
   use 'lukas-reineke/indent-blankline.nvim' -- makes 'leafOfTree/vim-matchtag' obsolete
   -- use 'haringsrob/nvim_context_vt'
-  use 'SmiteshP/nvim-navic'
+  -- use 'SmiteshP/nvim-navic'
   --------------------------------
 
   --------- File trees -----------
@@ -120,6 +123,7 @@ return packer.startup(function(use)
   -- use 'francoiscabrol/ranger.vim'
   use 'kevinhwang91/rnvimr'
   -- use 'ipod825/ranger.nvim'
+  use 'stevearc/oil.nvim'
   --------------------------------
 
   ------------ Other -------------

@@ -18,6 +18,7 @@ map('n', 'k',           'gk')
 map('',  'K',           '4k')
 map('',  '+',           '"+y')
 map('n', '<F2>',        ':lua vim.lsp.buf.rename()<CR>')
+map('n', '<CR>',        'ciw')
 -- g
 map('n', 'gr',          ':lua vim.lsp.buf.references()<CR>')
 map('n', 'gd',          ':lua vim.lsp.buf.definition()<CR>')
@@ -34,28 +35,28 @@ map('n', ']h',          function() if vim.wo.diff then return ']c' end vim.sched
 map('n', '[h',          function() if vim.wo.diff then return '[c' end vim.schedule(function() gs.prev_hunk() end) return '<Ignore>' end, { expr = true })
 -- CTRL
 map('',  '<C-c>',       ':lua require("ts-node-action").node_action()<CR>')
-map('',  '<C-h>',       ':BufferPrevious<CR>')
-map('',  '<C-S-h>',     ':BufferMovePrevious<CR>')
+map('',  '<C-h>',       ':BufferLineCyclePrev<CR>') -- :BufferPrevious<CR>
+map('',  '<C-S-h>',     ':BufferLineMovePrev<CR>') -- :BufferMovePrevious<CR>
 map('',  '<C-j>',       ':join<CR>')
 map('n', '<C-K>',       ':lua vim.lsp.buf.hover()<CR>')
-map('',  '<C-l>',       ':BufferNext<CR>')
-map('',  '<C-S-l>',     ':BufferMoveNext<CR>')
+map('',  '<C-l>',       ':BufferLineCycleNext<CR>') -- :BufferNext<CR>
+map('',  '<C-S-l>',     ':BufferLineMoveNext<CR>') -- :BufferMoveNext<CR>
 map('n', '<C-n>',       ':NvimTreeFocus<CR>')
 map('n', '<C-S-n>',     ':NvimTreeToggle<CR>')
 map('',  '<C-S-o>',     fzf_lua.resume)
 map('',  '<C-p>',       fzf_lua.files) -- builtin.find_files
 map('',  '<C-S-p>',     fzf_lua.live_grep) -- builtin.live_grep
-map('',  '<C-q>',       ':BufferClose<CR>')
-map('',  '<C-1>',       ':BufferGoto 1<CR>')
-map('',  '<C-2>',       ':BufferGoto 2<CR>')
-map('',  '<C-3>',       ':BufferGoto 3<CR>')
-map('',  '<C-4>',       ':BufferGoto 4<CR>')
-map('',  '<C-5>',       ':BufferGoto 5<CR>')
-map('',  '<C-6>',       ':BufferGoto 6<CR>')
-map('',  '<C-7>',       ':BufferGoto 7<CR>')
-map('',  '<C-8>',       ':BufferGoto 8<CR>')
-map('',  '<C-9>',       ':BufferGoto 9<CR>')
-map('',  '<C-0>',       ':BufferGoto 10<CR>')
+map('',  '<C-q>',       ':bd<CR>') -- :BufferClose<CR>
+map('',  '<C-1>',       ':BufferLineGoToBuffer 1<CR>')
+map('',  '<C-2>',       ':BufferLineGoToBuffer 2<CR>')
+map('',  '<C-3>',       ':BufferLineGoToBuffer 3<CR>')
+map('',  '<C-4>',       ':BufferLineGoToBuffer 4<CR>')
+map('',  '<C-5>',       ':BufferLineGoToBuffer 5<CR>')
+map('',  '<C-6>',       ':BufferLineGoToBuffer 6<CR>')
+map('',  '<C-7>',       ':BufferLineGoToBuffer 7<CR>')
+map('',  '<C-8>',       ':BufferLineGoToBuffer 8<CR>')
+map('',  '<C-9>',       ':BufferLineGoToBuffer 9<CR>')
+map('',  '<C-0>',       ':BufferLineGoToBuffer 10<CR>')
 map('n', '<C-Up>',      ':resize +2<CR>')
 map('n', '<C-Down>',    ':resize -2<CR>')
 map('n', '<C-Left>',    ':vertical resize -2<CR>')
@@ -132,6 +133,7 @@ map('n', '<leader>tq',  '<cmd>TroubleToggle quickfix<cr>')
 --------- VISUAL ---------- 
 -- BARE
 map('v', 'p',           '"_dP')
+map('v', 'Q',           ':norm @q<cr>')
 map('v', '@',           ":'<,'>normal @q<CR>")
 map('v', '<',           '<gv')
 map('v', '>',           '>gv')

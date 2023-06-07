@@ -1,7 +1,7 @@
 -- nvim-tree.lua
 require("nvim-tree").setup {
   filters = {
-    dotfiles = true,
+    -- dotfiles = true,
   },
   view = {
     width = 32,
@@ -41,6 +41,6 @@ vim.g.rnvimr_enable_ex = 1
 vim.g.rnvimr_enable_picker = 1
 
 -- ranger.vim
-vim.g.ranger_map_keys = 0
-vim.g.ranger_replace_netrw = 1
+-- vim.g.ranger_map_keys = 0
+-- vim.g.ranger_replace_netrw = 1
 

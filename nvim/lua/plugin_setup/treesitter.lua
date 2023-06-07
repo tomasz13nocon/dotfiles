@@ -8,7 +8,7 @@ require 'nvim-treesitter.configs'.setup {
     enable = true,
     enable_autocmd = false,
   },
-  autotag = { -- auto close and rename html tags
+  autotag = { -- windwp/nvim-ts-autotag - auto close and rename html tags
     enable = true,
   },
   -- incremental_selection = {

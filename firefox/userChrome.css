@@ -25,6 +25,11 @@
 /*   border-right: 1px solid rgb(66,65,77) !important; */
 }
 
+.tab-text.tab-label {
+  width: 100% !important;
+  text-align: center !important;
+}
+
 @media (prefers-color-scheme: dark) {
   .tab-background:is([selected], [multiselected]):-moz-lwtheme {
     border: none !important;

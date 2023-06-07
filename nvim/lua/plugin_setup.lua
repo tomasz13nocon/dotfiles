@@ -6,7 +6,7 @@ require 'plugin_setup.indent_blankline'
 require 'plugin_setup.lsp'
 -- require 'plugin_setup.lsp_inlayhints'
 require 'plugin_setup.lualine'
-require 'plugin_setup.navic'
+-- require 'plugin_setup.navic'
 require 'plugin_setup.neodim'
 require 'plugin_setup.package_info'
 require 'plugin_setup.telescope'
@@ -21,10 +21,13 @@ require 'various-textobjs'.setup { useDefaultKeymaps = true } -- nvim-various-te
 require 'ccc'.setup { highlighter = { auto_enable = true } }
 require 'treesitter-context'.setup {}
 require 'nvim-surround'.setup {}
-require 'ts-node-action'.setup{}
+require 'ts-node-action'.setup {}
 require 'which-key'.setup {}
 require 'trouble'.setup {}
 require 'aerial'.setup()
+require("oil").setup {}
+require('bamboo').setup {}
+require('bamboo').load()
 
 -- numToStr/Comment.nvim
 require('Comment').setup {
@@ -36,9 +39,21 @@ require("auto-session").setup {
   -- auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/"},
 }
 
-require 'bufferline'.setup { -- barbar.nvim
-  animation = false,
-  highlight_inactive_file_icons = true,
+require('fzf-lua').setup {
+  files = {
+    fd_opts = "--exclude node_modules --type f",
+  }
+}
+
+-- require 'bufferline'.setup { -- barbar.nvim
+--   animation = false,
+--   highlight_inactive_file_icons = true,
+-- }
+require 'bufferline'.setup {
+  options = {
+    -- diagnostics = "nvim_lsp",
+    sort_by = "insert_after_current"
+  }
 }
 
 vim.g.vista_default_executive = 'nvim_lsp'
