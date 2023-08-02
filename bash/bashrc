@@ -144,10 +144,4 @@ makeps1() {
 export PS1=$(makeps1)
 
 
-# pnpm
-export PNPM_HOME="/home/user/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
+source /usr/share/nvm/init-nvm.sh

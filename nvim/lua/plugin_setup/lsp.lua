@@ -83,8 +83,8 @@ lspconfig.rust_analyzer.setup(default_setup)
 lspconfig.clangd.setup(default_setup)
 lspconfig.svelte.setup(default_setup)
 lspconfig.pyright.setup(default_setup)
-lspconfig.cssmodules_ls.setup(default_setup)
 lspconfig.prismals.setup(default_setup)
+lspconfig.cssmodules_ls.setup(default_setup)
 lspconfig.yamlls.setup{
   on_attach = on_attach,
   capabilities = capabilities,
@@ -99,6 +99,7 @@ lspconfig.yamlls.setup{
 --   client.server_capabilities.documentFormattingProvider = false
 -- end,
 
+-- aca/emmet-ls
 lspconfig.emmet_ls.setup{
   capabilities = capabilities,
   on_attach = on_attach,
@@ -113,6 +114,33 @@ lspconfig.emmet_ls.setup{
     },
   }
 }
+
+-- olrtg/emmet-ls (fork)
+vim.api.nvim_create_autocmd({ "FileType" }, {
+  pattern = "astro,css,eruby,html,htmldjango,javascriptreact,less,pug,sass,scss,svelte,typescriptreact,vue",
+  callback = function()
+    vim.lsp.start({
+      cmd = { "emmet-ls", "--stdio" },
+      root_dir = vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true })[1]),
+      init_options = {
+        --- @type table<string, any> https://docs.emmet.io/customization/preferences/
+        preferences = {},
+        --- @type "always" | "never" Defaults to `"always"`
+        showExpandedAbbreviation = "always",
+        --- @type boolean Defaults to `true`
+        showAbbreviationSuggestions = true,
+        --- @type boolean Defaults to `false`
+        showSuggestionsAsSnippets = false,
+        --- @type table<string, any> https://docs.emmet.io/customization/syntax-profiles/
+        syntaxProfiles = {},
+        --- @type table<string, string> https://docs.emmet.io/customization/snippets/#variables
+        variables = {},
+        --- @type string[]
+        excludeLanguages = {},
+      },
+    })
+  end,
+})
 
 lspconfig.jsonls.setup {
   capabilities = capabilities,
@@ -144,7 +172,7 @@ null_ls.setup {
   end,
   sources = {
     null_ls.builtins.formatting.autopep8,
-    null_ls.builtins.diagnostics.eslint_d.with({
+    null_ls.builtins.diagnostics.eslint.with({
       filetypes = { "javascript", "typescript", "vue", "svelte", "astro", "javascriptreact", "typescriptreact" },
       condition = function()
         return require "null-ls.utils".root_pattern(

@@ -26,8 +26,8 @@ require 'which-key'.setup {}
 require 'trouble'.setup {}
 require 'aerial'.setup()
 require("oil").setup {}
-require('bamboo').setup {}
-require('bamboo').load()
+-- require('bamboo').setup {}
+-- require('bamboo').load()
 
 -- numToStr/Comment.nvim
 require('Comment').setup {

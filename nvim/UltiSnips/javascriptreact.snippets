@@ -2,8 +2,6 @@ extends javascript
 
 
 snippet rfc
-import React from "react";
-
 export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:]`($1) {
   return (
     <>
@@ -14,9 +12,7 @@ export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:
 endsnippet
 
 snippet rfcc
-import React from "react";
-
-import "./styles/`!p snip.rv = snip.basename`.scss";
+import classes from "./styles/`!p snip.rv = snip.basename`.module.scss";
 
 export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:]`($1) {
   return (
@@ -33,6 +29,10 @@ endsnippet
 
 snippet us
 const [$1, set`!p snip.rv=t[1][:1].upper() + t[1][1:]`] = useState($2);
+endsnippet
+
+snippet urt
+const [$1, toggle`!p snip.rv=t[1][:1].upper() + t[1][1:]`] = useReducer((s) => !s, ${2:false});
 endsnippet
 
 snippet rue

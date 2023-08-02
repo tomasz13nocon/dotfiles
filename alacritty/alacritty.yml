@@ -8,15 +8,15 @@ font:
     # family: Bok MonteCarlo
     # family: Cozette
     # family: MesloLGS Nerd Font
-    # family: Hack Nerd Font
     # family: Cousine Nerd Font
+    family: Hack Nerd Font
     # family: GoMono Nerd Font
-    family: Dina
+    # family: Dina
   #bold:
     #family: Cozette
     #style: Regular
-  # size: 11
-  size: 7.5
+  size: 11
+  # size: 7.5
 
 cursor:
   style:
