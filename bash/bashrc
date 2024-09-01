@@ -6,7 +6,8 @@ export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin:~/.local/share/gem/ruby/3.0.0/
 export LESS='-R -z3'
 export PAGER='less'
 export EDITOR='nvim'
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+#export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export MANPAGER='less'
 export FZF_DEFAULT_COMMAND='rg --hidden --files -g !builds -g !node_modules -g !package-lock.json'
 
 
@@ -143,5 +144,3 @@ makeps1() {
 }
 export PS1=$(makeps1)
 
-
-source /usr/share/nvm/init-nvm.sh

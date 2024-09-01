@@ -1,4 +1,11 @@
+local theme = require'lualine.themes.ayu_dark'
+theme.normal.c.bg = 'none'
+theme.normal.c.fg = '#efefef'
+
 require 'lualine'.setup {
+  options = {
+    theme = theme
+  },
   sections = {
     lualine_a = { 'mode' },
     lualine_b = { 'branch', 'diff', 'diagnostics' },

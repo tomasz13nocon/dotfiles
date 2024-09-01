@@ -36,5 +36,79 @@ snippet cl
 console.log($0);
 endsnippet
 
+snippet case
+case "$1": {
+  $0
+  break;
+}
+endsnippet
 
-###### React shit ######
+
+###### React ######
+snippet rfc
+export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:]`($1) {
+  return (
+    <>
+      $0
+    </>
+  );
+}
+endsnippet
+
+snippet rfcc
+import c from "./styles/`!p snip.rv = snip.basename`.module.scss";
+
+export default function `!p snip.rv=snip.basename[:1].upper() + snip.basename[1:]`($1) {
+  return (
+    <>
+      $0
+    </>
+  );
+}
+endsnippet
+
+snippet rus
+const [$1, set`!p snip.rv=t[1][:1].upper() + t[1][1:]`] = React.useState($0);
+endsnippet
+
+snippet us
+const [$1, set`!p snip.rv=t[1][:1].upper() + t[1][1:]`] = useState($0);
+endsnippet
+
+snippet urt
+const [$1, toggle`!p snip.rv=t[1][:1].upper() + t[1][1:]`] = useReducer((s) => !s, ${0:false});
+endsnippet
+
+snippet rue
+React.useEffect(() => {
+  $0
+}, [$1]);
+endsnippet
+
+snippet ue
+useEffect(() => {
+  $0
+}, [$1]);
+endsnippet
+
+snippet context
+import { createContext, useContext } from "react";
+
+const $1Context = createContext();
+
+export const use$1 = () => {
+  return useContext($1Context);
+};
+
+export function $1Provider({ children }) {
+  return (
+    <$1Context.Provider
+      value={{
+        $0
+      }}
+    >
+      {children}
+    </$1Context.Provider>
+  );
+}
+endsnippet

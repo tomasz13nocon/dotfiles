@@ -6,6 +6,7 @@ require("nvim-tree").setup {
   view = {
     width = 32,
   },
+  update_focused_file = { enable = true }
 }
 
 -- nvim-neo-tree/neo-tree.nvim
@@ -43,4 +44,3 @@ vim.g.rnvimr_enable_picker = 1
 -- ranger.vim
 -- vim.g.ranger_map_keys = 0
 -- vim.g.ranger_replace_netrw = 1
-

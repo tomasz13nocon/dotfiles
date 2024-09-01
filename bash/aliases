@@ -10,6 +10,7 @@ alias gch='git checkout'
 alias gl='git log'
 alias glo='git log --oneline'
 alias glog='git log --oneline --graph'
+alias gloga='git log --oneline --graph --all'
 alias gch='git checkout'
 alias gb='git branch'
 alias gpl='git pull'
@@ -20,7 +21,7 @@ alias gst='git stash'
 alias v='vim'
 alias hx='helix'
 alias h='helix'
-alias n='nap'
+#alias n='nap'
 alias vim='nvim'
 #alias ls='ls -l --color=auto --group-directories-first'
 alias ls='lsd -l'
@@ -67,8 +68,12 @@ del() {
 	mv "$@" ~/.trash
 }
 alias bri='ddcutil setvcp 10'
+alias bri2='ddcutil -d 2 setvcp 10'
 alias bri?='ddcutil getvcp 10'
-alias r='. ranger' # sourcing to "follow" ranger around
+# sourcing "follows" directory in ranger
+# double ranger to make it work with args, see https://github.com/ranger/ranger/issues/2187
+alias ranger='source ranger ranger'
+alias r='ranger'
 # Requires `shopt -s globstar`
 grepepubs() {
 	for z in **/*.epub; do unzip -p "$z" | grep -aH --label="$z" "$@"; done
@@ -88,5 +93,8 @@ alias ctlstart='sudo systemctl start'
 alias ctlstop='sudo systemctl stop'
 alias ctlr='sudo systemctl restart'
 alias ctle='sudo systemctl enable'
+alias ctlen='sudo systemctl enable --now'
 alias ctld='sudo systemctl disable'
+
+alias d='docker'
 

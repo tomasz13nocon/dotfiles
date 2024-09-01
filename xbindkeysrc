@@ -71,17 +71,17 @@
 "brightnessctl -d acpi_video0 s 5%-"
   XF86MonBrightnessDown
 
-"pactl set-sink-volume @DEFAULT_SINK@ -5%"
+"pactl set-sink-volume @DEFAULT_SINK@ -5% && ~/.config/bspwm/volume.sh"
   XF86AudioLowerVolume
 
-"pactl set-sink-volume @DEFAULT_SINK@ +5%"
+"pactl set-sink-volume @DEFAULT_SINK@ +5% && ~/.config/bspwm/volume.sh"
   XF86AudioRaiseVolume
 
 "pactl set-sink-mute @DEFAULT_SINK@ toggle"
   XF86AudioMute
 
-#"playerctl play-pause"
-  #XF86AudioPlay
+"playerctl play-pause"
+  XF86AudioPlay
 
 "playerctl next"
   XF86AudioNext
@@ -89,7 +89,7 @@
 "playerctl previous"
   XF86AudioPrev
 
-"maim -s | tee ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png && play /usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
+"maim -s --highlight --color=0.3,0.4,0.6,0.4 | tee ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png && play /usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
   Control + Print
 
 "maim | tee ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png && play /usr/share/sounds/freedesktop/stereo/camera-shutter.oga"

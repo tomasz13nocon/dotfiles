@@ -4,6 +4,8 @@
 
 . ~/bin/util.sh
 
+workspace=5
+
 SCREEN_WIDTH=$(xwininfo -root | awk '$1=="Width:" {print $2}')
 SCREEN_HEIGHT=$(xwininfo -root | awk '$1=="Height:" {print $2}')
 
@@ -23,7 +25,7 @@ eval $(xwininfo -id $(xdotool getactivewindow) |
            -e "s/^ \+Height: \+\([0-9]\+\).*/h=\1/p" )
 x=$(($SCREEN_WIDTH / 2 - $w))
 y=$(($SCREEN_HEIGHT / 2 - ($h/2) - 50))
-wmctrl -ir $id -t 3
+wmctrl -ir $id -t $workspace
 wmctrl -ir $id -e "0,$x,$y,-1,-1" 
 
 if [[ $host == "samsung-laptop" ]]; then
@@ -33,7 +35,7 @@ else
 fi
 id=$(wait_and_get_id $!)
 x=$(($SCREEN_WIDTH / 2))
-wmctrl -ir $id -t 3
+wmctrl -ir $id -t $workspace
 wmctrl -ir $id -e "0,$x,$y,-1,-1" 
 
 exit

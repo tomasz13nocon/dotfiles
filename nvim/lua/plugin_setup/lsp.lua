@@ -4,7 +4,7 @@ require 'mason-lspconfig'.setup {
   ensure_installed = {
     "lua_ls",
     "tsserver",
-    "emmet_ls",
+    "emmet_language_server",
     "html",
     "cssls",
     "jsonls",
@@ -18,6 +18,8 @@ require 'mason-lspconfig'.setup {
     "pyright",
     "cssmodules_ls",
     "prismals",
+    "phpactor",
+    "omnisharp",
   }
 }
 require("neodev").setup {}
@@ -35,6 +37,10 @@ local on_attach = function(client, bufnr)
   -- end
   -- lsp_keymaps(bufnr)
   -- lsp_highlight_document(client)
+  if client.server_capabilities.signatureHelpProvider then
+    require('lsp-overloads').setup(client, {})
+    vim.keymap.set("n", "<leader>k", ":LspOverloadsSignature<CR>", { noremap = true, silent = true, buffer = bufnr })
+  end
 end
 
 local default_setup = {
@@ -47,7 +53,7 @@ lspconfig.lua_ls.setup(default_setup)
 lspconfig.html.setup(default_setup)
 lspconfig.cssls.setup(default_setup)
 -- lspconfig.tsserver.setup(default_setup)
-require("typescript").setup{
+require("typescript").setup {
   server = {
     on_attach = on_attach,
     capabilities = capabilities,
@@ -77,15 +83,42 @@ require("typescript").setup{
     },
   }
 }
+-- using mrcjkb/rustaceanvim instead
+-- lspconfig.rust_analyzer.setup(default_setup)
 lspconfig.tailwindcss.setup(default_setup)
-lspconfig.astro.setup(default_setup)
-lspconfig.rust_analyzer.setup(default_setup)
+lspconfig.phpactor.setup(default_setup)
+lspconfig.prismals.setup(default_setup)
+lspconfig.pyright.setup(default_setup)
 lspconfig.clangd.setup(default_setup)
 lspconfig.svelte.setup(default_setup)
-lspconfig.pyright.setup(default_setup)
-lspconfig.prismals.setup(default_setup)
-lspconfig.cssmodules_ls.setup(default_setup)
-lspconfig.yamlls.setup{
+lspconfig.astro.setup(default_setup)
+lspconfig.cssmodules_ls.setup {
+  capabilities = capabilities,
+  on_attach = function(client, bufnr)
+    client.server_capabilities.definitionProvider = false
+    on_attach(client, bufnr)
+  end,
+  init_options = {
+    camelCase = 'dashes',
+  },
+}
+lspconfig.omnisharp.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+  handlers = {
+    ["textDocument/definition"] = require('omnisharp_extended').handler,
+  },
+  cmd = { "omnisharp", '--languageserver', '--hostPID', tostring(vim.fn.getpid()) },
+  -- enable_editorconfig_support = true, -- setting from .editorconfig
+  -- enable_ms_build_load_projects_on_demand = true,
+  -- enable_roslyn_analyzers = true,
+  -- analyze_open_documents_only = true,
+  -- organize_imports_on_format = true,
+  -- may result in slow completion responsiveness
+  enable_import_completion = true,
+  -- sdk_include_prereleases = true,
+}
+lspconfig.yamlls.setup {
   on_attach = on_attach,
   capabilities = capabilities,
   settings = {
@@ -100,46 +133,46 @@ lspconfig.yamlls.setup{
 -- end,
 
 -- aca/emmet-ls
-lspconfig.emmet_ls.setup{
-  capabilities = capabilities,
-  on_attach = on_attach,
-  filetypes = { 'html', 'css', 'sass', 'scss', 'less', 'svelte', 'astro' },
-  init_options = {
-    html = {
-      options = {
-        -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
-        -- ["bem.enabled"] = true,
-        ["jsx.enabled"] = true,
-      },
-    },
-  }
-}
+-- lspconfig.emmet_ls.setup{
+--   capabilities = capabilities,
+--   on_attach = on_attach,
+--   filetypes = { 'html', 'css', 'sass', 'scss', 'less', 'svelte', 'astro' },
+--   init_options = {
+--     html = {
+--       options = {
+--         -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
+--         -- ["bem.enabled"] = true,
+--         ["jsx.enabled"] = true,
+--       },
+--     },
+--   }
+-- }
 
 -- olrtg/emmet-ls (fork)
-vim.api.nvim_create_autocmd({ "FileType" }, {
-  pattern = "astro,css,eruby,html,htmldjango,javascriptreact,less,pug,sass,scss,svelte,typescriptreact,vue",
-  callback = function()
-    vim.lsp.start({
-      cmd = { "emmet-ls", "--stdio" },
-      root_dir = vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true })[1]),
-      init_options = {
-        --- @type table<string, any> https://docs.emmet.io/customization/preferences/
-        preferences = {},
-        --- @type "always" | "never" Defaults to `"always"`
-        showExpandedAbbreviation = "always",
-        --- @type boolean Defaults to `true`
-        showAbbreviationSuggestions = true,
-        --- @type boolean Defaults to `false`
-        showSuggestionsAsSnippets = false,
-        --- @type table<string, any> https://docs.emmet.io/customization/syntax-profiles/
-        syntaxProfiles = {},
-        --- @type table<string, string> https://docs.emmet.io/customization/snippets/#variables
-        variables = {},
-        --- @type string[]
-        excludeLanguages = {},
-      },
-    })
-  end,
+lspconfig.emmet_language_server.setup({
+  filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "pug", "typescriptreact", "astro", "svelte", "vue" },
+  -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
+  -- **Note:** only the options listed in the table are supported.
+  init_options = {
+    ---@type table<string, string>
+    includeLanguages = {},
+    --- @type string[]
+    excludeLanguages = {},
+    --- @type string[]
+    extensionsPath = {},
+    --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/preferences/)
+    preferences = {},
+    --- @type boolean Defaults to `true`
+    showAbbreviationSuggestions = true,
+    --- @type "always" | "never" Defaults to `"always"`
+    showExpandedAbbreviation = "always",
+    --- @type boolean Defaults to `false`
+    showSuggestionsAsSnippets = false,
+    --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/syntax-profiles/)
+    syntaxProfiles = {},
+    --- @type table<string, string> [Emmet Docs](https://docs.emmet.io/customization/snippets/#variables)
+    variables = {},
+  },
 })
 
 lspconfig.jsonls.setup {
@@ -171,21 +204,21 @@ null_ls.setup {
     end
   end,
   sources = {
-    null_ls.builtins.formatting.autopep8,
+    null_ls.builtins.formatting.black,
     null_ls.builtins.diagnostics.eslint.with({
       filetypes = { "javascript", "typescript", "vue", "svelte", "astro", "javascriptreact", "typescriptreact" },
       condition = function()
         return require "null-ls.utils".root_pattern(
-              "eslint.config.js",
-              -- https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-file-formats
-              ".eslintrc",
-              ".eslintrc.js",
-              ".eslintrc.cjs",
-              ".eslintrc.yaml",
-              ".eslintrc.yml",
-              ".eslintrc.json"
-              -- "package.json"
-            )(vim.api.nvim_buf_get_name(0)) ~= nil
+          "eslint.config.js",
+          -- https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-file-formats
+          ".eslintrc",
+          ".eslintrc.js",
+          ".eslintrc.cjs",
+          ".eslintrc.yaml",
+          ".eslintrc.yml",
+          ".eslintrc.json"
+        -- "package.json"
+        )(vim.api.nvim_buf_get_name(0)) ~= nil
       end
     }),
     -- null_ls.builtins.code_actions.eslint,
@@ -212,17 +245,17 @@ null_ls.setup {
       },
       condition = function() -- use prettier only with prettierrc present
         return require "null-ls.utils".root_pattern(
-              ".prettierrc",
-              ".prettierrc.json",
-              ".prettierrc.yml",
-              ".prettierrc.yaml",
-              ".prettierrc.json5",
-              ".prettierrc.js",
-              ".prettierrc.cjs",
-              ".prettierrc.toml",
-              "prettier.config.js",
-              "prettier.config.cjs"
-            )(vim.api.nvim_buf_get_name(0)) ~= nil
+          ".prettierrc",
+          ".prettierrc.json",
+          ".prettierrc.yml",
+          ".prettierrc.yaml",
+          ".prettierrc.json5",
+          ".prettierrc.js",
+          ".prettierrc.cjs",
+          ".prettierrc.toml",
+          "prettier.config.js",
+          "prettier.config.cjs"
+        )(vim.api.nvim_buf_get_name(0)) ~= nil
       end,
     }
   }
@@ -231,9 +264,9 @@ null_ls.setup {
 
 local signs = {
   { name = "DiagnosticSignError", text = "" },
-  { name = "DiagnosticSignWarn",  text = "" },
-  { name = "DiagnosticSignHint",  text = "" },
-  { name = "DiagnosticSignInfo",  text = "" },
+  { name = "DiagnosticSignWarn", text = "" },
+  { name = "DiagnosticSignHint", text = "" },
+  { name = "DiagnosticSignInfo", text = "" },
 }
 for _, sign in ipairs(signs) do
   vim.fn.sign_define(sign.name, { texthl = sign.name, text = sign.text, numhl = "" })
@@ -264,4 +297,3 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
   border = "rounded",
 })
-

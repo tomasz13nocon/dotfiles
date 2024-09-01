@@ -5,8 +5,12 @@ snippet scr
   $0
 </script>
 endsnippet
-
 snippet !
+<script lang="ts">
+  $0
+</script>
+endsnippet
+snippet ts
 <script lang="ts">
   $0
 </script>
@@ -88,4 +92,14 @@ snippet canc
 </script>
 
 <canvas bind:this={canvas} {width} {height} />
+endsnippet
+
+snippet in
+<input type="text" bind:value={$0} />
+endsnippet
+
+snippet la
+<label>
+  <input type="text" bind:value={$0} />
+</label>
 endsnippet

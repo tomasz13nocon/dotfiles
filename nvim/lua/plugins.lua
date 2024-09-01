@@ -70,6 +70,9 @@ return packer.startup(function(use)
   -- use 'lvimuser/lsp-inlayhints.nvim'
   use 'chikamichi/mediawiki.vim'
   use 'prisma/vim-prisma'
+  use 'elkowar/yuck.vim'
+  use 'Hoffs/omnisharp-extended-lsp.nvim'
+  use 'mrcjkb/rustaceanvim'
   --------------------------------
 
   ---------- Completion ----------
@@ -82,6 +85,7 @@ return packer.startup(function(use)
   use 'quangnguyen30192/cmp-nvim-ultisnips'
   use 'hrsh7th/cmp-nvim-lsp-document-symbol'
   use 'hrsh7th/cmp-nvim-lsp-signature-help'
+  use 'Issafalcon/lsp-overloads.nvim'
   -- use 'mattn/emmet-vim' -- used by cmp-emmet-vim
   -- use 'dcampos/cmp-emmet-vim'
   -- use({
@@ -92,7 +96,7 @@ return packer.startup(function(use)
   use 'onsails/lspkind.nvim'
   use 'folke/neodev.nvim'
   use 'b0o/schemastore.nvim'
-  use 'github/copilot.vim'
+  -- use 'github/copilot.vim'
   -- use "zbirenbaum/copilot.lua"
   -- use "zbirenbaum/copilot-cmp"
   --------------------------------
@@ -108,10 +112,10 @@ return packer.startup(function(use)
   use 'RRethy/vim-illuminate'
   use 'KabbAmine/vCoolor.vim'
   -- use 'shmargum/vim-sass-colors' -- This one might be the cause of the telescope errors
-  use {
-    'zbirenbaum/neodim',
-    event = 'LspAttach',
-  }
+  --  use {
+  --    'zbirenbaum/neodim',
+  --    event = 'LspAttach',
+  --  }
   use 'lukas-reineke/indent-blankline.nvim' -- makes 'leafOfTree/vim-matchtag' obsolete
   -- use 'haringsrob/nvim_context_vt'
   -- use 'SmiteshP/nvim-navic'
@@ -137,8 +141,19 @@ return packer.startup(function(use)
   use 'rmagatti/auto-session'
   use 'chrisgrieser/nvim-various-textobjs'
   use 'AndrewRadev/splitjoin.vim'
-  use 'uga-rosa/ccc.nvim'
-  use 'tomasz13nocon/vim-closer' -- better than 'windwp/nvim-autopairs'
+  use {
+    'uga-rosa/ccc.nvim',
+    tag = "v1.7.2", -- 2.0 be buggy af
+  }
+  -- use 'tomasz13nocon/vim-closer' -- better than 'windwp/nvim-autopairs'
+  -- use 'm4xshen/autoclose.nvim' -- stupid
+  use {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    config = function()
+      require("nvim-autopairs").setup {}
+    end
+  }
   use { 'kylechui/nvim-surround', tag = '*' }
   use 'lewis6991/gitsigns.nvim'
   use 'sindrets/diffview.nvim'
@@ -154,6 +169,14 @@ return packer.startup(function(use)
     requires = "MunifTanjim/nui.nvim",
   })
   use 'ckolkey/ts-node-action'
+  use 'antosha417/nvim-lsp-file-operations' -- must go after nvim-tree
+  use({
+    'iamcco/markdown-preview.nvim',
+    run = "cd app && npm install",
+    setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
+    ft = { "markdown" },
+  })
+  use 'mizlan/iswap.nvim'
   --------------------------------
 
   if packer_bootstrap then

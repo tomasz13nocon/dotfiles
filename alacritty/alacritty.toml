@@ -1,0 +1,265 @@
+[window]
+opacity = 0.6
+
+# [window.padding]
+# x = 25
+# y = 25
+
+[cursor.style]
+blinking = "Always"
+
+[font]
+size = 11
+
+[font.normal]
+family = "Hack Nerd Font"
+# family = "Bok MonteCarlo"
+# family = "Cozette"
+# family = "MesloLGS Nerd Font"
+# family = "Cousine Nerd Font"
+# family = "GoMono Nerd Font"
+# family = "Dina"
+style = "bold"
+
+[colors.primary]
+background = "0x1A1B26"
+foreground = "0xeeffff"
+
+[colors.normal]
+black = "0x212121"
+blue = "0x82aaff"
+cyan = "0x89ddff"
+green = "0xc3e88d"
+magenta = "0xc792ea"
+red = "0xf07178"
+white = "0xeeffff"
+yellow = "0xffcb6b"
+
+[colors.bright]
+black = "0x4a4a4a"
+blue = "0x82aaff"
+cyan = "0x89ddff"
+green = "0xc3e88d"
+magenta = "0xc792ea"
+red = "0xf07178"
+white = "0xffffff"
+yellow = "0xffcb6b"
+
+[[colors.indexed_colors]]
+color = "0xf78c6c"
+index = 16
+
+[[colors.indexed_colors]]
+color = "0xff5370"
+index = 17
+
+[[colors.indexed_colors]]
+color = "0x303030"
+index = 18
+
+[[colors.indexed_colors]]
+color = "0x353535"
+index = 19
+
+[[colors.indexed_colors]]
+color = "0xb2ccd6"
+index = 20
+
+[[colors.indexed_colors]]
+color = "0xeeffff"
+index = 21
+
+[[keyboard.bindings]]
+chars = "\u001B[13;5u"
+key = "Return"
+mods = "Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[64;5u"
+key = 2
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[65;5u"
+key = "A"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[66;5u"
+key = "B"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[68;5u"
+key = "D"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[69;5u"
+key = "E"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[70;5u"
+key = "F"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[71;5u"
+key = "G"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[72;5u"
+key = "H"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[105;5u"
+key = "I"
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[73;5u"
+key = "I"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[74;5u"
+key = "J"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[75;5u"
+key = "K"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[76;5u"
+key = "L"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[77;5u"
+key = "M"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[78;5u"
+key = "N"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[79;5u"
+key = "O"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[80;5u"
+key = "P"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[81;5u"
+key = "Q"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[82;5u"
+key = "R"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[83;5u"
+key = "S"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[84;5u"
+key = "T"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[85;5u"
+key = "U"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[87;5u"
+key = "W"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[88;5u"
+key = "X"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[89;5u"
+key = "Y"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[90;5u"
+key = "Z"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[27;5;9~"
+key = "Tab"
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[9;5u"
+key = "Tab"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+chars = "\u001B[48;5u"
+key = 1
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[49;5u"
+key = 2
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[50;5u"
+key = 3
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[51;5u"
+key = 4
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[52;5u"
+key = 5
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[53;5u"
+key = 6
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[54;5u"
+key = 7
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[55;5u"
+key = 8
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001B[56;5u"
+key = 9
+mods = "Control"
+
+[[keyboard.bindings]]
+action = "SpawnNewInstance"
+key = "Return"
+mods = "Control|Shift"

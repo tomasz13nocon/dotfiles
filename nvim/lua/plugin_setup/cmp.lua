@@ -1,4 +1,4 @@
-local cmp = require'cmp'
+local cmp = require 'cmp'
 
 local t = function(str)
   return vim.api.nvim_replace_termcodes(str, true, true, true)
@@ -29,8 +29,8 @@ cmp.setup({
     { name = 'path' },
     { name = 'buffer' },
   }
-    -- { -- these won't be displayed when the ones above are availible
-    -- }
+  -- { -- these won't be displayed when the ones above are availible
+  -- }
   ),
 
   experimental = {
@@ -77,23 +77,23 @@ cmp.setup({
       end,
       i = function(fallback)
         -- if cmp.visible() then
-          -- cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+        -- cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
         if vim.fn["UltiSnips#CanJumpBackwards"]() == 1 then
-          return vim.api.nvim_feedkeys( t("<Plug>(ultisnips_jump_backward)"), 'm', true)
+          return vim.api.nvim_feedkeys(t("<Plug>(ultisnips_jump_backward)"), 'm', true)
         else
           fallback()
         end
       end,
       s = function(fallback)
         if vim.fn["UltiSnips#CanJumpBackwards"]() == 1 then
-          return vim.api.nvim_feedkeys( t("<Plug>(ultisnips_jump_backward)"), 'm', true)
+          return vim.api.nvim_feedkeys(t("<Plug>(ultisnips_jump_backward)"), 'm', true)
         else
           fallback()
         end
       end
     }),
-    ['<Down>'] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }), {'i'}),
-    ['<Up>'] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }), {'i'}),
+    ['<Down>'] = cmp.mapping(cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }), { 'i' }),
+    ['<Up>'] = cmp.mapping(cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }), { 'i' }),
     ['<C-n>'] = cmp.mapping({
       c = function()
         if cmp.visible() then
@@ -126,11 +126,11 @@ cmp.setup({
         end
       end
     }),
-    ['<C-u>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), {'i', 'c'}),
-    ['<C-d>'] = cmp.mapping(cmp.mapping.scroll_docs(4), {'i', 'c'}),
-    ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), {'i', 'c'}),
-    ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), {'i', 'c'}),
-    ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), {'i', 'c'}),
+    ['<C-u>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
+    ['<C-d>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
+    ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
+    ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
+    ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
     ['<C-e>'] = cmp.mapping({ i = cmp.mapping.close(), c = cmp.mapping.close() }),
     ['<CR>'] = cmp.mapping({
       i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
@@ -219,6 +219,14 @@ cmp.setup({
       local strings = vim.split(kind.kind, "%s", { trimempty = true })
       kind.kind = " " .. strings[1] .. " "
       kind.menu = "    (" .. strings[2] .. ")"
+      if entry.source.name == 'nvim_lsp' then
+        -- Display which LSP servers this item came from.
+        local lspserver_name = nil
+        pcall(function()
+          lspserver_name = entry.source.source.client.name
+          vim_item.menu = "    [" .. lspserver_name .. "]"
+        end)
+      end
       return kind
     end,
   },
@@ -235,7 +243,7 @@ cmp.setup({
       return true
     else
       return not context.in_treesitter_capture("comment")
-        and not context.in_syntax_group("Comment")
+          and not context.in_syntax_group("Comment")
     end
   end,
 
@@ -256,7 +264,7 @@ cmp.setup.cmdline('/', {
   completion = { autocomplete = false },
   sources = {
     { name = 'nvim_lsp_document_symbol' },
-    { name = 'buffer', opts = { keyword_pattern = [=[[^[:blank:]].*]=] } }
+    { name = 'buffer',                  opts = { keyword_pattern = [=[[^[:blank:]].*]=] } }
   }
 })
 
@@ -265,7 +273,6 @@ cmp.setup.cmdline(':', {
   sources = cmp.config.sources({
     { name = 'path' }
   }, {
-      { name = 'cmdline' }
-    })
+    { name = 'cmdline' }
+  })
 })
-

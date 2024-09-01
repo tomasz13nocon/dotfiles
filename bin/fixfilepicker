@@ -1,0 +1,5 @@
+#!/bin/bash
+
+systemctl --user import-environment DISPLAY XAUTHORITY
+systemctl --user restart xdg-desktop-portal-gtk
+systemctl status --user xdg-desktop-portal-gtk

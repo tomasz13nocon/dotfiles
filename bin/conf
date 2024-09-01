@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [[ $# < 1 ]]; then
+  echo "At least one argument required"
+  exit
+fi
+
+if [[ -n "$XDG_CONFIG_HOME" ]]; then
+  conf=$XDG_CONFIG_HOME
+else
+  conf="$HOME/.config"
+fi
+
+files=""
+
+for p in "$@"; do
+  case $p in
+    picom)
+      if [[ -f $conf/picom.conf ]]; then
+        files="${files} $conf/picom.conf"
+      elif [[ -f $conf/picom/picom.conf ]]; then
+        files="${files} $conf/picom/picom.conf"
+      fi
+      ;;
+    bspwm|bsp)
+      if [[ -f $conf/bspwm/bspwmrc ]]; then
+        files="${files} $conf/bspwm/bspwmrc"
+      fi
+      ;;
+    dunst)
+      if [[ -f $conf/dunst/dunstrc ]]; then
+        files="${files} $conf/dunst/dunstrc"
+      fi
+      ;;
+    *)
+      echo "'$p' unrecognized"
+      exit
+      ;;
+  esac
+done
+
+# VIMINIT="cd .config/bspwm|source ~/.config/nvim/init.lua" v .config/bspwm/bspwmrc
+
+$EDITOR $files

@@ -3,14 +3,6 @@ require 'nvim-treesitter.configs'.setup {
   ensure_installed = "all",
   highlight = { enable = true },
   indent = { enable = true },
-  context_commentstring = {
-    -- jsx comments
-    enable = true,
-    enable_autocmd = false,
-  },
-  autotag = { -- windwp/nvim-ts-autotag - auto close and rename html tags
-    enable = true,
-  },
   -- incremental_selection = {
   --   enable = true,
   --   keymaps = {

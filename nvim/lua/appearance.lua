@@ -21,7 +21,13 @@ local hi = function(name, val)
 end
 
 -- ADJUSTMENTS --
-hi("Comment", { fg = "#646b6a" } )
+-- transparent bg
+hi("Normal", { bg = "NONE" } )
+hi("LineNr", { bg = "NONE" } )
+hi("SignColumn", { bg = "NONE" } )
+hi("StatusLine", { bg = "NONE" } )
+
+hi("Comment", { fg = "#848989" } )
 vim.cmd("match todo /TODO/")
 vim.cmd("2match todo /NOW/")
 -- trailing spaces
@@ -50,9 +56,9 @@ elseif (colorscheme == "aurora") then
   hi("IncSearch", { bg = "#FF9641", fg = "#000000" })
   hi("FloatBorder", { default = true, bg = "bg" })
 elseif (colorscheme == "doom-one") then
-  hi("Normal", { bg="#161715" })
-  hi("LineNr", { bg = "#161715", fg = "#646b6a" })
-  hi("SignColumn", { bg = "#161715", fg = "#646b6a" })
+  -- hi("Normal", { bg="#161715" })
+  -- hi("LineNr", { bg = "#161715", fg = "#646b6a" })
+  -- hi("SignColumn", { bg = "#161715", fg = "#646b6a" })
 end
 
 -- CMP COOL COLOR BLOCKS --

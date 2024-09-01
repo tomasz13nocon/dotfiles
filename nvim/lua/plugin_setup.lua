@@ -1,37 +1,38 @@
-require 'plugin_setup.cmp'
-require 'plugin_setup.file_trees'
--- require 'plugin_setup.foldhue'
-require 'plugin_setup.gitsigns'
 require 'plugin_setup.indent_blankline'
-require 'plugin_setup.lsp'
--- require 'plugin_setup.lsp_inlayhints'
-require 'plugin_setup.lualine'
--- require 'plugin_setup.navic'
-require 'plugin_setup.neodim'
 require 'plugin_setup.package_info'
-require 'plugin_setup.telescope'
+require 'plugin_setup.file_trees'
 require 'plugin_setup.treesitter'
--- require 'plugin_setup.ufo'
+require 'plugin_setup.telescope'
 require 'plugin_setup.ultisnips'
+require 'plugin_setup.gitsigns'
+require 'plugin_setup.lualine'
+require 'plugin_setup.cmp'
+require 'plugin_setup.lsp'
+-- require 'plugin_setup.foldhue'
+-- require 'plugin_setup.lsp_inlayhints'
+-- require 'plugin_setup.navic'
+-- require 'plugin_setup.neodim'
+-- require 'plugin_setup.ufo'
 
 
+require 'various-textobjs'.setup{ useDefaultKeymaps = true } -- nvim-various-textobjs
+require 'ccc'.setup{ highlighter = { auto_enable = true } }
+require 'lsp-file-operations'.setup()
+require 'treesitter-context'.setup{}
+require 'nvim-ts-autotag'.setup{}
+require 'ts-node-action'.setup{}
+require 'nvim-surround'.setup{}
+require 'which-key'.setup{}
+require 'trouble'.setup{}
+require 'aerial'.setup()
+require 'oil'.setup{}
 -- require'symbols-outline'.setup() -- symbols-outline.nvim
 -- require'nvim-autopairs'.setup{}
-require 'various-textobjs'.setup { useDefaultKeymaps = true } -- nvim-various-textobjs
-require 'ccc'.setup { highlighter = { auto_enable = true } }
-require 'treesitter-context'.setup {}
-require 'nvim-surround'.setup {}
-require 'ts-node-action'.setup {}
-require 'which-key'.setup {}
-require 'trouble'.setup {}
-require 'aerial'.setup()
-require("oil").setup {}
 -- require('bamboo').setup {}
 -- require('bamboo').load()
 
--- numToStr/Comment.nvim
-require('Comment').setup {
-  pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(), -- jsx comments
+require 'Comment'.setup {
+  pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(),
 }
 
 require("auto-session").setup {
