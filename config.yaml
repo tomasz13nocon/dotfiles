@@ -64,7 +64,6 @@ profiles:
   linux-pc:
     dotfiles:
     - d_tealdeer
-    - f_fullscreen.hs
     - f_user-dirs.dirs
     - f_xinitrc
     - f_xbindkeysrc
@@ -88,7 +87,6 @@ profiles:
   samsung-laptop:
     dotfiles:
     - d_tealdeer
-    - f_fullscreen.hs
     - f_user-dirs.dirs
     - f_xinitrc
     - f_xbindkeysrc
