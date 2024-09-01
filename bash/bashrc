@@ -46,7 +46,9 @@ shopt -s histappend
 #function redirect(){ exec 2>&8; }
 #trap "redirect;" DEBUG
 #PROMPT_COMMAND='undirect;'
-PROMPT_COMMAND="${PROMPT_COMMAND:+$(echo "${PROMPT_COMMAND}" | awk '{gsub(/; *$/,"")}2') ; }"'fre --add "$(pwd)"'
+if command -v fre &> /dev/null; then
+  PROMPT_COMMAND="${PROMPT_COMMAND:+$(echo "${PROMPT_COMMAND}" | awk '{gsub(/; *$/,"")}2') ; }"'fre --add "$(pwd)"'
+fi
 
 pacs() {
   packages=$(pacman -Ssq | fzf -m --preview="pacman -Si {}" --preview-window=:hidden --bind=space:toggle-preview)
