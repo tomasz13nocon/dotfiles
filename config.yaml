@@ -6,12 +6,6 @@ dotfiles:
   d_tealdeer:
     src: tealdeer
     dst: ~/.config/tealdeer
-  f_xmonad.hs:
-    src: xmonad/xmonad.hs
-    dst: ~/.xmonad/xmonad.hs
-  f_fullscreen.hs:
-    src: xmonad/lib/Fullscreen.hs
-    dst: ~/.xmonad/lib/Fullscreen.hs
   f_user-dirs.dirs:
     src: user-dirs.dirs
     dst: ~/.config/user-dirs.dirs
@@ -21,18 +15,6 @@ dotfiles:
   f_xbindkeysrc:
     src: xbindkeysrc
     dst: ~/.xbindkeysrc
-  f_vimrc:
-    src: vim/vimrc
-    dst: ~/.vimrc
-  d_after:
-    src: vim/vim/after
-    dst: ~/.vim/after
-  f_filetype.vim:
-    src: vim/vim/filetype.vim
-    dst: ~/.vim/filetype.vim
-  d_colors:
-    src: vim/vim/colors
-    dst: ~/.vim/colors
   d_bin:
     src: bin
     dst: ~/bin
@@ -82,14 +64,11 @@ profiles:
   linux-pc:
     dotfiles:
     - d_tealdeer
-    - f_xmonad.hs
     - f_fullscreen.hs
     - f_user-dirs.dirs
     - f_xinitrc
     - f_xbindkeysrc
-    - f_vimrc
     - d_after
-    - f_filetype.vim
     - d_colors
     - d_bin
     - f_redshift.conf
@@ -109,14 +88,11 @@ profiles:
   samsung-laptop:
     dotfiles:
     - d_tealdeer
-    - f_xmonad.hs
     - f_fullscreen.hs
     - f_user-dirs.dirs
     - f_xinitrc
     - f_xbindkeysrc
-    - f_vimrc
     - d_after
-    - f_filetype.vim
     - d_colors
     - d_bin
     - f_redshift.conf
