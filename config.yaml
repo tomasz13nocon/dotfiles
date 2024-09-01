@@ -61,6 +61,13 @@ dotfiles:
     src: alacritty
     dst: ~/.config/alacritty
 profiles:
+  work-laptop:
+    dotfiles:
+    - f_bashrc
+    - f_aliases
+    - d_nvim
+    - d_lsd
+    - d_alacritty
   linux-pc:
     dotfiles:
     - d_tealdeer
