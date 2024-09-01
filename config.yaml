@@ -67,8 +67,6 @@ profiles:
     - f_user-dirs.dirs
     - f_xinitrc
     - f_xbindkeysrc
-    - d_after
-    - d_colors
     - d_bin
     - f_redshift.conf
     - d_ranger
@@ -90,8 +88,6 @@ profiles:
     - f_user-dirs.dirs
     - f_xinitrc
     - f_xbindkeysrc
-    - d_after
-    - d_colors
     - d_bin
     - f_redshift.conf
     - d_ranger
