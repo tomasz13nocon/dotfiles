@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pwd=$(pwd | tr '/' '%')
+pwd=$(pwd | sed  's/\//%2F/g')
 file="$HOME/.local/share/nvim/sessions/${pwd}.vim"
 
 rm $file

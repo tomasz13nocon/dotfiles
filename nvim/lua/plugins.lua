@@ -15,13 +15,13 @@ end
 local packer_bootstrap = ensure_packer()
 
 -- packer in floating window
--- packer.init {
---   display = {
---     open_fn = function()
---       return require('packer.util').float { border = 'rounded' }
---     end,
---   },
--- }
+packer.init {
+  display = {
+    open_fn = function()
+      return require('packer.util').float { border = 'rounded' }
+    end,
+  },
+}
 
 return packer.startup(function(use)
   use 'wbthomason/packer.nvim'
@@ -44,6 +44,8 @@ return packer.startup(function(use)
   use 'glepnir/zephyr-nvim'
   use 'romgrk/doom-one.vim'
   use 'ribru17/bamboo.nvim'
+  use { 'catppuccin/nvim', as = 'catppuccin' }
+  use 'projekt0n/github-nvim-theme'
   -- use 'rafi/awesome-vim-colorschemes'
   -- use 'romgrk/doom-one.vim'
   -- use 'lukas-reineke/onedark.nvim'
@@ -66,13 +68,13 @@ return packer.startup(function(use)
   use 'nvim-treesitter/nvim-treesitter-context'
   use 'JoosepAlviste/nvim-ts-context-commentstring' -- jsx comments
   use 'jose-elias-alvarez/null-ls.nvim'
-  use 'jose-elias-alvarez/typescript.nvim'
+  -- use 'jose-elias-alvarez/typescript.nvim'
   -- use 'lvimuser/lsp-inlayhints.nvim'
   use 'chikamichi/mediawiki.vim'
   use 'prisma/vim-prisma'
   use 'elkowar/yuck.vim'
   use 'Hoffs/omnisharp-extended-lsp.nvim'
-  use 'mrcjkb/rustaceanvim'
+  -- use 'mrcjkb/rustaceanvim'
   --------------------------------
 
   ---------- Completion ----------
@@ -101,6 +103,10 @@ return packer.startup(function(use)
   -- use "zbirenbaum/copilot-cmp"
   --------------------------------
 
+  ------------- LSP --------------
+  use 'artemave/workspace-diagnostics.nvim'
+  --------------------------------
+
   --------- UI / Visual ----------
   use 'liuchengxu/vista.vim' -- alt: simrat39/symbols-outline.nvim
   use 'stevearc/aerial.nvim'
@@ -109,32 +115,56 @@ return packer.startup(function(use)
   use 'nvim-lualine/lualine.nvim'
   use 'hood/popui.nvim' -- alt: stevearc/dressing.nvim
   use 'dstein64/nvim-scrollview'
-  use 'RRethy/vim-illuminate'
-  use 'KabbAmine/vCoolor.vim'
+  use 'RRethy/vim-illuminate' -- automatically highlighting other uses of the word under the cursor
+  use 'KabbAmine/vCoolor.vim' -- color picker
   -- use 'shmargum/vim-sass-colors' -- This one might be the cause of the telescope errors
   --  use {
   --    'zbirenbaum/neodim',
   --    event = 'LspAttach',
   --  }
   use 'lukas-reineke/indent-blankline.nvim' -- makes 'leafOfTree/vim-matchtag' obsolete
+  -- use 'rcarriga/nvim-notify'
   -- use 'haringsrob/nvim_context_vt'
   -- use 'SmiteshP/nvim-navic'
+  use 'nvim-telescope/telescope-ui-select.nvim'
+  use { "anuvyklack/windows.nvim",
+   requires = {
+      "anuvyklack/middleclass",
+      "anuvyklack/animation.nvim"
+   },
+   config = function()
+      vim.o.winwidth = 10
+      vim.o.winminwidth = 10
+      vim.o.equalalways = false
+      require('windows').setup({
+        animation = {
+          duration = 100,
+          fps = 60,
+        }
+      })
+   end
+  }
   --------------------------------
 
   --------- File trees -----------
-  use { 'nvim-tree/nvim-tree.lua', tag = 'nightly' }
+  use { 'nvim-tree/nvim-tree.lua' }
   -- use 'rbgrouleff/bclose.vim'
   -- use 'francoiscabrol/ranger.vim'
-  use 'kevinhwang91/rnvimr'
+  -- use 'kevinhwang91/rnvimr'
   -- use 'ipod825/ranger.nvim'
-  use 'stevearc/oil.nvim'
+  -- use 'stevearc/oil.nvim'
   --------------------------------
 
   ------------ Other -------------
+  -- use 'famiu/bufdelete.nvim'
+  -- use 'moll/vim-bbye'
+  use 'ojroques/nvim-bufdel'
+  use 'echasnovski/mini.nvim'
   use {
     'nvim-telescope/telescope.nvim',
     requires = { { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' } }
   }
+  use 'tpope/vim-abolish'
   use 'ibhagwan/fzf-lua'
   use 'lewis6991/impatient.nvim'
   use 'numToStr/Comment.nvim'

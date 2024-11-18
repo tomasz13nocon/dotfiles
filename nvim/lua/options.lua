@@ -20,11 +20,11 @@ vim.opt.shiftround = true
 vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
-vim.opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+vim.opt.sessionoptions:append("winpos,localoptions,globals")
 vim.opt.foldopen:remove("search")
 vim.opt.foldmethod = "marker";
 vim.opt.foldtext = [[getline(v:foldstart) . ' ...   ' . (v:foldend - v:foldstart + 1)]] -- . trim(getline(v:foldend)) 
-vim.opt.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
+vim.opt.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:,diff:╱]]
 vim.opt.completeopt = "menu,menuone,noselect" -- recommended by cmp
 -- tab:» ,
 vim.opt.listchars = "tab:  ,trail:•" -- ·•»→›␣↲¤›

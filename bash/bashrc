@@ -1,4 +1,4 @@
-export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin:~/.local/share/gem/ruby/3.0.0/bin:~/.local/share/nvim/mason/bin
+export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin:~/.local/share/gem/ruby/3.0.0/bin:~/.local/share/nvim/mason/bin:~/.local/share/go/bin
 
 #export TERM=xterm-256color
 
@@ -73,11 +73,8 @@ complete -F _complete_alias wifi
 
 
 ######## PS1 ########
-# Old colors
-blue="\033[38;5;153m"
-green="\033[38;5;149m"
-purple="\033[38;5;140m"
 
+##### UTILS #####
 fg() {
   echo -n "\[\e[38;2;$1;$2;$3m\]"
 }
@@ -96,24 +93,33 @@ reset="\[\e[0m\]"
 #bold=$(tput bold)
 bold="\[\e[1m\]"
 
-# Colors (hex)
-colors=("809bce" "95b8d1" "b8e0d2" "d6eadf" "eac4d5")
-#colors=("A69D93" "8C8C83" "8B8484")
-coltext="111111"
+####### COLORS #######
+# colors=("#809bce" "#95b8d1" "#b8e0d2" "#d6eadf" "#eac4d5")
+# colors=("#A69D93" "#8C8C83" "#8B8484")
+colors=("#3D271E" "#653F30" "#8E5A45")
+    # background:                  #2D1B14;
+    # background-alt:              #462D23;
+    # foreground:                  #FFFFFF;
+    # selected:                    #E25F3E;
+    # active:                      #7B6C5B;
+    # urgent:                      #934A1C;
+# coltext="111111"
+coltext="#E4BFB4"
 
-# Text segments
+##### SEGMENTS #####
 git_branch() {
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
 }
-segments=("\d" "\t" "\u@\h" "[\W]" "\$(git_branch)")
+# segments=("\d" "\t" "\u@\h" "[\W]" "\$(git_branch)")
+segments=("\u@\h" "[\W]" "\$(git_branch)")
 
 # Separators
 #sepleft=$'\uE0C7'
-#sep=$'\uE0C6'
-#sepleft=$'\uE0b6'
-sep=$'\uE0b4'
-#sepsoft=$'\uE0B5'
+# sepleft=$'\uE0b6'
+sep=$'\uE0C6'
+# sep=$'\uE0b4'
 
+##### PUTTING IT TOGETHER #####
 makeps1() {
   coltext=$(fg $(rgb $coltext))
   colorsfg=()
@@ -133,6 +139,9 @@ makeps1() {
   echo -n $coltext
   echo -n " ${segments[0]} "
   for ((i=1; i < ${#segments[@]}; i++)); do
+    if [ -z "${segments[$i]}" ]; then
+      continue
+    fi
     echo -n ${colorsbg[$i]}
     echo -n ${colorsfg[(($i - 1))]}
     echo -n $sep

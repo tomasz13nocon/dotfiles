@@ -16,6 +16,22 @@ snippet ts
 </script>
 endsnippet
 
+snippet scrchildren
+<script lang="ts">
+  import type { Snippet } from "svelte";
+
+  interface Props {
+    children?: Snippet;
+  }
+
+  const { children }: Props = $props();
+</script>
+
+{#if children}
+  {@render children()}
+{/if}
+endsnippet
+
 snippet js
 <script>
   $0
@@ -57,6 +73,11 @@ snippet ife
   $0
 {:else}
 {/if}
+endsnippet
+
+snippet else
+{:else}
+  $0
 endsnippet
 
 snippet can
@@ -102,4 +123,67 @@ snippet la
 <label>
   <input type="text" bind:value={$0} />
 </label>
+endsnippet
+
+snippet compMuist
+<script lang="ts">
+  import { cva } from "class-variance-authority";
+  import type { Snippet } from "svelte";
+
+  type Props = {
+    children?: Snippet;
+  }
+
+  let { children, ...props }: Props = $props();
+
+  const styleProps = $derived({});
+
+  const Styles = cva("", {
+    variants: {},
+  });
+
+  const backgroundStyles = cva("overlay", { variants: {}, });
+  const borderStyles = cva("overlay", { variants: {}, });
+  const stateLayerStyles = cva("state-layer", { variants: {}, });
+</script>
+
+<div class="relative">
+  <div class={backgroundStyles(styleProps)}></div>
+  <div class={borderStyles(styleProps)}></div>
+  <div class={stateLayerStyles(styleProps)}></div>
+
+  <div class={Styles(styleProps)} {...props}>
+    {@render children?.()}
+  </div>
+</div>
+endsnippet
+
+snippet snip
+{#snippet $1()}
+  $0
+{/snippet}
+endsnippet
+
+snippet story
+<script lang="ts" module>
+  import { defineMeta, setTemplate, type Args } from "@storybook/addon-svelte-csf";
+  import $1 from "./$1.svelte";
+
+  /**
+   *
+   */
+  const { Story } = defineMeta({
+    component: $1,
+  });
+</script>
+
+<script lang="ts">
+  setTemplate(template);
+</script>
+
+{#snippet template({ ...args }: Args<typeof Story>)}
+  <$1 {...args} />
+{/snippet}
+
+<Story name="Default" />
 endsnippet

@@ -24,14 +24,15 @@ au("TextYankPost", {
 })
 
 -- persist folds
-au(
-  { "BufWinLeave", "BufLeave", "BufWritePost", "BufHidden", "QuitPre" },
-  { pattern = "?*", command = "silent! mkview!" } -- add nested?
-)
-au(
-  "BufWinEnter",
-  { pattern = "?*", command = "silent! loadview" }
-)
+-- THIS WAS THE ONE CHANGING MY CWD ALL THE TIME!!!
+-- au(
+--   { "BufWinLeave", "BufLeave", "BufWritePost", "BufHidden", "QuitPre" },
+--   { pattern = "?*", command = "silent! mkview!" } -- add nested?
+-- )
+-- au(
+--   "BufWinEnter",
+--   { pattern = "?*", command = "silent! loadview" }
+-- )
 
 -- au("BufWritePost", {
 --  pattern = "plugins.lua",

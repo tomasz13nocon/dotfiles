@@ -35,29 +35,29 @@ map('n', ']h',          function() if vim.wo.diff then return ']c' end vim.sched
 map('n', '[h',          function() if vim.wo.diff then return '[c' end vim.schedule(function() gs.prev_hunk() end) return '<Ignore>' end, { expr = true })
 -- CTRL
 map('',  '<C-c>',       ':lua require("ts-node-action").node_action()<CR>')
-map('',  '<C-h>',       ':BufferLineCyclePrev<CR>') -- :BufferPrevious<CR>
+map('',  '<C-S-d>',     ':Telescope diagnostics<CR>')
+map('',  '<C-h>',       '<cmd>lua cycle_no_wrap("prev")<CR>') -- :BufferPrevious<CR> , :BufferLineCyclePrev<CR>
 map('',  '<C-S-h>',     ':BufferLineMovePrev<CR>') -- :BufferMovePrevious<CR>
 map('',  '<C-j>',       ':join<CR>')
 map('n', '<C-K>',       ':lua vim.lsp.buf.hover()<CR>')
-map('',  '<C-l>',       ':BufferLineCycleNext<CR>') -- :BufferNext<CR>
+map('',  '<C-l>',       '<cmd>lua cycle_no_wrap("next")<CR>') -- :BufferNext<CR> , :BufferLineCycleNext<CR>
 map('',  '<C-S-l>',     ':BufferLineMoveNext<CR>') -- :BufferMoveNext<CR>
 map('n', '<C-n>',       ':NvimTreeFocus<CR>')
 map('n', '<C-S-n>',     ':NvimTreeToggle<CR>')
 map('',  '<C-S-o>',     fzf_lua.resume)
 map('',  '<C-p>',       fzf_lua.files) -- builtin.find_files
 map('',  '<C-S-p>',     fzf_lua.live_grep) -- builtin.live_grep
-map('',  '<C-q>',       ':bd<CR>:bp<CR>') -- :BufferClose<CR>
+map('',  '<C-q>',       '<cmd>lua delbuf()<CR>') -- :BufferClose<CR> , :bd<CR>:bp<CR> , :BufferLineCyclePrev<CR>:BufDel#<CR>
 map('',  '<C-s>',       ':ISwapWith<CR>')
-map('',  '<C-1>',       ':BufferLineGoToBuffer 1<CR>')
-map('',  '<C-2>',       ':BufferLineGoToBuffer 2<CR>')
-map('',  '<C-3>',       ':BufferLineGoToBuffer 3<CR>')
-map('',  '<C-4>',       ':BufferLineGoToBuffer 4<CR>')
-map('',  '<C-5>',       ':BufferLineGoToBuffer 5<CR>')
-map('',  '<C-6>',       ':BufferLineGoToBuffer 6<CR>')
-map('',  '<C-7>',       ':BufferLineGoToBuffer 7<CR>')
-map('',  '<C-8>',       ':BufferLineGoToBuffer 8<CR>')
-map('',  '<C-9>',       ':BufferLineGoToBuffer 9<CR>')
-map('',  '<C-0>',       ':BufferLineGoToBuffer 10<CR>')
+map('',  '<C-1>',       '<cmd>lua require"bufferline".go_to(1, true)<CR>')
+map('',  '<C-2>',       '<cmd>lua require"bufferline".go_to(2, true)<CR>')
+map('',  '<C-3>',       '<cmd>lua require"bufferline".go_to(3, true)<CR>')
+map('',  '<C-4>',       '<cmd>lua require"bufferline".go_to(4, true)<CR>')
+map('',  '<C-5>',       '<cmd>lua require"bufferline".go_to(5, true)<CR>')
+map('',  '<C-6>',       '<cmd>lua require"bufferline".go_to(6, true)<CR>')
+map('',  '<C-7>',       '<cmd>lua require"bufferline".go_to(7, true)<CR>')
+map('',  '<C-8>',       '<cmd>lua require"bufferline".go_to(8, true)<CR>')
+map('',  '<C-9>',       '<cmd>lua require"bufferline".go_to(-1, true)<CR>')
 map('n', '<C-Up>',      ':resize +2<CR>')
 map('n', '<C-Down>',    ':resize -2<CR>')
 map('n', '<C-Left>',    ':vertical resize -2<CR>')
@@ -90,8 +90,9 @@ map('n', '<leader>fr',  builtin.lsp_references)
 map('n', '<leader>fs',  builtin.treesitter)
 map('n', '<leader>fl',  builtin.diagnostics)
 -- g
-map('n', '<leader>gc',  builtin.git_bcommits)
 map('n', '<leader>gb',  builtin.git_branches)
+map('n', '<leader>gc',  builtin.git_bcommits)
+map('n', '<leader>gl',  fzf_lua.git_blame)
 map('n', '<leader>gs',  builtin.git_status)
 map('n', '<leader>gt',  builtin.git_stash)
 -- j
@@ -113,11 +114,16 @@ map('n', '<leader>ns',  '<cmd>lua require("package-info").show()<cr>', { silent 
 map('n', '<leader>nu',  '<cmd>lua require("package-info").update()<cr>', { silent = true, noremap = true })
 map('n', '<leader>nv',  '<cmd>lua require("package-info").change_version()<cr>', { silent = true, noremap = true })
 -- t
-map('n', '<leader>tt',  '<cmd>TroubleToggle<cr>')
-map('n', '<leader>tw',  '<cmd>TroubleToggle workspace_diagnostics<cr>')
-map('n', '<leader>td',  '<cmd>TroubleToggle document_diagnostics<cr>')
-map('n', '<leader>tl',  '<cmd>TroubleToggle loclist<cr>')
-map('n', '<leader>tq',  '<cmd>TroubleToggle quickfix<cr>')
+map('n', '<leader>tt',  '<cmd>Trouble<cr>')
+map('n', '<leader>td',  '<cmd>Trouble diagnostics<cr>')
+map('n', '<leader>tl',  '<cmd>Trouble loclist<cr>')
+map('n', '<leader>tq',  '<cmd>Trouble quickfix<cr>')
+-- v
+map('n', '<leader>vo',  ':DiffviewOpen<CR>')
+map('n', '<leader>vc',  ':DiffviewClose<CR>')
+map('n', '<leader>vh',  ':DiffviewFileHistory<CR>')
+map('n', '<leader>vl',  ':DiffviewFileHistory %<CR>')
+
 -- map('n', '<Leader>fs', builtin.lsp_document_symbols)
 -- map('n', '<Leader>fa', builtin.lsp_code_actions)
 -- map('n', '<leader>gs', ':Neotree git_status<CR>')

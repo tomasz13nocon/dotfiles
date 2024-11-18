@@ -25,18 +25,23 @@ require 'nvim-surround'.setup{}
 require 'which-key'.setup{}
 require 'trouble'.setup{}
 require 'aerial'.setup()
-require 'oil'.setup{}
+-- require 'oil'.setup{}
 -- require'symbols-outline'.setup() -- symbols-outline.nvim
 -- require'nvim-autopairs'.setup{}
 -- require('bamboo').setup {}
 -- require('bamboo').load()
+
+require('bufdel').setup {
+  next = 'alternate',
+  quit = false,  -- quit Neovim when last buffer is closed
+}
 
 require 'Comment'.setup {
   pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(),
 }
 
 require("auto-session").setup {
-  log_level = "error",
+  -- log_level = "error",
   -- auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/"},
 }
 
@@ -52,8 +57,14 @@ require('fzf-lua').setup {
 -- }
 require 'bufferline'.setup {
   options = {
-    -- diagnostics = "nvim_lsp",
-    sort_by = "insert_after_current"
+    -- offsets = {
+    --   { filetype = "NvimTree" }
+    -- },
+    diagnostics = "nvim_lsp",
+    sort_by = "insert_after_current",
+    show_buffer_close_icons = false,
+    -- separator_style = "slant",
+    -- show_tab_indicators = true,
   }
 }
 

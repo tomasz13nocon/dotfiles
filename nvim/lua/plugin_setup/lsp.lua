@@ -3,7 +3,7 @@ require 'mason'.setup()
 require 'mason-lspconfig'.setup {
   ensure_installed = {
     "lua_ls",
-    "tsserver",
+    "ts_ls",
     "emmet_language_server",
     "html",
     "cssls",
@@ -20,6 +20,7 @@ require 'mason-lspconfig'.setup {
     "prismals",
     "phpactor",
     "omnisharp",
+    "vtsls",
   }
 }
 require("neodev").setup {}
@@ -29,7 +30,14 @@ local lspconfig = require 'lspconfig'
 -- local navic = require("nvim-navic")
 
 -- cmp has more LSP client capabilities than vanilla neovim, so we need to let servers know this, to get completion for more stuff like auto imports, etc.
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
+local capabilities = vim.tbl_deep_extend(
+  "force",
+  vim.lsp.protocol.make_client_capabilities(),
+  require('cmp_nvim_lsp').default_capabilities(),
+  -- returns configured operations if setup() was already called
+  -- or default operations if not
+  require 'lsp-file-operations'.default_capabilities()
+)
 
 local on_attach = function(client, bufnr)
   -- if client.server_capabilities.documentSymbolProvider then
@@ -41,6 +49,9 @@ local on_attach = function(client, bufnr)
     require('lsp-overloads').setup(client, {})
     vim.keymap.set("n", "<leader>k", ":LspOverloadsSignature<CR>", { noremap = true, silent = true, buffer = bufnr })
   end
+
+  -- Get diagnostics from entire workspace
+  require("workspace-diagnostics").populate_workspace_diagnostics(client, bufnr)
 end
 
 local default_setup = {
@@ -48,50 +59,96 @@ local default_setup = {
   on_attach = on_attach,
 }
 
-lspconfig.lua_ls.setup(default_setup)
--- try disabling html (emmet)
-lspconfig.html.setup(default_setup)
-lspconfig.cssls.setup(default_setup)
--- lspconfig.tsserver.setup(default_setup)
-require("typescript").setup {
-  server = {
-    on_attach = on_attach,
-    capabilities = capabilities,
-    settings = {
-      typescript = {
-        inlayHints = {
-          includeInlayParameterNameHints = 'all',
-          includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-          includeInlayFunctionParameterTypeHints = true,
-          includeInlayVariableTypeHints = true,
-          includeInlayPropertyDeclarationTypeHints = true,
-          includeInlayFunctionLikeReturnTypeHints = true,
-          includeInlayEnumMemberValueHints = true,
-        }
-      },
-      javascript = {
-        inlayHints = {
-          includeInlayParameterNameHints = 'all',
-          includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-          includeInlayFunctionParameterTypeHints = true,
-          includeInlayVariableTypeHints = true,
-          includeInlayPropertyDeclarationTypeHints = true,
-          includeInlayFunctionLikeReturnTypeHints = true,
-          includeInlayEnumMemberValueHints = true,
-        }
-      }
-    },
+-- custom protobuf lsp config
+local configs = require('lspconfig.configs')
+local util = require('lspconfig.util')
+configs["protobuf-language-server"] = {
+  default_config = {
+    cmd = { 'protobuf-language-server' },
+    filetypes = { 'proto', 'cpp' },
+    root_fir = util.root_pattern('.git'),
+    single_file_support = true,
   }
 }
+
+lspconfig.lua_ls.setup(default_setup)
+lspconfig["protobuf-language-server"].setup(default_setup)
+-- try disabling html (emmet)
+lspconfig.html.setup(default_setup)
+lspconfig.cssls.setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+  init_options = {
+    provideFormatter = false
+  },
+  settings = {
+    css = {
+      validate = true,
+      lint = {
+        unknownAtRules = "ignore",
+      },
+    }
+  }
+})
+-- lspconfig.ts_ls.setup(default_setup)
+lspconfig.vtsls.setup(default_setup)
+-- require("typescript").setup {
+--   server = {
+--     on_attach = on_attach,
+--     capabilities = capabilities,
+--     settings = {
+--       typescript = {
+--         inlayHints = {
+--           includeInlayParameterNameHints = 'all',
+--           includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+--           includeInlayFunctionParameterTypeHints = true,
+--           includeInlayVariableTypeHints = true,
+--           includeInlayPropertyDeclarationTypeHints = true,
+--           includeInlayFunctionLikeReturnTypeHints = true,
+--           includeInlayEnumMemberValueHints = true,
+--         }
+--       },
+--       javascript = {
+--         inlayHints = {
+--           includeInlayParameterNameHints = 'all',
+--           includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+--           includeInlayFunctionParameterTypeHints = true,
+--           includeInlayVariableTypeHints = true,
+--           includeInlayPropertyDeclarationTypeHints = true,
+--           includeInlayFunctionLikeReturnTypeHints = true,
+--           includeInlayEnumMemberValueHints = true,
+--         }
+--       }
+--     },
+--   }
+-- }
 -- using mrcjkb/rustaceanvim instead
--- lspconfig.rust_analyzer.setup(default_setup)
-lspconfig.tailwindcss.setup(default_setup)
+lspconfig.mdx_analyzer.setup(default_setup)
+lspconfig.rust_analyzer.setup(default_setup)
 lspconfig.phpactor.setup(default_setup)
 lspconfig.prismals.setup(default_setup)
 lspconfig.pyright.setup(default_setup)
-lspconfig.clangd.setup(default_setup)
+lspconfig.clangd.setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+  filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "hpp" },
+})
 lspconfig.svelte.setup(default_setup)
 lspconfig.astro.setup(default_setup)
+lspconfig.tailwindcss.setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+  settings = {
+    tailwindCSS = {
+      experimental = {
+        classRegex = {
+          { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+          { "cx\\(([^)]*)\\)",  "(?:'|\"|`)([^']*)(?:'|\"|`)" }
+        },
+      },
+    },
+  },
+})
 lspconfig.cssmodules_ls.setup {
   capabilities = capabilities,
   on_attach = function(client, bufnr)
@@ -150,7 +207,7 @@ lspconfig.yamlls.setup {
 
 -- olrtg/emmet-ls (fork)
 lspconfig.emmet_language_server.setup({
-  filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "pug", "typescriptreact", "astro", "svelte", "vue" },
+  filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "pug", "typescriptreact", "astro", "vue" },
   -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
   -- **Note:** only the options listed in the table are supported.
   init_options = {

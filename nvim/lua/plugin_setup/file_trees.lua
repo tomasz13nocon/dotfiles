@@ -1,12 +1,16 @@
 -- nvim-tree.lua
 require("nvim-tree").setup {
+  -- disable_netrw = true,
   filters = {
     -- dotfiles = true,
   },
   view = {
     width = 32,
   },
-  update_focused_file = { enable = true }
+  update_focused_file = { enable = true, update_cwd = false },
+  diagnostics = {
+    enable = true,
+  }
 }
 
 -- nvim-neo-tree/neo-tree.nvim

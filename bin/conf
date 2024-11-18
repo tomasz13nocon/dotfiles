@@ -32,6 +32,16 @@ for p in "$@"; do
         files="${files} $conf/dunst/dunstrc"
       fi
       ;;
+    sxhkd|sx)
+      if [[ -f $conf/sxhkd/sxhkdrc ]]; then
+        files="${files} $conf/sxhkd/sxhkdrc"
+      fi
+      ;;
+    polybar|poly)
+      if [[ -f $conf/polybar/config.ini ]]; then
+        files="${files} $conf/polybar/config.ini"
+      fi
+      ;;
     *)
       echo "'$p' unrecognized"
       exit

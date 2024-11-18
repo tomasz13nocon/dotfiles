@@ -17,6 +17,10 @@ telescope.setup {
         ["Up"] = actions.cycle_history_prev,
       }
     },
+    sorting_strategy = "ascending",
+    layout_config = {
+      prompt_position = "top",
+    },
     file_ignore_patterns = {
       "wtf_wikipedia/",
     },
@@ -26,11 +30,12 @@ telescope.setup {
       enable_preview = true
     }
   },
-  -- extensions = {
-  --   ["ui-select"] = {
-  --     require("telescope.themes").get_dropdown {
-  --     }
-  --   }
-  -- },
+  extensions = {
+    ["ui-select"] = {
+      require("telescope.themes").get_dropdown {
+      }
+    }
+  },
 }
--- telescope.load_extension("ui-select")
+
+telescope.load_extension("ui-select")

@@ -112,3 +112,22 @@ export function $1Provider({ children }) {
   );
 }
 endsnippet
+
+
+# SVELTE
+
+snippet props
+interface Props {
+  $0
+}
+const props: Props = $props();
+endsnippet
+
+snippet cle
+$effect(() => console.log($0));
+endsnippet
+
+snippet mdi
+import $0Icon from "virtual:icons/mdi/$1";
+endsnippet
+

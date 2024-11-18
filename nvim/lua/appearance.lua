@@ -4,11 +4,16 @@
 -- ayu tokyonight-night onedark tomorrow darkplus ferrum codemonkey ayu-mirage aurora system76 slate colorsbox-stbright hybrid-reverse jellybeans
 local colorscheme
 colorscheme = "aurora-mod"
-colorscheme = "kanagawa"
 colorscheme = "zephyr"
 colorscheme = "doom-one"
 colorscheme = "ayu-dark"
+colorscheme = "kanagawa"
 
+require('kanagawa').setup{
+  commentStyle = { italic = false},
+  transparent = true,
+  -- dimInactive = true,
+}
 
 local ok, _ = pcall(vim.cmd, "colorscheme " .. colorscheme)
 if not ok then
@@ -27,7 +32,6 @@ hi("LineNr", { bg = "NONE" } )
 hi("SignColumn", { bg = "NONE" } )
 hi("StatusLine", { bg = "NONE" } )
 
-hi("Comment", { fg = "#848989" } )
 vim.cmd("match todo /TODO/")
 vim.cmd("2match todo /NOW/")
 -- trailing spaces
@@ -50,6 +54,7 @@ if (colorscheme:find("^ayu") ~= nil) then
   hi("DiffText", { bg = "#7A581D" })
   hi("DiffDelete", { bg = "#5E2F2F" })
   hi("Visual", {bg = "#6D0812" }) -- #4D5B6A #760046 #881e7e #87001D
+  hi("Comment", { fg = "#848989" } )
 elseif (colorscheme == "aurora") then
   hi("Folded", { bg = "#2F333B", fg = "#eeeeee" })
   hi("Search", { bg = "#E2D626", fg = "#000000" })

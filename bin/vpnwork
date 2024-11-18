@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd ~/Documents/openvpn/TomaszNocon
+sudo openvpn TomaszNocon.ovpn
