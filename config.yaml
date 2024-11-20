@@ -60,6 +60,9 @@ dotfiles:
   d_alacritty:
     src: alacritty
     dst: ~/.config/alacritty
+  d_bspwm:
+    src: bspwm
+    dst: ~/.config/bspwm
 profiles:
   work-laptop:
     dotfiles:
@@ -68,6 +71,7 @@ profiles:
     - d_nvim
     - d_lsd
     - d_alacritty
+    - d_bspwm
   linux-pc:
     dotfiles:
     - d_tealdeer
@@ -89,6 +93,7 @@ profiles:
     - f_aliases
     - f_bash_profile
     - d_alacritty
+    - d_bspwm
   samsung-laptop:
     dotfiles:
     - d_tealdeer
