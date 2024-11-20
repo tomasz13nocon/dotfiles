@@ -75,6 +75,7 @@ map('n', '<leader>c',   'gcc', { remap = true }) -- this should probably be a pl
 map('',  '<Leader>d',   '"_d')
 map('',  '<Leader>D',   '"_D')
 map('',  '<Leader>h',   ':nohlsearch<CR>')
+map('n',  '<Leader>i',  ':lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({0}),{0})<CR>')
 map('',  '<Leader>r',   ':luafile %<CR>')
 map('',  '<Leader>R',   ':luafile ~/.config/nvim/lua/plugins.lua<CR>:PackerSync<CR>')
 -- map('',  '<Leader>s',   ':Vista!!<CR>')

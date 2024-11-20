@@ -91,7 +91,10 @@ lspconfig.cssls.setup({
   }
 })
 -- lspconfig.ts_ls.setup(default_setup)
-lspconfig.vtsls.setup(default_setup)
+lspconfig.vtsls.setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
 -- require("typescript").setup {
 --   server = {
 --     on_attach = on_attach,
