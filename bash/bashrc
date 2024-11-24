@@ -5,13 +5,27 @@ export XDG_CONFIG_HOME=$HOME/.config
 export XDG_STATE_HOME=$HOME/.local/state
 export XDG_CACHE_HOME=$HOME/.cache
 
+# Cleanup $HOME
+export HISTFILE="$XDG_STATE_HOME"/bash/history
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export CUDA_CACHE_PATH="$XDG_CACHE_HOME"/nv
+export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
+export ELECTRUMDIR="$XDG_DATA_HOME"/electrum
+export GTK2_RC_FILES="$XDG_CONFIG_HOME"/gtk-2.0/gtkrc
+export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
+export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
+export WINEPREFIX="$XDG_DATA_HOME"/wine
+
+alias wget=wget --hsts-file="$XDG_DATA_HOME/wget-hsts"
+# alias feh=feh --no-fehbg
+
+
 #export TERM=xterm-256color
 
 # Scroll 3 lines when using b/f or z/w instead of whole screen in less
 export LESS='-R -z3'
 export PAGER='less'
 export EDITOR='nvim'
-#export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANPAGER='less'
 export FZF_DEFAULT_COMMAND='rg --hidden --files -g !builds -g !node_modules -g !package-lock.json'
 
