@@ -1,5 +1,10 @@
 export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin:~/.local/share/gem/ruby/3.0.0/bin:~/.local/share/nvim/mason/bin:~/.local/share/go/bin
 
+export XDG_DATA_HOME=$HOME/.local/share
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_STATE_HOME=$HOME/.local/state
+export XDG_CACHE_HOME=$HOME/.cache
+
 #export TERM=xterm-256color
 
 # Scroll 3 lines when using b/f or z/w instead of whole screen in less
