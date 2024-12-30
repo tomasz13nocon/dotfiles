@@ -3,7 +3,6 @@ require 'mason'.setup()
 require 'mason-lspconfig'.setup {
   ensure_installed = {
     "lua_ls",
-    "ts_ls",
     "emmet_language_server",
     "html",
     "cssls",
@@ -20,7 +19,8 @@ require 'mason-lspconfig'.setup {
     "prismals",
     "phpactor",
     "omnisharp",
-    "vtsls",
+    "ts_ls",
+    -- "vtsls",
   }
 }
 require("neodev").setup {}
@@ -90,11 +90,16 @@ lspconfig.cssls.setup({
     }
   }
 })
--- lspconfig.ts_ls.setup(default_setup)
-lspconfig.vtsls.setup({
+lspconfig.ts_ls.setup({
   capabilities = capabilities,
   on_attach = on_attach,
+  init_options = {
+    typescript = {
+      tsdk = "/home/user/.local/share/nvim/mason/packages/typescript-language-server/node_modules/typescript/lib/"
+    },
+  },
 })
+-- lspconfig.vtsls.setup(default_setup)
 -- require("typescript").setup {
 --   server = {
 --     on_attach = on_attach,
@@ -127,7 +132,18 @@ lspconfig.vtsls.setup({
 -- }
 -- using mrcjkb/rustaceanvim instead
 lspconfig.mdx_analyzer.setup(default_setup)
-lspconfig.rust_analyzer.setup(default_setup)
+lspconfig.rust_analyzer.setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+  settings = {
+    ["rust-analyzer"] = {
+      rustfmt = {
+        extraArgs = { "+nightly" }
+      }
+    }
+  }
+
+})
 lspconfig.phpactor.setup(default_setup)
 lspconfig.prismals.setup(default_setup)
 lspconfig.pyright.setup(default_setup)

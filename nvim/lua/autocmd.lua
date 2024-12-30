@@ -11,6 +11,20 @@ au("InsertLeave", { command = "set nocursorline" })
 
 -- au("BufWritePre", { pattern = "*.js", callback = function() vim.lsp.buf.format() end })
 
+local function try_format()
+  vim.cmd([[ undojoin | lua vim.lsp.buf.format() ]])
+end
+
+local function pause_undo_and_format()
+  if pcall(try_format) then
+    --
+  else
+    vim.lsp.buf.format()
+  end
+end
+
+au("BufWritePre", { pattern = "*.rs", callback = pause_undo_and_format })
+
 au("FileType", {
   pattern = "qf,help,man,lspinfo",
   callback = function()
@@ -18,8 +32,8 @@ au("FileType", {
   end
 })
 au("TextYankPost", {
-  callback = function ()
-    require('vim.highlight').on_yank({higroup = 'WildMenu', timeout = 300})
+  callback = function()
+    require('vim.highlight').on_yank({ higroup = 'WildMenu', timeout = 300 })
   end
 })
 
@@ -55,10 +69,10 @@ au("BufEnter", { command = "if &ft ==# 'help' | wincmd L | vert resize 84 | endi
 -- Show diagnostics in a pop-up window on hover
 _G.LspDiagnosticsPopupHandler = function()
   local current_cursor = vim.api.nvim_win_get_cursor(0)
-  local last_popup_cursor = vim.w.lsp_diagnostics_last_cursor or {nil, nil}
+  local last_popup_cursor = vim.w.lsp_diagnostics_last_cursor or { nil, nil }
   if not (current_cursor[1] == last_popup_cursor[1] and current_cursor[2] == last_popup_cursor[2]) then
     vim.w.lsp_diagnostics_last_cursor = current_cursor
-    vim.diagnostic.open_float(0, {scope="cursor"})
+    vim.diagnostic.open_float(0, { scope = "cursor" })
   end
 end
 -- CursorMoved or CursorHold

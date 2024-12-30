@@ -7,7 +7,7 @@ local fzf_lua = require('fzf-lua')
 local gs = require('gitsigns')
 
 --------- INSERT ----------
-map('i', '<C-L>',       '<cmd>:lua vim.lsp.buf.signature_help()<CR>')
+-- map('i', '<C-L>',       '<cmd>:lua vim.lsp.buf.signature_help()<CR>')
 
 --------- NORMAL ----------
 -- empty string mappings work like :map, so normal, visual, operator pending (e.g. after d in normal), select (useless, ignore)
