@@ -248,10 +248,12 @@ in
     discord
     redshift
     unstable.helix
-    unstable.zed-editor
+    #unstable.zed-editor
     usbimager
     nomacs
     gparted
     polkit
+    stow
+    gcc
   ];
 }

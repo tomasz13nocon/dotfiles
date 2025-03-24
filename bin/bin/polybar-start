@@ -3,14 +3,14 @@
 python ~/.config/polybar/scripts/ddc.py daemon &
 
 polybar-msg cmd quit
+
 MONITOR=$MONITOR1 polybar -r main &
 MONITOR=$MONITOR1 polybar -r time &
 MONITOR=$MONITOR1 polybar -r date &
 
 # Wait to make sure tray is on first monitor
-sleep 1
-
-MONITOR=$MONITOR2 polybar -r main &
-MONITOR=$MONITOR2 polybar -r time &
-MONITOR=$MONITOR2 polybar -r date &
-
+# sleep 1
+#
+# MONITOR=$MONITOR2 polybar -r main &
+# MONITOR=$MONITOR2 polybar -r time &
+# MONITOR=$MONITOR2 polybar -r date &
