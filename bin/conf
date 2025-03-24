@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ $# < 1 ]]; then
   echo "At least one argument required"
@@ -40,6 +40,11 @@ for p in "$@"; do
     polybar|poly)
       if [[ -f $conf/polybar/config.ini ]]; then
         files="${files} $conf/polybar/config.ini"
+      fi
+      ;;
+    al|ala|alacritty)
+      if [[ -f $conf/alacritty/alacritty.toml ]]; then
+        files="${files} $conf/alacritty/alacritty.toml"
       fi
       ;;
     *)

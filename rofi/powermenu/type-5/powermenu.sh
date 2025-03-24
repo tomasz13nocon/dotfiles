@@ -20,11 +20,11 @@ host=`hostname`
 
 # Options
 hibernate=''
-shutdown=''
-reboot=''
-lock=''
+shutdown=''
+reboot=''
+lock=''
 suspend=''
-logout=''
+logout='󰗽'
 screenoff='󰤄'
 yes=''
 no=''
@@ -33,8 +33,8 @@ no=''
 rofi_cmd() {
 	# -mesg " Last Login: $lastlogin |  Uptime: $uptime" \
 	rofi -dmenu \
-		-p " $USER@$host" \
-		-mesg " Uptime: $uptime" \
+		-p "  $USER@$host" \
+		-mesg " Uptime: $uptime" \
 		-theme ${dir}/${theme}.rasi
 }
 
@@ -54,7 +54,7 @@ confirm_cmd() {
 # Pass variables to rofi dmenu
 run_rofi() {
 	# echo -e "$lock\n$suspend\n$logout\n$hibernate\n$reboot\n$shutdown" | rofi_cmd
-	echo -e "$screenoff\n$lock\n$logout\n$reboot\n$shutdown" | rofi_cmd
+	echo -e "$logout\n$reboot\n$shutdown\n$screenoff\n$lock" | rofi_cmd
 }
 
 # Actions

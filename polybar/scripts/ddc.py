@@ -4,7 +4,7 @@ from multiprocessing.connection import Listener
 from multiprocessing.connection import Client
 import sys
 from threading import Timer
-import psutil
+#import psutil
 import os
 import signal
 import time
@@ -99,9 +99,9 @@ def send_to_daemon(msg):
 
 address = ("127.0.0.1", 4616)
 # hardcoded monitors, yikes
-monitors = {"DisplayPort-0": "VG259QM", "DisplayPort-1": "DELL P2414H"}
+monitors = {"DP-1": "VG259QM", "DP-2": "DELL P2414H"}
 # monitor = monitors[(None if len(sys.argv) <= 2 else sys.argv[2]) or "DisplayPort-0"]
-monitor = monitors[(None if len(sys.argv) <= 2 else sys.argv[2]) or "DisplayPort-0"]
+monitor = monitors[(None if len(sys.argv) <= 2 else sys.argv[2]) or "DP-1"]
 
 match sys.argv[1]:
     case "daemon":

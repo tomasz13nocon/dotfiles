@@ -1,4 +1,4 @@
-export PATH=$PATH:~/.local/bin:~/bin:~/.cargo/bin:~/.local/share/gem/ruby/3.0.0/bin:~/.local/share/nvim/mason/bin:~/.local/share/go/bin
+export PATH=$PATH:~/.local/bin:~/bin:~/.local/share/cargo/bin:~/.local/share/gem/ruby/3.0.0/bin:~/.local/share/nvim/mason/bin:~/.local/share/go/bin
 
 export XDG_DATA_HOME=$HOME/.local/share
 export XDG_CONFIG_HOME=$HOME/.config
@@ -7,6 +7,7 @@ export XDG_CACHE_HOME=$HOME/.cache
 
 # Cleanup $HOME
 export HISTFILE="$XDG_STATE_HOME"/bash/history
+export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
 export CARGO_HOME="$XDG_DATA_HOME"/cargo
 export CUDA_CACHE_PATH="$XDG_CACHE_HOME"/nv
 export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
@@ -15,10 +16,26 @@ export GTK2_RC_FILES="$XDG_CONFIG_HOME"/gtk-2.0/gtkrc
 export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME"/aws/credentials
 export AWS_CONFIG_FILE="$XDG_CONFIG_HOME"/aws/config
 export WINEPREFIX="$XDG_DATA_HOME"/wine
+export W3M_DIR="$XDG_DATA_HOME"/w3m
+export SQLITE_HISTORY="$XDG_CACHE_HOME"/sqlite_history
+export BUNDLE_USER_CONFIG="$XDG_CONFIG_HOME"/bundle
+export BUNDLE_USER_CACHE="$XDG_CACHE_HOME"/bundle
+export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME"/bundle
+export REDISCLI_HISTFILE="$XDG_DATA_HOME"/redis/rediscli_history
+export PSQL_HISTORY="$XDG_DATA_HOME/psql_history"
+export OMNISHARPHOME="$XDG_CONFIG_HOME"/omnisharp
+export NVM_DIR="$XDG_DATA_HOME"/nvm # also defined below by nvm's code
+export NODE_REPL_HISTORY="$XDG_DATA_HOME"/node_repl_history
+export LESSHISTFILE="$XDG_STATE_HOME"/less/history
+export ANDROID_USER_HOME="$XDG_DATA_HOME"/android
+export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
+export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
+export XCOMPOSEFILE="$XDG_CONFIG_HOME"/X11/xcompose
+export XCOMPOSECACHE="$XDG_CACHE_HOME"/X11/xcompose
 
-alias wget=wget --hsts-file="$XDG_DATA_HOME/wget-hsts"
-# alias feh=feh --no-fehbg
-
+alias wget='wget --hsts-file="$XDG_DATA_HOME/wget-hsts"'
+alias adb='HOME="$XDG_DATA_HOME"/android adb'
+alias monerod='monerod --data-dir "$XDG_DATA_HOME"/bitmonero'
 
 #export TERM=xterm-256color
 
@@ -37,6 +54,9 @@ source ~/.aliases
 
 # disable Ctrl-S stopping terminal output
 stty -ixon
+
+# disable Ctrl-Z
+# stty susp undef
 
 # case insensitive glob
 shopt -s nocaseglob
@@ -85,8 +105,8 @@ bind '"\C-o":"open_with_fzf\n"'
 bind '"\C-p":"cdf\n"'
 bind '"\x1b[105;5u":"PREV_DIR=$(pwd) && cd ~/dotfiles/nvim && vim && cd $PREV_DIR\n"'
 
-source /usr/share/bash-complete-alias/complete_alias
-complete -F _complete_alias wifi
+#source /usr/share/bash-complete-alias/complete_alias
+#complete -F _complete_alias wifi
 
 
 
@@ -127,7 +147,15 @@ coltext="#E4BFB4"
 
 ##### SEGMENTS #####
 git_branch() {
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+  str=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
+  max_len=30
+
+  # printf '%.*s' $max_len $str
+  if (( "${#str}" > "$((max_len))" )); then
+    printf "(%s%s)" "${str:0:$max_len}" $'\u2026'
+  elif (( "${#str}" > 0 )); then
+    printf "(%s)" "$str"
+  fi
 }
 # segments=("\d" "\t" "\u@\h" "[\W]" "\$(git_branch)")
 segments=("\u@\h" "[\W]" "\$(git_branch)")
@@ -174,3 +202,7 @@ makeps1() {
 }
 export PS1=$(makeps1)
 
+
+export NVM_DIR="$HOME/.local/share/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

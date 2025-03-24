@@ -44,7 +44,9 @@ super + m
 
 # send the newest marked node to the newest preselected node
 super + y
-	bspc node newest.marked.local -n newest.!automatic.local
+super + ctrl + alt + Return
+	bspc node -n last.\!automatic.local
+	# bspc node newest.marked.local -n newest.!automatic.local
 
 # swap the current node and the biggest window
 super + g
@@ -154,3 +156,37 @@ super + d
     else \
         bspc node focused -t tiled; \
     fi
+
+
+XF86MonBrightnessUp
+    brightnessctl -d acpi_video0 s +5%
+
+XF86MonBrightnessDown
+    brightnessctl -d acpi_video0 s 5%-
+
+XF86AudioLowerVolume
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+#pactl set-sink-volume @DEFAULT_SINK@ -5% && ~/.config/bspwm/volume.sh
+
+XF86AudioRaiseVolume
+    wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
+#pactl set-sink-volume @DEFAULT_SINK@ +5% && ~/.config/bspwm/volume.sh
+
+XF86AudioMute
+    pactl set-sink-mute @DEFAULT_SINK@ toggle
+
+XF86AudioPlay
+    playerctl play-pause
+
+XF86AudioNext
+    playerctl next
+
+XF86AudioPrev
+    playerctl previous
+
+ctrl + Print
+		maim -s --highlight --color=0.3,0.4,0.6,0.4 | tee ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png && play /usr/share/sounds/freedesktop/stereo/camera-shutter.oga
+
+Print
+		maim | tee ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png | xclip -selection clipboard -t image/png && play /usr/share/sounds/freedesktop/stereo/camera-shutter.oga
+

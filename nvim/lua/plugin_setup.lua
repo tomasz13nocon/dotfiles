@@ -18,18 +18,27 @@ require 'plugin_setup.lsp'
 require 'various-textobjs'.setup{ useDefaultKeymaps = true } -- nvim-various-textobjs
 require 'ccc'.setup{ highlighter = { auto_enable = true } }
 require 'lsp-file-operations'.setup()
-require 'treesitter-context'.setup{}
+-- require 'treesitter-context'.setup{}
 require 'nvim-ts-autotag'.setup{}
 require 'ts-node-action'.setup{}
 require 'nvim-surround'.setup{}
 require 'which-key'.setup{}
 require 'trouble'.setup{}
+require 'fidget'.setup{}
 require 'aerial'.setup()
 -- require 'oil'.setup{}
 -- require'symbols-outline'.setup() -- symbols-outline.nvim
 -- require'nvim-autopairs'.setup{}
 -- require('bamboo').setup {}
 -- require('bamboo').load()
+
+require("diffview").setup({
+  view = {
+    merge_tool = {
+      layout = "diff3_mixed",
+    }
+  }
+})
 
 require('bufdel').setup {
   next = 'alternate',

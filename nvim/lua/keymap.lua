@@ -47,6 +47,7 @@ map('n', '<C-S-n>',     ':NvimTreeToggle<CR>')
 map('',  '<C-S-o>',     fzf_lua.resume)
 map('',  '<C-p>',       fzf_lua.files) -- builtin.find_files
 map('',  '<C-S-p>',     fzf_lua.live_grep) -- builtin.live_grep
+map('',  '<C-z>',       '<nop>')
 map('',  '<C-q>',       '<cmd>lua delbuf()<CR>') -- :BufferClose<CR> , :bd<CR>:bp<CR> , :BufferLineCyclePrev<CR>:BufDel#<CR>
 map('',  '<C-s>',       ':ISwapWith<CR>')
 map('',  '<C-1>',       '<cmd>lua require"bufferline".go_to(1, true)<CR>')

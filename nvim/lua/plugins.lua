@@ -1,6 +1,5 @@
 vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
 
-local packer = require('packer')
 
 local ensure_packer = function()
   local fn = vim.fn
@@ -13,6 +12,8 @@ local ensure_packer = function()
   return false
 end
 local packer_bootstrap = ensure_packer()
+
+local packer = require('packer')
 
 -- packer in floating window
 packer.init {
@@ -65,7 +66,7 @@ return packer.startup(function(use)
     run = ':TSUpdate'
   }
   use 'windwp/nvim-ts-autotag'
-  use 'nvim-treesitter/nvim-treesitter-context'
+  -- use 'nvim-treesitter/nvim-treesitter-context'
   use 'JoosepAlviste/nvim-ts-context-commentstring' -- jsx comments
   use 'jose-elias-alvarez/null-ls.nvim'
   -- use 'jose-elias-alvarez/typescript.nvim'
@@ -105,6 +106,7 @@ return packer.startup(function(use)
 
   ------------- LSP --------------
   use 'artemave/workspace-diagnostics.nvim'
+  use 'j-hui/fidget.nvim'
   --------------------------------
 
   --------- UI / Visual ----------
@@ -127,23 +129,23 @@ return packer.startup(function(use)
   -- use 'haringsrob/nvim_context_vt'
   -- use 'SmiteshP/nvim-navic'
   use 'nvim-telescope/telescope-ui-select.nvim'
-  use { "anuvyklack/windows.nvim",
-   requires = {
-      "anuvyklack/middleclass",
-      "anuvyklack/animation.nvim"
-   },
-   config = function()
-      vim.o.winwidth = 10
-      vim.o.winminwidth = 10
-      vim.o.equalalways = false
-      require('windows').setup({
-        animation = {
-          duration = 100,
-          fps = 60,
-        }
-      })
-   end
-  }
+  -- use { "anuvyklack/windows.nvim",
+  --  requires = {
+  --     "anuvyklack/middleclass",
+  --     "anuvyklack/animation.nvim"
+  --  },
+  --  config = function()
+  --     vim.o.winwidth = 10
+  --     vim.o.winminwidth = 10
+  --     vim.o.equalalways = false
+  --     require('windows').setup({
+  --       animation = {
+  --         duration = 100,
+  --         fps = 60,
+  --       }
+  --     })
+  --  end
+  -- }
   --------------------------------
 
   --------- File trees -----------

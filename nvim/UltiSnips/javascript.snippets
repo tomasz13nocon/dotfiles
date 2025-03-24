@@ -117,10 +117,11 @@ endsnippet
 # SVELTE
 
 snippet props
-interface Props {
-  $0
-}
-const props: Props = $props();
+type Props = {
+  $1
+};
+
+const { $0 }: Props = $props();
 endsnippet
 
 snippet cle
@@ -131,3 +132,16 @@ snippet mdi
 import $0Icon from "virtual:icons/mdi/$1";
 endsnippet
 
+snippet comp
+<script lang="ts">
+  type Props = {
+    $1
+  };
+
+  const { $0 }: Props = $props();
+</script>
+endsnippet
+
+snippet barrel
+export { default as $1 } from "./components/`!p snip.rv=t[1][:1].lower() + t[1][1:]`/$1.svelte";
+endsnippet

@@ -51,10 +51,10 @@ cmp.setup({
       i = function(fallback)
         if cmp.get_selected_entry() ~= nil then
           cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
-        elseif vim.fn["UltiSnips#CanJumpForwards"]() == 1 then
-          vim.api.nvim_feedkeys(t("<Plug>(ultisnips_jump_forward)"), 'm', true)
         elseif cmp.visible() then
           cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true })
+        elseif vim.fn["UltiSnips#CanJumpForwards"]() == 1 then
+          vim.api.nvim_feedkeys(t("<Plug>(ultisnips_jump_forward)"), 'm', true)
         else
           fallback()
         end

@@ -1,16 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 python ~/.config/polybar/scripts/ddc.py daemon &
 
 polybar-msg cmd quit
-polybar -r main &
-polybar -r time &
-polybar -r date &
+MONITOR=$MONITOR1 polybar -r main &
+MONITOR=$MONITOR1 polybar -r time &
+MONITOR=$MONITOR1 polybar -r date &
 
 # Wait to make sure tray is on first monitor
 sleep 1
 
-MONITOR=DisplayPort-1 polybar -r main &
-MONITOR=DisplayPort-1 polybar -r time &
-MONITOR=DisplayPort-1 polybar -r date &
+MONITOR=$MONITOR2 polybar -r main &
+MONITOR=$MONITOR2 polybar -r time &
+MONITOR=$MONITOR2 polybar -r date &
 

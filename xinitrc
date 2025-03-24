@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 xrdb ~/.Xresources
 
@@ -7,7 +7,7 @@ xrdb ~/.Xresources
 # kill xorg with ctrl-alt-backspace,
 # have numpad "del" key output dot, not comma,
 # use numpad without numlock
-setxkbmap pl -option caps:swapescape -option terminate:ctrl_alt_bksp -option kpdl:dot -option numpad:mac
+#setxkbmap pl -option caps:swapescape -option terminate:ctrl_alt_bksp -option kpdl:dot -option numpad:mac
 
 # Bind keys specified in .xbindkeysrc
 #xbindkeys
@@ -34,33 +34,31 @@ setxkbmap pl -option caps:swapescape -option terminate:ctrl_alt_bksp -option kpd
 
 # Keystroke repeat delay (default: 400 30)
 # In gnome dconf settings overwrite these
-xset r rate 220 25
+#xset r rate 220 25
 
 # Enable MangoHud in all vulkan programs
-MANGOHUD=1
-export CALIBRE_USE_SYSTEM_THEME=1
+#MANGOHUD=1
+
+#export CALIBRE_USE_SYSTEM_THEME=1
 
 # Screen lock
 # xscreensaver &
-xscreensaver --no-splash &
+#xscreensaver --no-splash &
 
 # Samsung 700t laptop
 # xmodmap -e "keycode 94 = Shift_L"
-export MOZ_USE_XINPUT2=1
+#export MOZ_USE_XINPUT2=1
 
-export QT_AUTO_SCREEN_SCALE_FACTOR=1.25
+#export QT_AUTO_SCREEN_SCALE_FACTOR=1.25
 
-{%@@ if profile == "home-pc" @@%}
-export TERMINAL=alacritty
-{%@@ elif profile == "samsung-laptop" @@%}
-export TERMINAL=kitty
-{%@@ endif @@%}
-export FILE_MANAGER=thunar
+#export TERMINAL=alacritty
+#export FILE_MANAGER=nemo
 
-export GTK_IM_MODULE=fcitx
-export QT_IM_MODULE=fcitx
-export XMODIFIERS=@im=fcitx
-fcitx5 -d
+# Korean keyboard
+#export GTK_IM_MODULE=fcitx
+#export QT_IM_MODULE=fcitx
+#export XMODIFIERS=@im=fcitx
+#fcitx5 -d
 
 ### EXEC ###
 
@@ -85,17 +83,15 @@ fcitx5 -d
 # plank &
 # exec gala
 
-{%@@ if profile == "home-pc" @@%}
-export QT_QPA_PLATFORMTHEME=qt5ct
-export XDG_SESSION_TYPE=x11
-export GDK_BACKEND=x11
+export QT_QPA_PLATFORMTHEME=qt6ct
+#export XDG_SESSION_TYPE=x11
+#export GDK_BACKEND=x11
+
 # libadwaita workaround
-export GTK_THEME=Qogir-Dark
-exec gnome-session
-{%@@ elif profile == "samsung-laptop" @@%}
-blueman-applet &
-export QT_QPA_PLATFORMTHEME=qt5ct
-export QT_STYLE_OVERRIDE=adwaita-dark
+#export GTK_THEME=Qogir-Dark
+#export QT_STYLE_OVERRIDE=adwaita-dark
+#blueman-applet &
+#exec gnome-session
 
 # GTK_IM_MODULE=ibus
 # QT_IM_MODULE=ibus
@@ -103,4 +99,3 @@ export QT_STYLE_OVERRIDE=adwaita-dark
 # ibus-daemon -drxR
 
 exec bspwm
-{%@@ endif @@%}

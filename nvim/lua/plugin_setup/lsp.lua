@@ -10,7 +10,7 @@ require 'mason-lspconfig'.setup {
     "marksman",
     "tailwindcss",
     "astro",
-    "rust_analyzer",
+    -- "rust_analyzer",
     "clangd",
     "svelte",
     "yamlls",
@@ -137,8 +137,17 @@ lspconfig.rust_analyzer.setup({
   on_attach = on_attach,
   settings = {
     ["rust-analyzer"] = {
+      installRustc = false,
+      installCargo = false,
       rustfmt = {
         extraArgs = { "+nightly" }
+      },
+      checkOnSave = true,
+      check = {
+        command = "clippy",
+        allTargets = true,
+        features = "all",
+        extraArgs = { "--", "-W", "clippy::needless_pass_by_value" },
       }
     }
   }
@@ -152,7 +161,18 @@ lspconfig.clangd.setup({
   on_attach = on_attach,
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "hpp" },
 })
-lspconfig.svelte.setup(default_setup)
+lspconfig.svelte.setup({
+  capabilities = capabilities,
+  on_attach = function(client, bufnr)
+    on_attach(client, bufnr)
+    vim.api.nvim_create_autocmd("BufWritePost", {
+      pattern = { "*.js", "*.ts" },
+      callback = function(ctx)
+        client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
+      end,
+    })
+  end,
+})
 lspconfig.astro.setup(default_setup)
 lspconfig.tailwindcss.setup({
   capabilities = capabilities,
@@ -161,8 +181,9 @@ lspconfig.tailwindcss.setup({
     tailwindCSS = {
       experimental = {
         classRegex = {
-          { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
-          { "cx\\(([^)]*)\\)",  "(?:'|\"|`)([^']*)(?:'|\"|`)" }
+          { "cva\\(([^)]*)\\)",          "[\"'`]([^\"'`]*).*?[\"'`]" },
+          { "cx\\(([^)]*)\\)",           "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+          { "([\"'`][^\"'`]*.*?[\"'`])", "[\"'`]([^\"'`]*).*?[\"'`]" }
         },
       },
     },
@@ -373,3 +394,4 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
   border = "rounded",
 })
+

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 pwd=$(pwd | sed  's/\//%2F/g')
 file="$HOME/.local/share/nvim/sessions/${pwd}.vim"

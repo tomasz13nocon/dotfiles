@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+alias db='surreal start -u root -p root rocksdb:///home/user/.local/share/eu.freymedical.eye-expert/db/'
+
 alias gs='git status'
 alias gc='git commit'
 alias gca='git commit -a'
@@ -17,10 +21,18 @@ alias gpl='git pull'
 alias gps='git push'
 alias gpsh='git push'
 alias gst='git stash'
+alias grb='git rebase'
+alias grbc='git rebase --continue'
+alias grba='git rebase --abort'
 alias gr='git remote'
+alias gpr='gprune'
+alias gsw='git switch'
+alias gprune='git fetch -p && git branch -vv | awk "/: gone]/{print \$1}" | xargs git branch -D'
+
+alias cwr='cargo watch -q -c -x "run -q"'
 
 alias v='vim'
-alias hx='helix'
+# alias hx='helix'
 alias h='helix'
 #alias n='nap'
 alias vim='nvim'
@@ -100,3 +112,13 @@ alias ctld='sudo systemctl disable'
 alias d='docker'
 alias cal='cal -3m'
 alias rofi='rofi -monitor $(bspc query --names -M -m .focused)'
+alias lg='lazygit'
+alias nrs='nixos-rebuild switch --use-remote-sudo'
+alias c='sudoedit /etc/nixos/configuration.nix'
+alias cfmt='nix shell fenix#default.rustfmt -c cargo fmt'
+alias dim='redshift -x && xrandr --output DP-1 --brightness .4 && xrandr --output DP-2 --brightness .4 && redshift -O 2400'
+alias resetdim='redshift -x'
+
+. $(whereis complete_alias | cut -d' ' -f2)
+complete -F _complete_alias gch
+complete -F _complete_alias gsw
