@@ -260,6 +260,4 @@ in
     gparted
     polkit
   ];
-
-
 }
