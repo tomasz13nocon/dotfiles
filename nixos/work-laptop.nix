@@ -12,9 +12,19 @@ in
 
   networking.hostName = "nixos-work-laptop";
 
+  # users.users.user = {
+  #   extraGroups = [ "video" ];
+  # };
+
   environment.systemPackages = with pkgs; [
     # ...
   ];
+
+  services.xserver = {
+    xkb = {
+      options = "caps:swapescape";
+    };
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
