@@ -1,0 +1,31 @@
+[core]
+	pager = delta
+	autocrlf = input
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	line-numbers = true
+
+[merge]
+	conflictstyle = diff3
+
+[diff]
+	colorMoved = default
+	tool = vimdiff
+
+[user]
+	email = tomasz13nocon@gmail.com
+	name = tomasz13nocon
+[credential]
+	helper = store
+[init]
+	defaultBranch = master
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[pull]
+	ff = only
