@@ -8,12 +8,6 @@ let
   unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
 in
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ./machine-specific.nix
-    ];
-
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Bootloader.
