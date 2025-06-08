@@ -159,10 +159,10 @@ super + d
 
 
 XF86MonBrightnessUp
-    brightnessctl -d acpi_video0 s +5%
+    brightnessctl s +5%
 
 XF86MonBrightnessDown
-    brightnessctl -d acpi_video0 s 5%-
+    brightnessctl s 5%-
 
 XF86AudioLowerVolume
     wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
