@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # in order for the "exit" at the end this script to close the caller's terminal,
 # this script needs to be sourced, not executed
 
