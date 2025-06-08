@@ -10,7 +10,12 @@ blinking = "Always"
 
 [font]
 # size = 11
-size = 8
+# BEGIN pc
+# size = 8
+# END pc
+# BEGIN work-laptop
+#size = 6
+# END work-laptop
 
 [font.normal]
 # family = "Bok MonteCarlo"
