@@ -12,18 +12,25 @@ in
 
   networking.hostName = "nixos-work-laptop";
 
-  # users.users.user = {
-  #   extraGroups = [ "video" ];
-  # };
+  users.users.user = {
+    extraGroups = [ "video" ];
+  };
 
   environment.systemPackages = with pkgs; [
     # ...
+    brightnessctl
   ];
 
   services.xserver = {
     xkb = {
       options = "caps:swapescape";
     };
+  };
+
+  services.libinput = {
+    touchpad.naturalScrolling = true;
+    touchpad.accelProfile = "adaptive";
+    touchpad.accelSpeed = null;
   };
 
   # This value determines the NixOS release from which the default

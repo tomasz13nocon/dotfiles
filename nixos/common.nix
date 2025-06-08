@@ -10,6 +10,10 @@ in
 {
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  nix.extraOptions = ''
+    trusted-users = root user
+  '';
+
   # Bootloader.
   #boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -26,6 +30,11 @@ in
 
   # Required for ddcutil
   hardware.i2c.enable = true;
+
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
+
+  services.blueman.enable = true;
 
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -82,7 +91,10 @@ in
   };
 
   environment.variables = {
+    # needed by rust openssl-sys
+    OPENSSL_NO_VENDOR = 1;
     OPENSSL_DIR = pkgs.openssl.dev;
+    OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
   };
 
   # Required for trash in Nemo
@@ -112,7 +124,15 @@ in
   #   enableSSHSupport = true;
   # };
 
-  # List services that you want to enable:
+  programs.file-roller.enable = true;
+
+  # programs.direnv = {
+  #   enable = true;
+  #   nix-direnv = {
+  #     enable = true;
+  #   };
+  # };
+  services.lorri.enable = true;
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
@@ -132,7 +152,12 @@ in
   };
 
   services.libinput.mouse.accelProfile = "flat";
-  services.libinput.mouse.accelSpeed = "2";
+  # BEGIN pc
+  #services.libinput.mouse.accelSpeed = "2";
+  # END pc
+  # BEGIN work-laptop
+  #services.libinput.mouse.accelSpeed = "1.1";
+  # END work-laptop
 
   services.xserver.displayManager.lightdm.enable = false;
   services.xserver.displayManager.startx.enable = true;
@@ -147,6 +172,8 @@ in
   security.polkit.enable = true;
 
   services.pipewire.pulse.enable = true;
+
+  services.vnstat.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -168,7 +195,7 @@ in
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    neovim
+    unstable.neovim
     polybar
     rofi
     sxhkd
@@ -177,6 +204,7 @@ in
     lsd
     firefox
     nemo
+    nemo-fileroller
     qogir-theme
     papirus-icon-theme
     font-manager
@@ -189,7 +217,6 @@ in
     mpv
     brave
     picom-pijulius
-    helix
     fzf
     fd
     ripgrep
@@ -222,7 +249,6 @@ in
     unstable.clippy
     unstable.rust-analyzer
     # gcc
-    # openssl.dev
     unzip
     dconf
     delta
@@ -255,5 +281,33 @@ in
     polkit
     stow
     gcc
+    networkmanagerapplet
+    blueman
+    overskride
+    strawberry
+    rhythmbox
+    audacious
+    yt-dlp
+    localsend
+    vnstat
+    lua-language-server
+    signal-desktop
+    zip
+    zenity
+    plantuml
+    gcolor3
+    gpick
+    insomnia
+    openssl
+    openssl.dev
+    libiconv
+    pkg-config
+    sublime-merge
+    just
+    electrum
+    libreoffice-qt6
+    gnumake
+    luajitPackages.jsregexp
+    mir-qualia
   ];
 }
