@@ -68,7 +68,8 @@ return packer.startup(function(use)
   use 'windwp/nvim-ts-autotag'
   -- use 'nvim-treesitter/nvim-treesitter-context'
   use 'JoosepAlviste/nvim-ts-context-commentstring' -- jsx comments
-  use 'jose-elias-alvarez/null-ls.nvim'
+  use 'nvimtools/none-ls.nvim'
+  use 'nvimtools/none-ls-extras.nvim'
   -- use 'jose-elias-alvarez/typescript.nvim'
   -- use 'lvimuser/lsp-inlayhints.nvim'
   use 'chikamichi/mediawiki.vim'
@@ -76,10 +77,16 @@ return packer.startup(function(use)
   use 'elkowar/yuck.vim'
   use 'Hoffs/omnisharp-extended-lsp.nvim'
   -- use 'mrcjkb/rustaceanvim'
+  use 'stevearc/conform.nvim'
   --------------------------------
 
   ---------- Completion ----------
   use 'SirVer/ultisnips'
+  use {
+    "L3MON4D3/LuaSnip",
+    tag = "v2.*",
+    run = "make install_jsregexp"
+  }
   use 'hrsh7th/cmp-nvim-lsp'
   use 'hrsh7th/cmp-buffer'
   use 'hrsh7th/cmp-path'
@@ -88,6 +95,11 @@ return packer.startup(function(use)
   use 'quangnguyen30192/cmp-nvim-ultisnips'
   use 'hrsh7th/cmp-nvim-lsp-document-symbol'
   use 'hrsh7th/cmp-nvim-lsp-signature-help'
+  use {
+    'saghen/blink.cmp',
+    tag = "v1.0.0",
+  }
+  use 'Saghen/blink.compat'
   use 'Issafalcon/lsp-overloads.nvim'
   -- use 'mattn/emmet-vim' -- used by cmp-emmet-vim
   -- use 'dcampos/cmp-emmet-vim'
@@ -115,7 +127,7 @@ return packer.startup(function(use)
   -- use 'romgrk/barbar.nvim'
   use { 'akinsho/bufferline.nvim', tag = "*" }
   use 'nvim-lualine/lualine.nvim'
-  use 'hood/popui.nvim' -- alt: stevearc/dressing.nvim
+  use 'hood/popui.nvim'       -- alt: stevearc/dressing.nvim
   use 'dstein64/nvim-scrollview'
   use 'RRethy/vim-illuminate' -- automatically highlighting other uses of the word under the cursor
   use 'KabbAmine/vCoolor.vim' -- color picker
@@ -215,3 +227,4 @@ return packer.startup(function(use)
     require('packer').sync()
   end
 end)
+

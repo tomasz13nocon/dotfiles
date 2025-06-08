@@ -1,0 +1,80 @@
+{
+  "comp": {
+    "prefix": "comp",
+    "body": [
+      "<script lang=\"ts\">",
+      "\ttype Props = {",
+      "\t\t$1",
+      "\t};",
+      "",
+      "\tconst { $0 }: Props = \\$props();",
+      "</script>"
+    ]
+  },
+  "snip": {
+    "prefix": "snip",
+    "body": [
+      "{#snippet $1()}",
+      "\t$0",
+      "{/snippet}"
+    ]
+  },
+  "icon": {
+    "prefix": "icon",
+    "body": "<span class=\"block iconify $0\"></span>"
+  },
+  "if": {
+    "prefix": "if",
+    "body": [
+      "{#if $1}",
+      "\t$0",
+      "{/if}"
+    ]
+  },
+  "each": {
+    "prefix": "each",
+    "body": [
+      "{#each $1 as $2}",
+      "\t$0",
+      "{/each}"
+    ]
+  },
+  "scr": {
+    "prefix": "scr",
+    "body": [
+      "<script lang=\"ts\">",
+      "\t$0",
+      "</script>"
+    ]
+  },
+  "cle": {
+    "prefix": "cle",
+    "body": [
+      "\\$effect(() => console.log($0));"
+    ]
+  },
+  "eff": {
+    "prefix": "eff",
+    "body": [
+      "\\$effect(() => $0);"
+    ]
+  },
+  "module": {
+    "prefix": "module",
+    "body": [
+      "<script lang=\"ts\" module>",
+      "\t$0",
+      "</script>"
+    ]
+  },
+  "ctx": {
+    "prefix": "ctx",
+    "body": [
+      "type ${1/(.*)/${1:/capitalize}/}Ctx = $0;",
+      "const $1CtxKey = Symbol();",
+      "export function get$1Ctx(): ${1/(.*)/${1:/capitalize}/}Ctx {",
+      "\treturn getContext($1CtxKey);",
+      "}"
+    ]
+  }
+}

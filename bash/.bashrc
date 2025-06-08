@@ -206,3 +206,6 @@ export PS1=$(makeps1)
 export NVM_DIR="$HOME/.local/share/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Must be after shell extensions that manipulate the prompt.
+eval "$(direnv hook bash)"

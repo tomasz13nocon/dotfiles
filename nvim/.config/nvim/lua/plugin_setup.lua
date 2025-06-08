@@ -6,7 +6,9 @@ require 'plugin_setup.telescope'
 require 'plugin_setup.ultisnips'
 require 'plugin_setup.gitsigns'
 require 'plugin_setup.lualine'
-require 'plugin_setup.cmp'
+require 'plugin_setup.conform'
+require 'plugin_setup.blink'
+-- require 'plugin_setup.cmp'
 require 'plugin_setup.lsp'
 -- require 'plugin_setup.foldhue'
 -- require 'plugin_setup.lsp_inlayhints'
@@ -15,9 +17,11 @@ require 'plugin_setup.lsp'
 -- require 'plugin_setup.ufo'
 
 
-require 'various-textobjs'.setup{ useDefaultKeymaps = true } -- nvim-various-textobjs
+require 'various-textobjs'.setup{ keymaps = { useDefaults = true } } -- nvim-various-textobjs
 require 'ccc'.setup{ highlighter = { auto_enable = true } }
+require 'luasnip.loaders.from_vscode'.lazy_load({ paths = { "./snippets" } })
 require 'lsp-file-operations'.setup()
+require("cmp_nvim_ultisnips").setup{}
 -- require 'treesitter-context'.setup{}
 require 'nvim-ts-autotag'.setup{}
 require 'ts-node-action'.setup{}

@@ -38,7 +38,7 @@ map('',  '<C-c>',       ':lua require("ts-node-action").node_action()<CR>')
 map('',  '<C-S-d>',     ':Telescope diagnostics<CR>')
 map('',  '<C-h>',       '<cmd>lua cycle_no_wrap("prev")<CR>') -- :BufferPrevious<CR> , :BufferLineCyclePrev<CR>
 map('',  '<C-S-h>',     ':BufferLineMovePrev<CR>') -- :BufferMovePrevious<CR>
-map('',  '<C-j>',       ':join<CR>')
+map('n', '<C-j>',       ':join<CR>')
 map('n', '<C-K>',       ':lua vim.lsp.buf.hover()<CR>')
 map('',  '<C-l>',       '<cmd>lua cycle_no_wrap("next")<CR>') -- :BufferNext<CR> , :BufferLineCycleNext<CR>
 map('',  '<C-S-l>',     ':BufferLineMoveNext<CR>') -- :BufferMoveNext<CR>
@@ -84,7 +84,8 @@ map('',  '<Leader>s',   ':AerialToggle<CR>')
 map('n', '<leader>w',   ':w<CR>')
 map('',  '<Leader>x',   '"_x')
 map('',  '<Leader>X',   '"_X')
-map('',  '<leader>=',   ':lua vim.lsp.buf.format()<CR>')
+-- map('',  '<leader>=',   ':lua vim.lsp.buf.format()<CR>')
+map('',  '<leader>=',   ':lua require"conform".format{ lsp_format = "fallback", undojoin = true, timeout_ms = 5000 }<CR>')
 -- f
 map('n', '<leader>fh',  builtin.help_tags) --'<cmd>Telescope help_tags<cr>')
 map('n', '<leader>fc',  builtin.colorscheme)

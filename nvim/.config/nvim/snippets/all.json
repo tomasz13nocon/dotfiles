@@ -1,0 +1,6 @@
+{
+  "#!": {
+    "prefix": "#!",
+    "body": "#!/usr/bin/env bash"
+  }
+}

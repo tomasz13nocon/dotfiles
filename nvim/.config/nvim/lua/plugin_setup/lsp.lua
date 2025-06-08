@@ -2,7 +2,7 @@
 require 'mason'.setup()
 require 'mason-lspconfig'.setup {
   ensure_installed = {
-    "lua_ls",
+    -- "lua_ls",
     "emmet_language_server",
     "html",
     "cssls",
@@ -33,7 +33,10 @@ local lspconfig = require 'lspconfig'
 local capabilities = vim.tbl_deep_extend(
   "force",
   vim.lsp.protocol.make_client_capabilities(),
-  require('cmp_nvim_lsp').default_capabilities(),
+
+  -- require('cmp_nvim_lsp').default_capabilities(),
+  require('blink.cmp').get_lsp_capabilities(),
+
   -- returns configured operations if setup() was already called
   -- or default operations if not
   require 'lsp-file-operations'.default_capabilities()
@@ -96,6 +99,11 @@ lspconfig.ts_ls.setup({
   init_options = {
     typescript = {
       tsdk = "/home/user/.local/share/nvim/mason/packages/typescript-language-server/node_modules/typescript/lib/"
+    },
+    preferences = {
+      includeCompletionsForModuleExports = true,
+      includeCompletionsForImportStatements = true,
+      importModuleSpecifierPreference = "non-relative",
     },
   },
 })
@@ -284,8 +292,8 @@ lspconfig.jsonls.setup {
 }
 
 
-local null_ls = require("null-ls")
-null_ls.setup {
+local none_ls = require("null-ls")
+none_ls.setup {
   capabilities = capabilities,
   on_attach = function(client, bufnr)
     -- format on save
@@ -301,8 +309,8 @@ null_ls.setup {
     end
   end,
   sources = {
-    null_ls.builtins.formatting.black,
-    null_ls.builtins.diagnostics.eslint.with({
+    none_ls.builtins.formatting.black,
+    require("none-ls.diagnostics.eslint_d").with({
       filetypes = { "javascript", "typescript", "vue", "svelte", "astro", "javascriptreact", "typescriptreact" },
       condition = function()
         return require "null-ls.utils".root_pattern(
@@ -318,8 +326,8 @@ null_ls.setup {
         )(vim.api.nvim_buf_get_name(0)) ~= nil
       end
     }),
-    -- null_ls.builtins.code_actions.eslint,
-    null_ls.builtins.formatting.prettierd.with {
+    require("none-ls.code_actions.eslint"),
+    none_ls.builtins.formatting.prettierd.with {
       filetypes = {
         "svelte",
         -- "astro",

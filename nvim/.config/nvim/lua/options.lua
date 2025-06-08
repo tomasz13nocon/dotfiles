@@ -31,6 +31,9 @@ vim.opt.listchars = "tab:  ,trail:•" -- ·•»→›␣↲¤›
 vim.opt.list = true
 -- vim.opt.showbreak = "+ " -- doesn't work
 vim.opt.conceallevel = 0
+vim.opt.winborder = "rounded" -- double
+-- vim.opt.winblend = 0
+-- vim.opt.pumblend = 0
 
 vim.g.do_filetype_lua = 1
 vim.g.loaded_netrw = 1

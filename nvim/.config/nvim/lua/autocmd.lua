@@ -11,19 +11,12 @@ au("InsertLeave", { command = "set nocursorline" })
 
 -- au("BufWritePre", { pattern = "*.js", callback = function() vim.lsp.buf.format() end })
 
-local function try_format()
-  vim.cmd([[ undojoin | lua vim.lsp.buf.format() ]])
-end
-
-local function pause_undo_and_format()
-  if pcall(try_format) then
-    --
-  else
-    vim.lsp.buf.format()
-  end
-end
-
-au("BufWritePre", { pattern = "*.rs", callback = pause_undo_and_format })
+-- au("BufWritePre", {
+--   pattern = "*.rs",
+--   callback = function(args)
+--     require("conform").format({ undojoin = true, bufnr = args.buf })
+--   end,
+-- })
 
 au("FileType", {
   pattern = "qf,help,man,lspinfo",
@@ -33,7 +26,7 @@ au("FileType", {
 })
 au("TextYankPost", {
   callback = function()
-    require('vim.highlight').on_yank({ higroup = 'WildMenu', timeout = 300 })
+    vim.highlight.on_yank({ higroup = 'WildMenu', timeout = 300 })
   end
 })
 

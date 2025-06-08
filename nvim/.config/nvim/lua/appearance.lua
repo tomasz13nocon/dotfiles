@@ -9,8 +9,8 @@ colorscheme = "doom-one"
 colorscheme = "ayu-dark"
 colorscheme = "kanagawa"
 
-require('kanagawa').setup{
-  commentStyle = { italic = false},
+require('kanagawa').setup {
+  commentStyle = { italic = false },
   transparent = true,
   -- dimInactive = true,
 }
@@ -27,10 +27,10 @@ end
 
 -- ADJUSTMENTS --
 -- transparent bg
-hi("Normal", { bg = "NONE" } )
-hi("LineNr", { bg = "NONE" } )
-hi("SignColumn", { bg = "NONE" } )
-hi("StatusLine", { bg = "NONE" } )
+hi("Normal", { bg = "NONE" })
+hi("LineNr", { bg = "NONE" })
+hi("SignColumn", { bg = "NONE" })
+hi("StatusLine", { bg = "NONE" })
 
 vim.cmd("match todo /TODO/")
 vim.cmd("2match todo /NOW/")
@@ -53,8 +53,8 @@ if (colorscheme:find("^ayu") ~= nil) then
   hi("DiffChange", { bg = "#2C4B58" })
   hi("DiffText", { bg = "#7A581D" })
   hi("DiffDelete", { bg = "#5E2F2F" })
-  hi("Visual", {bg = "#6D0812" }) -- #4D5B6A #760046 #881e7e #87001D
-  hi("Comment", { fg = "#848989" } )
+  hi("Visual", { bg = "#6D0812" }) -- #4D5B6A #760046 #881e7e #87001D
+  hi("Comment", { fg = "#848989" })
 elseif (colorscheme == "aurora") then
   hi("Folded", { bg = "#2F333B", fg = "#eeeeee" })
   hi("Search", { bg = "#E2D626", fg = "#000000" })
@@ -66,10 +66,58 @@ elseif (colorscheme == "doom-one") then
   -- hi("SignColumn", { bg = "#161715", fg = "#646b6a" })
 end
 
+hi("FloatBorder", { bg = "#22252A" })
+hi("BlinkCmpDocBorder", { bg = "#22252A" })
+hi("BlinkCmpMenuBorder", { bg = "#22252A" })
+hi("BlinkCmpSignatureHelpBorder", { bg = "#22252A" })
+
+-- COOL COLOR BLOCKS FOR BLINK --
+-- hi("BlinkCmpMenuSelection",  { fg = "NONE", bg = "#2C3038"  })
+hi("PmenuSel", { fg = "NONE", bg = "NONE", bold = true })
+hi("Pmenu", { fg = "#C5CDD9", bg = "#202328" })
+
+hi("BlinkCmpLabelDeprecated", { fg = "#7E8294", bg = "NONE", strikethrough = true })
+hi("BlinkCmpItemAbbrMatch", { fg = "#82AAFF", bg = "NONE", bold = true })
+hi("BlinkCmpItemAbbrMatchFuzzy", { fg = "#82AAFF", bg = "NONE", bold = true })
+hi("BlinkCmpItemMenu", { fg = "#C792EA", bg = "NONE", italic = true })
+
+hi("BlinkCmpKindField", { fg = "#EED8DA", bg = "#B5585F" })
+hi("BlinkCmpKindProperty", { fg = "#EED8DA", bg = "#B5585F" })
+hi("BlinkCmpKindEvent", { fg = "#EED8DA", bg = "#B5585F" })
+
+hi("BlinkCmpKindText", { fg = "#333333", bg = "#9FBD73" })
+hi("BlinkCmpKindEnum", { fg = "#C3E88D", bg = "#9FBD73" })
+hi("BlinkCmpKindKeyword", { fg = "#444444", bg = "#9FBD73" })
+
+hi("BlinkCmpKindConstant", { fg = "#222222", bg = "#D4BB6C" })
+hi("BlinkCmpKindConstructor", { fg = "#FFE082", bg = "#D4BB6C" })
+hi("BlinkCmpKindReference", { fg = "#FFE082", bg = "#D4BB6C" })
+
+hi("BlinkCmpKindFunction", { fg = "#EADFF0", bg = "#A377BF" })
+hi("BlinkCmpKindStruct", { fg = "#EADFF0", bg = "#A377BF" })
+hi("BlinkCmpKindClass", { fg = "#EADFF0", bg = "#A377BF" })
+hi("BlinkCmpKindModule", { fg = "#EADFF0", bg = "#A377BF" })
+hi("BlinkCmpKindOperator", { fg = "#EADFF0", bg = "#A377BF" })
+
+hi("BlinkCmpKindVariable", { fg = "#D5DDE9", bg = "#7E8294" })
+hi("BlinkCmpKindFile", { fg = "#C5CDD9", bg = "#7E8294" })
+
+hi("BlinkCmpKindUnit", { fg = "#F5EBD9", bg = "#D4A959" })
+hi("BlinkCmpKindSnippet", { fg = "#F5EBD9", bg = "#D4A959" })
+hi("BlinkCmpKindFolder", { fg = "#F5EBD9", bg = "#D4A959" })
+
+hi("BlinkCmpKindMethod", { fg = "#DDE5F5", bg = "#6C8ED4" })
+hi("BlinkCmpKindValue", { fg = "#DDE5F5", bg = "#6C8ED4" })
+hi("BlinkCmpKindEnumMember", { fg = "#DDE5F5", bg = "#6C8ED4" })
+
+hi("BlinkCmpKindInterface", { fg = "#D8EEEB", bg = "#58B5A8" })
+hi("BlinkCmpKindColor", { fg = "#D8EEEB", bg = "#58B5A8" })
+hi("BlinkCmpKindTypeParameter", { fg = "#D8EEEB", bg = "#58B5A8" })
+
 -- CMP COOL COLOR BLOCKS --
 local kind_highlights = {
-  PmenuSel = { bg = "#282C34", fg = "NONE" },
-  Pmenu = { fg = "#C5CDD9", bg = "#22252A" },
+  -- PmenuSel = { bg = "#282C34", fg = "NONE" },
+  -- Pmenu = { fg = "#C5CDD9", bg = "#22252A" },
 
   CmpItemAbbrDeprecated = { fg = "#7E8294", bg = "NONE", fmt = "strikethrough" },
   CmpItemAbbrMatch = { fg = "#82AAFF", bg = "NONE", fmt = "bold" },

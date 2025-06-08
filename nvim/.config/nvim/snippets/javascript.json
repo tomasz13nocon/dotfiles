@@ -1,0 +1,28 @@
+{
+  "console.log": {
+    "prefix": "cl",
+    "body": "console.log(${0})"
+  },
+  "hello": {
+    "prefix": "hello",
+    "body": "console.log(\"hello\");"
+  },
+  "fori": {
+    "prefix": "fori",
+    "body": [
+      "for (var i = 0; i < $1; i++) {",
+      "\t$0",
+      "}"
+    ]
+  },
+  "pageload": {
+    "prefix": "pageload",
+    "body": [
+      "import type { PageLoad } from \"./\\$types\";",
+      "",
+      "export const load: PageLoad = async () => {",
+      "\t$0",
+      "}"
+    ]
+  }
+}
