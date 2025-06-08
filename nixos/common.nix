@@ -309,5 +309,10 @@ in
     gnumake
     luajitPackages.jsregexp
     mir-qualia
+    linux-wifi-hotspot
+    xorg.xwininfo
+    nodemon
+    docker
+    docker-compose
   ];
 }
