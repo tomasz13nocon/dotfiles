@@ -256,7 +256,7 @@ in
     wineWowPackages.stable
     maim
     feh
-    ranger
+    unstable.ranger
     kdePackages.qt6ct
     # kdePackages.breeze-icons
     kdePackages.kolourpaint
@@ -314,5 +314,6 @@ in
     nodemon
     docker
     docker-compose
+    nnn
   ];
 }
