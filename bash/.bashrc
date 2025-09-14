@@ -65,7 +65,7 @@ shopt -s nocaseglob
 # Avoid duplicates
 #HISTCONTROL=ignoredups:erasedups
 # Leading space disables history
-HISTCONTROL=ignorespace
+HISTCONTROL=ignorespace:ignoredups
 # Big history
 export HISTSIZE=10000
 export HISTFILESIZE=10000

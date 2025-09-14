@@ -23,9 +23,9 @@ hibernate=''
 shutdown=''
 reboot=''
 lock=''
-suspend=''
+suspend='󰤄'
 logout='󰗽'
-screenoff='󰤄'
+screenoff='󰶐'
 yes=''
 no=''
 
@@ -54,7 +54,7 @@ confirm_cmd() {
 # Pass variables to rofi dmenu
 run_rofi() {
 	# echo -e "$lock\n$suspend\n$logout\n$hibernate\n$reboot\n$shutdown" | rofi_cmd
-	echo -e "$logout\n$reboot\n$shutdown\n$screenoff\n$lock" | rofi_cmd
+	echo -e "$logout\n$reboot\n$shutdown\n$screenoff\n$suspend" | rofi_cmd
 }
 
 # Actions

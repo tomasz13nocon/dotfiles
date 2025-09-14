@@ -10,7 +10,7 @@ require 'mason-lspconfig'.setup {
     "marksman",
     "tailwindcss",
     "astro",
-    -- "rust_analyzer",
+    "rust_analyzer",
     "clangd",
     "svelte",
     "yamlls",

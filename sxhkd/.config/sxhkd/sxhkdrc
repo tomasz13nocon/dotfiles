@@ -24,6 +24,9 @@ super + Escape
 super + e
 	nemo
 
+super + shift + l
+	xsecurelock
+
 #
 # bspwm hotkeys
 #

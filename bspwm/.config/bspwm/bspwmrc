@@ -33,6 +33,10 @@ easyeffects --gapplication-service &
 
 picom -b
 
+blueman-applet &
+
+xss-lock xsecurelock &
+
 # xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240 --right-of DisplayPort-1
 # BEGIN pc
  #xrandr --newmode "1920x1080_280v" 628.00 1920 1968 2028 2040 1080 1090 1092 1100 -HSync +Vsync

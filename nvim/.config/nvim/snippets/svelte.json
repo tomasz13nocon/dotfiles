@@ -7,7 +7,7 @@
       "\t\t$1",
       "\t};",
       "",
-      "\tconst { $0 }: Props = \\$props();",
+      "\tlet { $0 }: Props = \\$props();",
       "</script>"
     ]
   },

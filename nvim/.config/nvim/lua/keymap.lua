@@ -59,6 +59,7 @@ map('',  '<C-6>',       '<cmd>lua require"bufferline".go_to(6, true)<CR>')
 map('',  '<C-7>',       '<cmd>lua require"bufferline".go_to(7, true)<CR>')
 map('',  '<C-8>',       '<cmd>lua require"bufferline".go_to(8, true)<CR>')
 map('',  '<C-9>',       '<cmd>lua require"bufferline".go_to(-1, true)<CR>')
+map('n', '<C-/>',       'gcc', { remap = true }) -- this should probably be a plug mapping
 map('n', '<C-Up>',      ':resize +2<CR>')
 map('n', '<C-Down>',    ':resize -2<CR>')
 map('n', '<C-Left>',    ':vertical resize -2<CR>')
@@ -154,6 +155,7 @@ map('v', '>',           '>gv')
 map('v', '<A-j>',       ":m '>+1<CR>gv=gv")
 map('v', '<A-k>',       ":m '<-2<CR>gv=gv")
 -- LEADER
+map('v', '<C-/>',       'gc', { remap = true }) -- this should probably be a plug mapping
 map('v', '<Leader>b',   'gb', { remap = true }) -- this should probably be a plug mapping
 map('v', '<Leader>c',   'gc', { remap = true }) -- this should probably be a plug mapping
 map('v', '<Leader>w',   '<Esc>:w<CR>')
