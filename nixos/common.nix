@@ -126,6 +126,8 @@ in
 
   programs.file-roller.enable = true;
 
+  programs.nix-ld.enable = true;
+
   # programs.direnv = {
   #   enable = true;
   #   nix-direnv = {
@@ -315,5 +317,18 @@ in
     docker
     docker-compose
     nnn
+    libsForQt5.konqueror
+    unstable.postgresql
+    beekeeper-studio
+    # dbeaver-bin
+    xsecurelock
+    xss-lock
+    rquickshare
+    loupe
+    dcmtk
+    gthumb
+    code-cursor
+    unstable.gleam
+    xournalpp
   ];
 }
