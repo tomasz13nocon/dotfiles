@@ -349,5 +349,6 @@ in
     # gede
     nix-tree
     sshfs
+    megasync
   ];
 }

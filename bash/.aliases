@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-alias db='surreal start -u root -p root rocksdb:///home/user/.local/share/eu.freymedical.eye-expert/db/'
+alias hotspot='sudo create_ap wlp8s0 enp9s0 MyAccessPoint qwe12345'
 
 alias gs='git status'
 alias gc='git commit'
