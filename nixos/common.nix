@@ -273,8 +273,6 @@ in
     kdePackages.qt6ct
     # kdePackages.breeze-icons
     kdePackages.kolourpaint
-    surrealdb
-    surrealist
     nvd
     complete-alias
     kdePackages.kdeconnect-kde
