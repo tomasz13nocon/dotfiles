@@ -11,6 +11,32 @@
       "</script>"
     ]
   },
+  "props": {
+    "prefix": "props",
+    "body": [
+      "type Props = {",
+      "\t$1",
+      "};",
+      "",
+      "let { $0 }: Props = \\$props();"
+    ]
+  },
+  "dataprops": {
+    "prefix": "dataprops",
+    "body": [
+      "import type { PageProps } from \"./\\$types\";",
+      "",
+      "let { data }: PageProps = \\$props();"
+    ]
+  },
+  "pageprops": {
+    "prefix": "pageprops",
+    "body": [
+      "import type { PageProps } from \"./\\$types\";",
+      "",
+      "let { data }: PageProps = \\$props();"
+    ]
+  },
   "snip": {
     "prefix": "snip",
     "body": [

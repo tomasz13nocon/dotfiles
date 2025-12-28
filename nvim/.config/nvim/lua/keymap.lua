@@ -49,7 +49,7 @@ map('',  '<C-p>',       fzf_lua.files) -- builtin.find_files
 map('',  '<C-S-p>',     fzf_lua.live_grep) -- builtin.live_grep
 map('',  '<C-z>',       '<nop>')
 map('',  '<C-q>',       '<cmd>lua delbuf()<CR>') -- :BufferClose<CR> , :bd<CR>:bp<CR> , :BufferLineCyclePrev<CR>:BufDel#<CR>
-map('',  '<C-s>',       ':ISwapWith<CR>')
+map('',  '<C-s>',      '<cmd>:w<CR>') -- ':ISwapWith<CR>'
 map('',  '<C-1>',       '<cmd>lua require"bufferline".go_to(1, true)<CR>')
 map('',  '<C-2>',       '<cmd>lua require"bufferline".go_to(2, true)<CR>')
 map('',  '<C-3>',       '<cmd>lua require"bufferline".go_to(3, true)<CR>')

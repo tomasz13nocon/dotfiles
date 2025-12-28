@@ -86,7 +86,7 @@ in
   users.users.user = {
     isNormalUser = true;
     description = "user";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" ];
     packages = with pkgs; [];
   };
 
@@ -128,6 +128,13 @@ in
 
   programs.nix-ld.enable = true;
 
+  system.activationScripts.usrShareZoneinfo = ''
+    mkdir -p /usr/share
+    ln -sfn ${pkgs.tzdata}/share/zoneinfo /usr/share/zoneinfo
+  '';
+
+  # programs.npm.enable = true;
+
   # programs.direnv = {
   #   enable = true;
   #   nix-direnv = {
@@ -151,6 +158,10 @@ in
       layout = "pl";
       variant = "";
     };
+  };
+
+  virtualisation.docker = {
+    enable = true;
   };
 
   services.libinput.mouse.accelProfile = "flat";
@@ -196,8 +207,8 @@ in
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    unstable.neovim
+  environment.systemPackages = with unstable; [
+    neovim
     polybar
     rofi
     sxhkd
@@ -211,7 +222,7 @@ in
     papirus-icon-theme
     font-manager
     nitrogen
-    (python3.withPackages(pypkgs: with pypkgs; [
+    (pkgs.python3.withPackages(pypkgs: with pypkgs; [
       dbus-python # polybar-now-playing
       subliminal
     ]))
@@ -239,17 +250,17 @@ in
     playerctl
     openvpn
     android-tools
-    nodejs_22
+    nodejs_24
     pnpm
     # rustup
-    unstable.rustc
-    unstable.cargo
-    unstable.cargo-update
-    unstable.cargo-edit
-    unstable.cargo-outdated
-    unstable.rustfmt
-    unstable.clippy
-    unstable.rust-analyzer
+    rustc
+    cargo
+    cargo-update
+    cargo-edit
+    cargo-outdated
+    rustfmt
+    clippy
+    rust-analyzer
     # gcc
     unzip
     dconf
@@ -258,12 +269,12 @@ in
     wineWowPackages.stable
     maim
     feh
-    unstable.ranger
+    ranger
     kdePackages.qt6ct
     # kdePackages.breeze-icons
     kdePackages.kolourpaint
-    unstable.surrealdb
-    unstable.surrealist
+    surrealdb
+    surrealist
     nvd
     complete-alias
     kdePackages.kdeconnect-kde
@@ -275,8 +286,8 @@ in
     ffmpeg
     discord
     redshift
-    unstable.helix
-    #unstable.zed-editor
+    helix
+    #zed-editor
     usbimager
     nomacs
     gparted
@@ -306,7 +317,7 @@ in
     pkg-config
     sublime-merge
     just
-    electrum
+    pkgs.electrum
     libreoffice-qt6
     gnumake
     luajitPackages.jsregexp
@@ -317,9 +328,8 @@ in
     docker
     docker-compose
     nnn
-    libsForQt5.konqueror
-    unstable.postgresql
-    beekeeper-studio
+    postgresql
+    pkgs.beekeeper-studio
     # dbeaver-bin
     xsecurelock
     xss-lock
@@ -328,7 +338,17 @@ in
     dcmtk
     gthumb
     code-cursor
-    unstable.gleam
+    gleam
+    erlang
     xournalpp
+    gearlever
+    appimage-run
+    obsidian
+    npm-check-updates
+    baobab
+    gdb
+    # gdbgui
+    # gede
+    nix-tree
   ];
 }

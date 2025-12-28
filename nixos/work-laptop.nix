@@ -12,6 +12,13 @@ in
 
   networking.hostName = "nixos-work-laptop";
 
+  fileSystems = {
+    "/mnt/win" = {
+      device = "/dev/nvme0n1p3";
+      fsType = "ntfs-3g";
+    };
+  };
+
   users.users.user = {
     extraGroups = [ "video" ];
   };

@@ -20,9 +20,33 @@
     "body": [
       "import type { PageLoad } from \"./\\$types\";",
       "",
-      "export const load: PageLoad = async () => {",
+      "export const load: PageLoad = async ({ params }) => {",
       "\t$0",
+      "\treturn {};",
       "}"
+    ]
+  },
+  "layoutload": {
+    "prefix": "layoutload",
+    "body": [
+      "import type { LayoutLoad } from \"./\\$types\";",
+      "",
+      "export const load: LayoutLoad = async ({ params }) => {",
+      "\t$0",
+      "\treturn {};",
+      "}"
+    ]
+  },
+  "formactions": {
+    "prefix": ["formactions", "actions"],
+    "body": [
+      "import type { Actions } from \"./\\$types\";",
+      "",
+      "export const actions = {",
+      "\tdefault: async (event) => {",
+      "\t\t$0",
+      "\t}",
+      "} satisfies Actions;"
     ]
   }
 }

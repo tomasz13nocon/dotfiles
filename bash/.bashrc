@@ -209,3 +209,6 @@ export NVM_DIR="$HOME/.local/share/nvm"
 
 # Must be after shell extensions that manipulate the prompt.
 eval "$(direnv hook bash)"
+
+# opencode
+export PATH=/home/user/.opencode/bin:$PATH
