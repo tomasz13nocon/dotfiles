@@ -348,5 +348,6 @@ in
     # gdbgui
     # gede
     nix-tree
+    sshfs
   ];
 }
