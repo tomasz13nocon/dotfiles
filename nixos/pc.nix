@@ -18,11 +18,11 @@ in
 
   fileSystems = {
     "/mnt/win" = {
-      device = "/dev/nvme0n1p3";
+      device = "/dev/7E96A8EB96A8A4DD";
       fsType = "ntfs-3g";
     };
     "/mnt/hdd" = {
-      device = "/dev/sdb1";
+      device = "/dev/disk/by-uuid/01D59F3789A49520";
     };
   };
 

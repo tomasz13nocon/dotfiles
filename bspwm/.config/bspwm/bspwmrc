@@ -35,6 +35,8 @@ picom -b
 
 blueman-applet &
 
+DO_NOT_UNSET_QT_QPA_PLATFORMTHEME=1 DO_NOT_SET_DESKTOP_SETTINGS_UNAWARE=1 megasync &
+
 xss-lock xsecurelock &
 
 # xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240 --right-of DisplayPort-1
