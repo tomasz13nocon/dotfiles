@@ -109,7 +109,7 @@ return packer.startup(function(use)
   -- })
   -- use 'arafatamim/emmet-ls'
   use 'onsails/lspkind.nvim'
-  use 'folke/neodev.nvim'
+  -- use 'folke/lazydev.nvim'
   use 'b0o/schemastore.nvim'
   -- use 'github/copilot.vim'
   -- use "zbirenbaum/copilot.lua"
@@ -139,7 +139,6 @@ return packer.startup(function(use)
   use 'lukas-reineke/indent-blankline.nvim' -- makes 'leafOfTree/vim-matchtag' obsolete
   -- use 'rcarriga/nvim-notify'
   -- use 'haringsrob/nvim_context_vt'
-  -- use 'SmiteshP/nvim-navic'
   use 'nvim-telescope/telescope-ui-select.nvim'
   -- use { "anuvyklack/windows.nvim",
   --  requires = {

@@ -28,6 +28,7 @@ require 'ts-node-action'.setup{}
 require 'nvim-surround'.setup{}
 require 'which-key'.setup{}
 require 'trouble'.setup{}
+-- require 'lazydev'.setup{} -- I think this needs lazy.nvim to work...?
 require 'fidget'.setup{}
 require 'aerial'.setup()
 -- require 'oil'.setup{}

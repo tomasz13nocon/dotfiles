@@ -2,7 +2,7 @@
 require 'mason'.setup()
 require 'mason-lspconfig'.setup {
   ensure_installed = {
-    -- "lua_ls",
+    "lua_ls",
     "emmet_language_server",
     "html",
     "cssls",
@@ -23,11 +23,6 @@ require 'mason-lspconfig'.setup {
     -- "vtsls",
   }
 }
-require("neodev").setup {}
-
-local lspconfig = require 'lspconfig'
--- local configs = require'lspconfig.configs'
--- local navic = require("nvim-navic")
 
 -- cmp has more LSP client capabilities than vanilla neovim, so we need to let servers know this, to get completion for more stuff like auto imports, etc.
 local capabilities = vim.tbl_deep_extend(
@@ -43,11 +38,6 @@ local capabilities = vim.tbl_deep_extend(
 )
 
 local on_attach = function(client, bufnr)
-  -- if client.server_capabilities.documentSymbolProvider then
-  --   navic.attach(client, bufnr)
-  -- end
-  -- lsp_keymaps(bufnr)
-  -- lsp_highlight_document(client)
   if client.server_capabilities.signatureHelpProvider then
     require('lsp-overloads').setup(client, {})
     vim.keymap.set("n", "<leader>k", ":LspOverloadsSignature<CR>", { noremap = true, silent = true, buffer = bufnr })
@@ -57,30 +47,32 @@ local on_attach = function(client, bufnr)
   require("workspace-diagnostics").populate_workspace_diagnostics(client, bufnr)
 end
 
-local default_setup = {
+vim.lsp.config("*", {
   capabilities = capabilities,
   on_attach = on_attach,
-}
+})
 
--- custom protobuf lsp config
-local configs = require('lspconfig.configs')
-local util = require('lspconfig.util')
-configs["protobuf-language-server"] = {
-  default_config = {
-    cmd = { 'protobuf-language-server' },
-    filetypes = { 'proto', 'cpp' },
-    root_fir = util.root_pattern('.git'),
-    single_file_support = true,
+vim.lsp.enable "html"
+vim.lsp.enable "mdx_analyzer"
+vim.lsp.enable "phpactor"
+vim.lsp.enable "prismals"
+vim.lsp.enable "pyright"
+vim.lsp.enable "astro"
+
+vim.lsp.config.lua_ls = {
+  settings = {
+    Lua = {
+      diagnostics = {
+        globals = {
+          "vim"
+        }
+      }
+    }
   }
 }
+vim.lsp.enable "lua_ls"
 
-lspconfig.lua_ls.setup(default_setup)
-lspconfig["protobuf-language-server"].setup(default_setup)
--- try disabling html (emmet)
-lspconfig.html.setup(default_setup)
-lspconfig.cssls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
+vim.lsp.config.cssls = {
   init_options = {
     provideFormatter = false
   },
@@ -92,10 +84,10 @@ lspconfig.cssls.setup({
       },
     }
   }
-})
-lspconfig.ts_ls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
+}
+vim.lsp.enable "cssls"
+
+vim.lsp.config.ts_ls = {
   init_options = {
     typescript = {
       tsdk = "/home/user/.local/share/nvim/mason/packages/typescript-language-server/node_modules/typescript/lib/"
@@ -106,7 +98,8 @@ lspconfig.ts_ls.setup({
       importModuleSpecifierPreference = "non-relative",
     },
   },
-})
+}
+vim.lsp.enable "ts_ls"
 -- lspconfig.vtsls.setup(default_setup)
 -- require("typescript").setup {
 --   server = {
@@ -138,11 +131,8 @@ lspconfig.ts_ls.setup({
 --     },
 --   }
 -- }
--- using mrcjkb/rustaceanvim instead
-lspconfig.mdx_analyzer.setup(default_setup)
-lspconfig.rust_analyzer.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
+
+vim.lsp.config.rust_analyzer = {
   settings = {
     ["rust-analyzer"] = {
       installRustc = false,
@@ -159,18 +149,15 @@ lspconfig.rust_analyzer.setup({
       }
     }
   }
+}
+vim.lsp.enable "rust_analyzer"
 
-})
-lspconfig.phpactor.setup(default_setup)
-lspconfig.prismals.setup(default_setup)
-lspconfig.pyright.setup(default_setup)
-lspconfig.clangd.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
+vim.lsp.config.clangd = {
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "hpp" },
-})
-lspconfig.svelte.setup({
-  capabilities = capabilities,
+}
+vim.lsp.enable "clangd"
+
+vim.lsp.config.svelte = {
   on_attach = function(client, bufnr)
     on_attach(client, bufnr)
     vim.api.nvim_create_autocmd("BufWritePost", {
@@ -180,11 +167,10 @@ lspconfig.svelte.setup({
       end,
     })
   end,
-})
-lspconfig.astro.setup(default_setup)
-lspconfig.tailwindcss.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
+}
+vim.lsp.enable "svelte"
+
+vim.lsp.config.tailwindcss = {
   settings = {
     tailwindCSS = {
       experimental = {
@@ -196,9 +182,10 @@ lspconfig.tailwindcss.setup({
       },
     },
   },
-})
-lspconfig.cssmodules_ls.setup {
-  capabilities = capabilities,
+}
+vim.lsp.enable "tailwindcss"
+
+vim.lsp.config.cssmodules_ls = {
   on_attach = function(client, bufnr)
     client.server_capabilities.definitionProvider = false
     on_attach(client, bufnr)
@@ -207,9 +194,9 @@ lspconfig.cssmodules_ls.setup {
     camelCase = 'dashes',
   },
 }
-lspconfig.omnisharp.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
+vim.lsp.enable "cssmodules_ls"
+
+vim.lsp.config.omnisharp = {
   handlers = {
     ["textDocument/definition"] = require('omnisharp_extended').handler,
   },
@@ -223,38 +210,20 @@ lspconfig.omnisharp.setup {
   enable_import_completion = true,
   -- sdk_include_prereleases = true,
 }
-lspconfig.yamlls.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
+vim.lsp.enable "omnisharp"
+
+vim.lsp.config.yamlls = {
   settings = {
     yaml = {
       keyOrdering = false
     }
   }
 }
--- on_attach = function(client, bufnr)
---   on_attach()
---   client.server_capabilities.documentFormattingProvider = false
--- end,
+vim.lsp.enable "yamlls"
 
--- aca/emmet-ls
--- lspconfig.emmet_ls.setup{
---   capabilities = capabilities,
---   on_attach = on_attach,
---   filetypes = { 'html', 'css', 'sass', 'scss', 'less', 'svelte', 'astro' },
---   init_options = {
---     html = {
---       options = {
---         -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
---         -- ["bem.enabled"] = true,
---         ["jsx.enabled"] = true,
---       },
---     },
---   }
--- }
 
 -- olrtg/emmet-ls (fork)
-lspconfig.emmet_language_server.setup({
+vim.lsp.config.emmet_language_server = {
   filetypes = { "css", "eruby", "html", "javascript", "javascriptreact", "less", "sass", "scss", "pug", "typescriptreact", "astro", "vue" },
   -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
   -- **Note:** only the options listed in the table are supported.
@@ -278,11 +247,10 @@ lspconfig.emmet_language_server.setup({
     --- @type table<string, string> [Emmet Docs](https://docs.emmet.io/customization/snippets/#variables)
     variables = {},
   },
-})
+}
+vim.lsp.enable "emmet_language_server"
 
-lspconfig.jsonls.setup {
-  capabilities = capabilities,
-  on_attach = on_attach,
+vim.lsp.config.jsonls = {
   settings = {
     json = {
       schemas = require('schemastore').json.schemas(),
@@ -290,6 +258,7 @@ lspconfig.jsonls.setup {
     },
   },
 }
+vim.lsp.enable "jsonls"
 
 
 local none_ls = require("null-ls")
@@ -366,21 +335,16 @@ none_ls.setup {
   }
 }
 
-
-local signs = {
-  { name = "DiagnosticSignError", text = "" },
-  { name = "DiagnosticSignWarn", text = "" },
-  { name = "DiagnosticSignHint", text = "" },
-  { name = "DiagnosticSignInfo", text = "" },
-}
-for _, sign in ipairs(signs) do
-  vim.fn.sign_define(sign.name, { texthl = sign.name, text = sign.text, numhl = "" })
-end
 vim.diagnostic.config {
   virtual_text = { severity = vim.diagnostic.severity.ERROR },
   signs = {
-    active = signs,
     -- severity = { min = vim.diagnostic.severity.HrNT },
+    text = {
+      [vim.diagnostic.severity.ERROR] = " ",
+      [vim.diagnostic.severity.WARN] = " ",
+      [vim.diagnostic.severity.INFO] = " ",
+      [vim.diagnostic.severity.HINT] = " ",
+    },
   },
   -- update_in_insert = true,
   -- underline = true,
