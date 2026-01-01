@@ -208,6 +208,7 @@ in
       nerd-fonts.droid-sans-mono
       nerd-fonts.jetbrains-mono
       nerd-fonts.meslo-lg
+      nerd-fonts.iosevka
     ];
     fontconfig = {
       defaultFonts = {
@@ -238,7 +239,6 @@ in
     qogir-theme
     papirus-icon-theme
     font-manager
-    nitrogen
     (pkgs.python3.withPackages(pypkgs: with pypkgs; [
       dbus-python # polybar-now-playing
       subliminal

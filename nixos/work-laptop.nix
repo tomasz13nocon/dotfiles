@@ -29,7 +29,6 @@ in
   ];
 
   hardware.graphics.extraPackages = with unstable; [
-    # mesa
     libgbm
     intel-vaapi-driver
     intel-media-driver
