@@ -23,9 +23,16 @@ in
     extraGroups = [ "video" ];
   };
 
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = with unstable; [
     # ...
     brightnessctl
+  ];
+
+  hardware.graphics.extraPackages = with unstable; [
+    # mesa
+    libgbm
+    intel-vaapi-driver
+    intel-media-driver
   ];
 
   services.xserver = {

@@ -13,7 +13,8 @@ pgrep -x sxhkd > /dev/null || sxhkd &
 
 ~/bin/polybar-start &
 
-nitrogen --restore &
+# wallpaper
+feh --bg-fill ~/Pictures/Pretty/1475101751132.jpg
 
 xbindkeys
 

@@ -136,8 +136,6 @@ in
   #   enableSSHSupport = true;
   # };
 
-  programs.file-roller.enable = true;
-
   programs.nix-ld.enable = true;
 
   system.activationScripts.usrShareZoneinfo = ''
@@ -206,7 +204,10 @@ in
   fonts = {
     packages = with pkgs; [
       dina-font
-      nerdfonts
+      nerd-fonts.fira-code
+      nerd-fonts.droid-sans-mono
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.meslo-lg
     ];
     fontconfig = {
       defaultFonts = {
@@ -216,6 +217,10 @@ in
       };
     };
   };
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "beekeeper-studio-5.3.4"
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -362,5 +367,8 @@ in
     nix-tree
     sshfs
     megasync
+    pciutils
+    lshw
+    file-roller
   ];
 }
