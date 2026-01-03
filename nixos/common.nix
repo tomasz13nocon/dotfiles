@@ -370,5 +370,6 @@ in
     pciutils
     lshw
     file-roller
+    xdg-terminal-exec
   ];
 }
