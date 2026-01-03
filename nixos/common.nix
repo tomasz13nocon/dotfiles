@@ -227,7 +227,7 @@ in
   # $ nix search wget
   environment.systemPackages = with unstable; [
     neovim
-    polybar
+    pkgs.polybar
     rofi
     sxhkd
     alacritty
@@ -294,7 +294,6 @@ in
     complete-alias
     kdePackages.kdeconnect-kde
     unityhub
-    vscode
     mono
     dotnetCorePackages.dotnet_10.sdk
     obs-studio
@@ -337,7 +336,7 @@ in
     gnumake
     luajitPackages.jsregexp
     mir-qualia
-    linux-wifi-hotspot
+    pkgs.linux-wifi-hotspot
     xorg.xwininfo
     nodemon
     docker
@@ -352,7 +351,6 @@ in
     loupe
     dcmtk
     gthumb
-    code-cursor
     gleam
     erlang
     xournalpp
@@ -371,5 +369,6 @@ in
     lshw
     file-roller
     xdg-terminal-exec
+    opencode
   ];
 }

@@ -5,6 +5,9 @@ export XDG_CONFIG_HOME=$HOME/.config
 export XDG_STATE_HOME=$HOME/.local/state
 export XDG_CACHE_HOME=$HOME/.cache
 
+mkdir -p "$XDG_STATE_HOME"/bash
+mkdir -p "$XDG_STATE_HOME"/python
+
 # Cleanup $HOME
 export HISTFILE="$XDG_STATE_HOME"/bash/history
 export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
@@ -32,6 +35,8 @@ export _JAVA_OPTIONS=-Djava.util.prefs.userRoot="$XDG_CONFIG_HOME"/java
 export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
 export XCOMPOSEFILE="$XDG_CONFIG_HOME"/X11/xcompose
 export XCOMPOSECACHE="$XDG_CACHE_HOME"/X11/xcompose
+export PYTHON_HISTORY="$XDG_STATE_HOME"/python/history
+export GRADLE_USER_HOME="$XDG_DATA_HOME"/gradle
 
 alias wget='wget --hsts-file="$XDG_DATA_HOME/wget-hsts"'
 alias adb='HOME="$XDG_DATA_HOME"/android adb'
@@ -209,6 +214,3 @@ export NVM_DIR="$HOME/.local/share/nvm"
 
 # Must be after shell extensions that manipulate the prompt.
 eval "$(direnv hook bash)"
-
-# opencode
-export PATH=/home/user/.opencode/bin:$PATH
