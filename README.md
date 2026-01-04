@@ -1,9 +1,4 @@
-Not easily stowable settings:
+## Machine specific differences
 
-## Firefox
-Firefox files have to be linked manually, due to randomly generated profile folder names.
+These are handled via [mir.qualia](https://github.com/darkfeline/mir.qualia)
 
-## Gnome
-`dconf dump / > dconf-settings.ini`
-
-`dconf load / < dconf-settings.ini`
