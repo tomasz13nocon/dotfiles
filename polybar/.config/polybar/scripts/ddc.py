@@ -4,8 +4,6 @@ from multiprocessing.connection import Listener
 from multiprocessing.connection import Client
 import sys
 from threading import Timer
-#import psutil
-import os
 import signal
 import time
 
@@ -32,8 +30,12 @@ def apply_brightness(monitor, value):
 def daemon():
     current = {}
     listeners = {}
-    for id, model in monitors.items():
-        current[model] = get_brightness(model)
+
+    result = subprocess.run("sudo ddcutil detect | grep Model: | sed 's/.*Model:[[:space:]]*//'", shell=True, stdout=subprocess.PIPE)
+    for model in result.stdout.splitlines():
+        model_str = model.decode()
+        if model_str.strip():
+            current[model_str] = get_brightness(model_str)
 
     t = Timer(0, lambda: 0)
 
@@ -46,6 +48,7 @@ def daemon():
             monitor = msg["monitor"]
             if msg["action"] == "get":
                 print("sending " + str(current[monitor]) + " on " + monitor)
+
                 conn.send(current[monitor])
                 # conn.close ??
             elif msg["action"] == "set":
@@ -98,42 +101,47 @@ def send_to_daemon(msg):
 
 
 address = ("127.0.0.1", 4616)
-# hardcoded monitors, yikes
-monitors = {"DP-1": "VG259QM", "DP-2": "DELL P2414H"}
-# monitor = monitors[(None if len(sys.argv) <= 2 else sys.argv[2]) or "DisplayPort-0"]
-monitor = monitors[(None if len(sys.argv) <= 2 else sys.argv[2]) or "DP-1"]
 
-match sys.argv[1]:
-    case "daemon":
-        daemon()
-    case "get":
-        conn = Client(address)
-        conn.send({"action": "get", "monitor": monitor})
-        msg = conn.recv()
-        print(msg)
-        conn.close()
-    case "set":
-        send_to_daemon({"action": "set", "monitor": monitor, "value": int(sys.argv[3])})
-    case "listen":
-        monitor_address = (address[0], address[1] + (hash(monitor) % 380))
-        print("..")
-        time.sleep(2)
-        listener = Listener(monitor_address)
-        print("sending 'listen' to daemon", monitor_address)
-        try:
-            send_to_daemon(
-                {"action": "listen", "monitor": monitor, "address": monitor_address}
-            )
-        except ConnectionRefusedError:
-            print("xx")
-            time.sleep(1)
-            exit()
-        conn = listener.accept()
-        try:
-            while True:
-                msg = conn.recv()
-                print(msg)
-        finally:
-            send_to_daemon({"action": "unlisten", "monitor": monitor})
+if sys.argv[1] == "daemon":
+    daemon()
+else:
+    if len(sys.argv) <= 2:
+        print("No monitor specified, exiting")
+        exit(1)
+
+    monitor = sys.argv[2]
+
+    match sys.argv[1]:
+        case "daemon":
+            daemon()
+        case "get":
+            conn = Client(address)
+            conn.send({"action": "get", "monitor": monitor})
+            msg = conn.recv()
+            print(msg)
             conn.close()
-            listener.close()
+        case "set":
+            send_to_daemon({"action": "set", "monitor": monitor, "value": int(sys.argv[3])})
+        case "listen":
+            monitor_address = (address[0], address[1] + (hash(monitor) % 380))
+            print("..")
+            time.sleep(2)
+            listener = Listener(monitor_address)
+            print("sending 'listen' to daemon", monitor_address)
+            try:
+                send_to_daemon(
+                    {"action": "listen", "monitor": monitor, "address": monitor_address}
+                )
+            except ConnectionRefusedError:
+                print("xx")
+                time.sleep(1)
+                exit()
+            conn = listener.accept()
+            try:
+                while True:
+                    msg = conn.recv()
+                    print(msg)
+            finally:
+                send_to_daemon({"action": "unlisten", "monitor": monitor})
+                conn.close()
+                listener.close()

@@ -83,7 +83,7 @@ xrdb ~/.Xresources
 # plank &
 # exec gala
 
-export QT_QPA_PLATFORMTHEME=qt6ct
+# export QT_QPA_PLATFORMTHEME=qt6ct
 #export XDG_SESSION_TYPE=x11
 #export GDK_BACKEND=x11
 
@@ -97,5 +97,22 @@ export QT_QPA_PLATFORMTHEME=qt6ct
 # QT_IM_MODULE=ibus
 # XMODIFIERS=@im=ibus
 # ibus-daemon -drxR
+
+# xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240 --right-of DisplayPort-1
+# BEGIN pc
+# #export MONITOR1=DP-1
+# #export MONITOR2=DP-2
+#
+# #xrandr --newmode "1920x1080_280v" 628.00 1920 1968 2028 2040 1080 1090 1092 1100 -HSync +Vsync
+# #xrandr --addmode $MONITOR1 "1920x1080_280v"
+# #xrandr --output $MONITOR1 --right-of $MONITOR2
+# #xrandr --output $MONITOR1 --mode 1920x1080_280v --rate 280 --right-of $MONITOR2
+# END pc
+# BEGIN work-laptop
+#export MONITOR1=eDP-1
+#export MONITOR2=HDMI-1
+#
+#xrandr --output HDMI-1 --mode 2560x1440 --rate 144 --above eDP-1
+# END work-laptop
 
 exec bspwm

@@ -10,7 +10,6 @@ require 'plugin_setup.conform'
 require 'plugin_setup.blink'
 -- require 'plugin_setup.cmp'
 require 'plugin_setup.lsp'
--- require 'plugin_setup.foldhue'
 -- require 'plugin_setup.lsp_inlayhints'
 -- require 'plugin_setup.navic'
 -- require 'plugin_setup.neodim'
@@ -18,7 +17,6 @@ require 'plugin_setup.lsp'
 
 
 require 'various-textobjs'.setup{ keymaps = { useDefaults = true } } -- nvim-various-textobjs
-require 'ccc'.setup{ highlighter = { auto_enable = true } }
 require 'luasnip.loaders.from_vscode'.lazy_load({ paths = { "./snippets" } })
 require 'lsp-file-operations'.setup()
 require("cmp_nvim_ultisnips").setup{}
@@ -26,6 +24,7 @@ require("cmp_nvim_ultisnips").setup{}
 require 'nvim-ts-autotag'.setup{}
 require 'ts-node-action'.setup{}
 require 'nvim-surround'.setup{}
+require 'colorizer'.setup()
 require 'which-key'.setup{}
 require 'trouble'.setup{}
 -- require 'lazydev'.setup{} -- I think this needs lazy.nvim to work...?

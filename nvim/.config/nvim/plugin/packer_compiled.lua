@@ -134,11 +134,6 @@ _G.packer_plugins = {
     path = "/home/user/.local/share/nvim/site/pack/packer/start/catppuccin",
     url = "https://github.com/catppuccin/nvim"
   },
-  ["ccc.nvim"] = {
-    loaded = true,
-    path = "/home/user/.local/share/nvim/site/pack/packer/start/ccc.nvim",
-    url = "https://github.com/uga-rosa/ccc.nvim"
-  },
   ["cmp-buffer"] = {
     loaded = true,
     path = "/home/user/.local/share/nvim/site/pack/packer/start/cmp-buffer",
@@ -203,11 +198,6 @@ _G.packer_plugins = {
     loaded = true,
     path = "/home/user/.local/share/nvim/site/pack/packer/start/fidget.nvim",
     url = "https://github.com/j-hui/fidget.nvim"
-  },
-  ["foldhue.nvim"] = {
-    loaded = true,
-    path = "/home/user/.local/share/nvim/site/pack/packer/start/foldhue.nvim",
-    url = "https://github.com/milisims/foldhue.nvim"
   },
   ["fzf-lua"] = {
     loaded = true,
@@ -338,6 +328,11 @@ _G.packer_plugins = {
     loaded = true,
     path = "/home/user/.local/share/nvim/site/pack/packer/start/nvim-cmp",
     url = "https://github.com/hrsh7th/nvim-cmp"
+  },
+  ["nvim-colorizer.lua"] = {
+    loaded = true,
+    path = "/home/user/.local/share/nvim/site/pack/packer/start/nvim-colorizer.lua",
+    url = "https://github.com/catgoose/nvim-colorizer.lua"
   },
   ["nvim-lsp-file-operations"] = {
     loaded = true,

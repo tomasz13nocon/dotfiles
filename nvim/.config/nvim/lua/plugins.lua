@@ -184,10 +184,7 @@ return packer.startup(function(use)
   use 'rmagatti/auto-session'
   use 'chrisgrieser/nvim-various-textobjs'
   use 'AndrewRadev/splitjoin.vim'
-  use {
-    'uga-rosa/ccc.nvim',
-    tag = "v1.7.2", -- 2.0 be buggy af
-  }
+  use 'catgoose/nvim-colorizer.lua'
   -- use 'tomasz13nocon/vim-closer' -- better than 'windwp/nvim-autopairs'
   -- use 'm4xshen/autoclose.nvim' -- stupid
   use {
@@ -200,7 +197,6 @@ return packer.startup(function(use)
   use { 'kylechui/nvim-surround', tag = '*' }
   use 'lewis6991/gitsigns.nvim'
   use 'sindrets/diffview.nvim'
-  use 'milisims/foldhue.nvim'
   use 'folke/which-key.nvim'
   use 'dkarter/bullets.vim'
   use 'tommcdo/vim-exchange'

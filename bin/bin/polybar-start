@@ -4,13 +4,36 @@ python ~/.config/polybar/scripts/ddc.py daemon &
 
 polybar-msg cmd quit
 
-MONITOR=$MONITOR1 polybar -r main &
-MONITOR=$MONITOR1 polybar -r time &
-MONITOR=$MONITOR1 polybar -r date &
+# MONITOR_MODEL is needed for the ddc python script
+# Find MONITOR_MODEL by running `sudo ddcutil detect`
 
-# Wait to make sure tray is on first monitor
-# sleep 1
+# BEGIN pc
+ #MONITOR=$MONITOR1 MONITOR_MODEL="VG259QM" polybar -r main-ddc &
+ #MONITOR=$MONITOR1 polybar -r time &
+ #MONITOR=$MONITOR1 polybar -r date &
+ #
+ #MONITOR=$MONITOR2 MONITOR_MODEL="DELL P2414H" polybar -r main-no-tray-ddc &
+ #MONITOR=$MONITOR2 polybar -r time &
+ #MONITOR=$MONITOR2 polybar -r date &
+# END pc
+# BEGIN work-laptop
+#MONITOR=$MONITOR1 polybar -r main-no-tray-backlight-battery &
+#MONITOR=$MONITOR1 polybar -r time &
+#MONITOR=$MONITOR1 polybar -r date &
 #
-# MONITOR=$MONITOR2 polybar -r main &
-# MONITOR=$MONITOR2 polybar -r time &
-# MONITOR=$MONITOR2 polybar -r date &
+#MONITOR=$MONITOR2 MONITOR_MODEL="M27Q X" polybar -r main-ddc-battery &
+#MONITOR=$MONITOR2 polybar -r time-1440 &
+#MONITOR=$MONITOR2 polybar -r date-1440 &
+# END work-laptop
+
+# if type "xrandr"; then
+#   for m in $(xrandr --query | grep " connected" | cut -d" " -f1); do
+#     MONITOR=$m polybar -r main &
+#     MONITOR=$m polybar -r time &
+#     MONITOR=$m polybar -r date &
+#   done
+# else
+#   polybar -r main &
+#   polybar -r time &
+#   polybar -r date &
+# fi

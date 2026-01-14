@@ -12,6 +12,7 @@ in
 
   nix.extraOptions = ''
     trusted-users = root user
+    use-xdg-base-directories = true
   '';
 
   # Bootloader.
@@ -204,6 +205,8 @@ in
   fonts = {
     packages = with pkgs; [
       dina-font
+      noto-fonts-cjk-sans
+      noto-fonts-color-emoji
       nerd-fonts.fira-code
       nerd-fonts.droid-sans-mono
       nerd-fonts.jetbrains-mono
@@ -230,7 +233,8 @@ in
     pkgs.polybar
     rofi
     sxhkd
-    alacritty
+    # alacritty
+    alacritty-graphics # ayosec's fork, with image support
     vivid
     lsd
     firefox
@@ -301,7 +305,6 @@ in
     discord
     redshift
     helix
-    #zed-editor
     usbimager
     nomacs
     gparted
@@ -369,6 +372,17 @@ in
     lshw
     file-roller
     xdg-terminal-exec
+
+    # terminal eye candy
+    fastfetch
+    cava
+    pipes
+    cmatrix
+
+    everforest-gtk-theme
+    gtk-engine-murrine
+    monero-gui
     opencode
+    claude-code
   ];
 }

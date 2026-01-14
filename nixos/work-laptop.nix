@@ -40,6 +40,11 @@ in
     };
   };
 
+  # Allow 'video' group to change backlight brightness (needed for polybar scroll brightness change)
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="backlight", RUN+="${pkgs.coreutils}/bin/chgrp video $sys$devpath/brightness", RUN+="${pkgs.coreutils}/bin/chmod g+w $sys$devpath/brightness"
+  '';
+
   services.libinput = {
     touchpad.naturalScrolling = true;
     touchpad.accelProfile = "adaptive";

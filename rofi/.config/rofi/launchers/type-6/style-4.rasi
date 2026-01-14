@@ -21,11 +21,13 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    font:                        "JetBrains Mono Nerd Font 10";
+    /* font:                        "JetBrains Mono Nerd Font 10"; */
+    font:                        "Montserrat 10";
     background:                  #2D1B14;
     background-alt:              #462D23;
     foreground:                  #FFFFFF;
-    selected:                    #E25F3E;
+    /* selected:                    #E25F3E; */
+    selected:                    #C95639;
     active:                      #7B6C5B;
     urgent:                      #934A1C;
 }

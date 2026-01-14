@@ -121,6 +121,7 @@ alias cfmt='nix shell fenix#default.rustfmt -c cargo fmt'
 alias dim='redshift -x && xrandr --output DP-1 --brightness .4 && xrandr --output DP-2 --brightness .4 && redshift -O 2400'
 alias resetdim='redshift -x'
 alias mvi='mpv --config-dir=$HOME/.config/mvi'
+alias n='cd ~/notes && nvim'
 
 . $(whereis complete_alias | cut -d' ' -f2)
 complete -F _complete_alias gch

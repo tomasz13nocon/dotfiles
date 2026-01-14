@@ -1,20 +1,10 @@
 #! /bin/sh
 
 export QT_QPA_PLATFORMTHEME=qt5ct
-# BEGIN pc
- #export MONITOR1=DP-1
- #export MONITOR2=DP-2
-# END pc
-# BEGIN work-laptop
-#export MONITOR1=eDP-1
-# END work-laptop
 
 pgrep -x sxhkd > /dev/null || sxhkd &
 
 ~/bin/polybar-start &
-
-# wallpaper
-feh --bg-fill ~/Pictures/Pretty/1475101751132.jpg
 
 xbindkeys
 
@@ -40,13 +30,9 @@ DO_NOT_UNSET_QT_QPA_PLATFORMTHEME=1 DO_NOT_SET_DESKTOP_SETTINGS_UNAWARE=1 megasy
 
 xss-lock xsecurelock &
 
-# xrandr --output DisplayPort-0 --mode 1920x1080 --rate 240 --right-of DisplayPort-1
-# BEGIN pc
- #xrandr --newmode "1920x1080_280v" 628.00 1920 1968 2028 2040 1080 1090 1092 1100 -HSync +Vsync
- #xrandr --addmode $MONITOR1 "1920x1080_280v"
- #xrandr --output $MONITOR1 --right-of $MONITOR2
- #xrandr --output $MONITOR1 --mode 1920x1080_280v --rate 280 --right-of $MONITOR2
-# END pc
+
+# wallpaper
+feh --bg-fill ~/Pictures/Pretty/1475101751132.jpg
 
 # allows dragging windows in 240hz
 bspc config pointer_motion_interval 3
@@ -64,13 +50,20 @@ eww daemon
 # BEGIN pc
  #bspc monitor $MONITOR2 -d 1 2
  #bspc monitor $MONITOR1 -d 3 4 5 6 7 8
+ #bspc desktop '^1' -l monocle
+ #bspc desktop '^3' -l monocle
 # END pc
 # BEGIN work-laptop
-#bspc monitor $MONITOR1 -d 1 2 3 4 5 6 7 8
+#if xrandr | grep -q "HDMI-1 connected"; then
+#    bspc monitor $MONITOR1 -d 8 9 10
+#    bspc monitor $MONITOR2 -d 1 2 3 4 5 6 7
+#    bspc desktop '^1' -l monocle
+#    bspc desktop '^8' -l monocle
+#else
+#    bspc monitor $MONITOR1 -d 1 2 3 4 5 6 7 8
+#    bspc desktop '^1' -l monocle
+#fi
 # END work-laptop
-
-bspc desktop '^1' -l monocle
-bspc desktop '^3' -l monocle
 
 bspc config border_width         3
 bspc config window_gap           10
