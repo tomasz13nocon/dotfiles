@@ -49,6 +49,11 @@ in
     '';
   };
 
+  services.mongodb = {
+    enable = true;
+    package = pkgs.mongodb-ce;
+  };
+
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -384,5 +389,6 @@ in
     monero-gui
     opencode
     claude-code
+    pavucontrol
   ];
 }
