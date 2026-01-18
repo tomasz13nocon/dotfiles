@@ -36,8 +36,6 @@ return packer.startup(function(use)
   use 'wbinnssmith/base16-oceanic-next'
   use 'drewtempelmeyer/palenight.vim'
   use 'rebelot/kanagawa.nvim'
-  use 'sainnhe/edge'
-  use 'sainnhe/everforest'
   use 'rose-pine/neovim'
   use 'embark-theme/vim'
   use 'daschw/leaf.nvim'
@@ -47,6 +45,9 @@ return packer.startup(function(use)
   use 'ribru17/bamboo.nvim'
   use { 'catppuccin/nvim', as = 'catppuccin' }
   use 'projekt0n/github-nvim-theme'
+  use 'sainnhe/edge'
+  use 'sainnhe/gruvbox-material'
+  use 'sainnhe/everforest'
   -- use 'rafi/awesome-vim-colorschemes'
   -- use 'romgrk/doom-one.vim'
   -- use 'lukas-reineke/onedark.nvim'

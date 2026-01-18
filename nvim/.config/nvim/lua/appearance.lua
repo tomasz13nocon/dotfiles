@@ -7,7 +7,11 @@ colorscheme = "aurora-mod"
 colorscheme = "zephyr"
 colorscheme = "doom-one"
 colorscheme = "ayu-dark"
+colorscheme = "gruvbox-material"
 colorscheme = "kanagawa"
+
+vim.g.gruvbox_material_background = "hard"
+vim.g.gruvbox_material_foreground = "material"
 
 require('kanagawa').setup {
   commentStyle = { italic = false },
