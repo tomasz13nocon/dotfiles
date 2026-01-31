@@ -47,6 +47,12 @@ for p in "$@"; do
         files="${files} $conf/alacritty/alacritty.toml"
       fi
       ;;
+    nvim|vim|v)
+      if [[ -f $HOME/dotfiles/nvim ]]; then
+        cd $HOME/dotfiles/nvim && nvim
+        exit
+      fi
+      ;;
     *)
       echo "'$p' unrecognized"
       exit

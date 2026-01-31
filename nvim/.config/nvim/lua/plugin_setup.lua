@@ -36,6 +36,12 @@ require 'aerial'.setup()
 -- require('bamboo').setup {}
 -- require('bamboo').load()
 
+require 'supermaven-nvim'.setup{
+  condition = function()
+    return vim.fn.getcwd():match("^" .. vim.fn.expand("~/notes"))
+  end,
+}
+
 require("diffview").setup({
   view = {
     merge_tool = {
@@ -102,6 +108,3 @@ vim.cmd [[highlight def IlluminatedWordWrite guibg=#3e3e46 gui=NONE]]
 
 -- require'nvim_context_vt'.setup{}
 
--- copilot
-vim.g.copilot_no_tab_map = true
-vim.api.nvim_set_keymap("i", "<C-J>", 'copilot#Accept("<CR>")', { silent = true, expr = true })

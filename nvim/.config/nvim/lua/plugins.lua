@@ -36,7 +36,6 @@ return packer.startup(function(use)
   use 'wbinnssmith/base16-oceanic-next'
   use 'drewtempelmeyer/palenight.vim'
   use 'rebelot/kanagawa.nvim'
-  use 'rose-pine/neovim'
   use 'embark-theme/vim'
   use 'daschw/leaf.nvim'
   use 'EdenEast/nightfox.nvim'
@@ -110,11 +109,13 @@ return packer.startup(function(use)
   -- })
   -- use 'arafatamim/emmet-ls'
   use 'onsails/lspkind.nvim'
-  -- use 'folke/lazydev.nvim'
   use 'b0o/schemastore.nvim'
+
+  -- AI
   -- use 'github/copilot.vim'
   -- use "zbirenbaum/copilot.lua"
   -- use "zbirenbaum/copilot-cmp"
+  use 'supermaven-inc/supermaven-nvim'
   --------------------------------
 
   ------------- LSP --------------
@@ -123,6 +124,7 @@ return packer.startup(function(use)
   --------------------------------
 
   --------- UI / Visual ----------
+  use 'mbbill/undotree'
   use 'liuchengxu/vista.vim' -- alt: simrat39/symbols-outline.nvim
   use 'stevearc/aerial.nvim'
   -- use 'romgrk/barbar.nvim'

@@ -14,7 +14,8 @@ blinking = "Always"
 #size = 10
 # END pc
 # BEGIN work-laptop
-#size = 6
+#size = 8
+## size = 10
 # END work-laptop
 
 [font.normal]
@@ -24,7 +25,9 @@ blinking = "Always"
 # family = "Cousine Nerd Font"
 # family = "GoMono Nerd Font"
 # family = "Hack Nerd Font"
+# family = "JetBrainsMono Nerd Font"
 family = "Dina"
+# family = "DroidSansM Nerd Font"
 # style = "bold"
 
 [colors.primary]

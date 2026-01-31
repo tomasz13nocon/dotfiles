@@ -14,17 +14,17 @@ require 'conform'.setup {
     undojoin = true,
     -- timeout_ms = 3500,
   },
-  formatters = {
-    rustfmt = {
-      inherit = false,
-      command = "nix",
-      args = function(self, ctx)
-        local args = { "shell", "fenix#default.rustfmt", "-c", "rustfmt", "--emit=stdout" }
-        local edition = util.parse_rust_edition(ctx.dirname) or self.options.default_edition
-        table.insert(args, "--edition=" .. edition)
-
-        return args
-      end,
-    }
-  }
+  -- formatters = {
+  --   rustfmt = {
+  --     inherit = false,
+  --     command = "nix",
+  --     args = function(self, ctx)
+  --       local args = { "shell", "fenix#default.rustfmt", "-c", "rustfmt", "--emit=stdout" }
+  --       local edition = util.parse_rust_edition(ctx.dirname) or self.options.default_edition
+  --       table.insert(args, "--edition=" .. edition)
+  --
+  --       return args
+  --     end,
+  --   }
+  -- }
 }

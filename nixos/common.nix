@@ -52,6 +52,11 @@ in
   services.mongodb = {
     enable = true;
     package = pkgs.mongodb-ce;
+    replSetName = "rs0";
+  };
+
+  services.redis = {
+    servers."".enable = true;
   };
 
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -151,13 +156,12 @@ in
 
   # programs.npm.enable = true;
 
-  # programs.direnv = {
-  #   enable = true;
-  #   nix-direnv = {
-  #     enable = true;
-  #   };
-  # };
-  services.lorri.enable = true;
+  programs.direnv = {
+    enable = true;
+    # nix-direnv = {
+    #   enable = true;
+    # };
+  };
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
@@ -390,5 +394,10 @@ in
     opencode
     claude-code
     pavucontrol
+    mongosh
+    jaq
+    teams-for-linux
+    devenv
+    arandr
   ];
 }

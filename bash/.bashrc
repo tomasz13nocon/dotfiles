@@ -51,7 +51,6 @@ export EDITOR='nvim'
 export MANPAGER='less'
 export FZF_DEFAULT_COMMAND='rg --hidden --files -g !builds -g !node_modules -g !package-lock.json'
 
-
 #. /usr/share/LS_COLORS/dircolors.sh
 export LS_COLORS="$(vivid generate ayu)"
 
@@ -212,5 +211,7 @@ export NVM_DIR="$HOME/.local/share/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+# This undocumented var is REQUIRED to make nix-direnv work for some reason...
+export DIRENV_CONFIG="/etc/direnv"
 # Must be after shell extensions that manipulate the prompt.
 eval "$(direnv hook bash)"

@@ -2,9 +2,11 @@
 
 export QT_QPA_PLATFORMTHEME=qt5ct
 
-pgrep -x sxhkd > /dev/null || sxhkd &
+# Running this (which sets up monitors with xrandr) after bsp start, will cause higher res monitors to have limited window spaceA
+# Solution could be to run the xrandr part from .xinitrc, and the rest (which requires bswm running) from here
+~/bin/screens
 
-~/bin/polybar-start &
+pgrep -x sxhkd > /dev/null || sxhkd &
 
 xbindkeys
 
@@ -30,10 +32,6 @@ DO_NOT_UNSET_QT_QPA_PLATFORMTHEME=1 DO_NOT_SET_DESKTOP_SETTINGS_UNAWARE=1 megasy
 
 xss-lock xsecurelock &
 
-
-# wallpaper
-feh --bg-fill ~/Pictures/Pretty/1475101751132.jpg
-
 # allows dragging windows in 240hz
 bspc config pointer_motion_interval 3
 
@@ -46,24 +44,6 @@ bspc config pointer_motion_interval 3
 dunst &
 
 eww daemon
-
-# BEGIN pc
- #bspc monitor $MONITOR2 -d 1 2
- #bspc monitor $MONITOR1 -d 3 4 5 6 7 8
- #bspc desktop '^1' -l monocle
- #bspc desktop '^3' -l monocle
-# END pc
-# BEGIN work-laptop
-#if xrandr | grep -q "HDMI-1 connected"; then
-#    bspc monitor $MONITOR1 -d 8 9 10
-#    bspc monitor $MONITOR2 -d 1 2 3 4 5 6 7
-#    bspc desktop '^1' -l monocle
-#    bspc desktop '^8' -l monocle
-#else
-#    bspc monitor $MONITOR1 -d 1 2 3 4 5 6 7 8
-#    bspc desktop '^1' -l monocle
-#fi
-# END work-laptop
 
 bspc config border_width         3
 bspc config window_gap           10

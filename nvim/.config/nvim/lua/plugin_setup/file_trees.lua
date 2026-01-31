@@ -10,7 +10,18 @@ require("nvim-tree").setup {
   update_focused_file = { enable = true, update_cwd = false },
   diagnostics = {
     enable = true,
-  }
+  },
+  renderer = {
+    icons = {
+      git_placement = "after", -- or wherever you prefer
+      glyphs = {
+        git = {
+          ignored = "", -- empty string removes the icon
+        },
+      },
+    },
+    highlight_git = "name", -- or "all" to highlight the whole line
+  },
 }
 
 -- nvim-neo-tree/neo-tree.nvim

@@ -122,6 +122,10 @@ alias dim='redshift -x && xrandr --output DP-1 --brightness .4 && xrandr --outpu
 alias resetdim='redshift -x'
 alias mvi='mpv --config-dir=$HOME/.config/mvi'
 alias n='cd ~/notes && nvim'
+alias nw='cd ~/notes/work && nvim'
+alias jq='jaq'
+alias oc='opencode'
+alias cargo-check-files='cargo check 2>&1 | \grep -oE " --> [^: ]+" | sed "s/ --> //" | sort -u'
 
 . $(whereis complete_alias | cut -d' ' -f2)
 complete -F _complete_alias gch

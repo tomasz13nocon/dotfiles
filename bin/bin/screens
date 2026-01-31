@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+pkill -9 -f ddc.py
+polybar-msg cmd quit
+killall polybar
+for monitor in $(bspc query -M --names); do
+  if ! xrandr | grep -q "^$monitor connected"; then
+    bspc monitor $monitor -r
+    xrandr --output $monitor --off
+  fi
+done
+
+################## MONITORS ##################
+
+# BEGIN pc
+# #export MONITOR1=DP-1
+# #export MONITOR2=DP-2
+#
+# #xrandr --newmode "1920x1080_280v" 628.00 1920 1968 2028 2040 1080 1090 1092 1100 -HSync +Vsync
+# #xrandr --addmode $MONITOR1 "1920x1080_280v"
+# #xrandr --output $MONITOR1 --right-of $MONITOR2
+# #xrandr --output $MONITOR1 --mode 1920x1080_280v --rate 280 --right-of $MONITOR2
+# END pc
+# BEGIN work-laptop
+#export MONITOR1=eDP-1
+#export MONITOR2=HDMI-1
+#
+#if xrandr | grep -q "^$MONITOR2 connected"; then
+#    xrandr --output $MONITOR2 --mode 1920x1080 --rate 240 --above $MONITOR1
+#    sleep 3
+#fi
+# END work-laptop
+
+################## BSPWM ##################
+
+# BEGIN pc
+ #bspc monitor $MONITOR2 -d 1 2
+ #bspc monitor $MONITOR1 -d 3 4 5 6 7 8
+ #bspc desktop '^1' -l monocle
+ #bspc desktop '^3' -l monocle
+# END pc
+# BEGIN work-laptop
+#if xrandr | grep -q "^$MONITOR2 connected"; then
+#    bspc monitor $MONITOR1 -d 8 9 10
+#    bspc monitor $MONITOR2 -d 1 2 3 4 5 6 7
+#    bspc desktop '^1' -l monocle
+#    bspc desktop '^8' -l monocle
+#else
+#    bspc monitor $MONITOR1 -d 1 2 3 4 5 6 7 8
+#    bspc desktop '^1' -l monocle
+#fi
+# END work-laptop
+
+################## POLYBAR ##################
+
+python ~/.config/polybar/scripts/ddc.py daemon &
+
+# MONITOR_MODEL is needed for the ddc python script
+# Find MONITOR_MODEL by running `sudo ddcutil detect`
+
+# BEGIN pc
+ #MONITOR=$MONITOR1 MONITOR_MODEL="VG259QM" polybar -r main-tray-ddc &
+ #MONITOR=$MONITOR1 polybar -r time &
+ #MONITOR=$MONITOR1 polybar -r date &
+ #
+ #MONITOR=$MONITOR2 MONITOR_MODEL="DELL P2414H" polybar -r main-ddc &
+ #MONITOR=$MONITOR2 polybar -r time &
+ #MONITOR=$MONITOR2 polybar -r date &
+# END pc
+# BEGIN work-laptop
+#if xrandr | grep -q "^$MONITOR2 connected"; then
+#    MONITOR=$MONITOR1 polybar -r main-backlight-battery &
+#    MONITOR=$MONITOR1 polybar -r time &
+#    MONITOR=$MONITOR1 polybar -r date &
+#
+#    # MONITOR=$MONITOR2 MONITOR_MODEL="M27Q X" polybar -r main-tray-ddc-battery &
+#    # MONITOR=$MONITOR2 polybar -r time-1440 &
+#    # MONITOR=$MONITOR2 polybar -r date-1440 &
+#    MONITOR=$MONITOR2 MONITOR_MODEL="VG259QM" polybar -r main-tray-ddc-battery &
+#    MONITOR=$MONITOR2 polybar -r time &
+#    MONITOR=$MONITOR2 polybar -r date &
+#else
+#    MONITOR=$MONITOR1 polybar -r main-tray-backlight-battery &
+#    MONITOR=$MONITOR1 polybar -r time &
+#    MONITOR=$MONITOR1 polybar -r date &
+#fi
+# END work-laptop
+
+feh --no-fehbg --bg-fill ~/Pictures/Pretty/1475101751132.jpg
