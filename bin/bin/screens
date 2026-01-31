@@ -53,7 +53,7 @@ done
 
 ################## POLYBAR ##################
 
-python ~/.config/polybar/scripts/ddc.py daemon &
+sudo python ~/.config/polybar/scripts/ddc.py daemon &
 
 # MONITOR_MODEL is needed for the ddc python script
 # Find MONITOR_MODEL by running `sudo ddcutil detect`
