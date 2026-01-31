@@ -18,11 +18,17 @@ in
 
   fileSystems = {
     "/mnt/win" = {
-      device = "/dev/7E96A8EB96A8A4DD";
+      device = "/dev/nvme0n1p3";
       fsType = "ntfs-3g";
     };
     "/mnt/hdd" = {
       device = "/dev/disk/by-uuid/01D59F3789A49520";
+      fsType = "ntfs-3g";
+      options = [ # If you don't have this options attribute, it'll default to "defaults" 
+        # boot options for fstab. Search up fstab mount options you can use
+        "users" # Allows any user to mount and unmount
+        "nofail" # Prevent system from failing if this drive doesn't mount
+      ];
     };
   };
 
