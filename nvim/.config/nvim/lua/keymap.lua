@@ -7,8 +7,8 @@ local fzf_lua = require('fzf-lua')
 local gs = require('gitsigns')
 
 --------- INSERT ----------
--- map('i', '<C-L>',       '<cmd>:lua vim.lsp.buf.signature_help()<CR>')
-
+map('i', '<C-L>',       function() vim.lsp.buf.signature_help({ border = "rounded" }) end)
+map('i', '<C-S>',       function() vim.lsp.buf.signature_help({ border = "rounded" }) end)
 --------- NORMAL ----------
 -- empty string mappings work like :map, so normal, visual, operator pending (e.g. after d in normal), select (useless, ignore)
 -- BARE
@@ -39,7 +39,7 @@ map('',  '<C-S-d>',     ':Telescope diagnostics<CR>')
 map('',  '<C-h>',       '<cmd>lua cycle_no_wrap("prev")<CR>') -- :BufferPrevious<CR> , :BufferLineCyclePrev<CR>
 map('',  '<C-S-h>',     ':BufferLineMovePrev<CR>') -- :BufferMovePrevious<CR>
 map('n', '<C-j>',       ':join<CR>')
-map('n', '<C-K>',       ':lua vim.lsp.buf.hover()<CR>')
+map('n', '<C-K>',       function() vim.lsp.buf.hover({ border = "rounded", }) end)
 map('',  '<C-l>',       '<cmd>lua cycle_no_wrap("next")<CR>') -- :BufferNext<CR> , :BufferLineCycleNext<CR>
 map('',  '<C-S-l>',     ':BufferLineMoveNext<CR>') -- :BufferMoveNext<CR>
 map('n', '<C-n>',       ':NvimTreeFocus<CR>')
@@ -100,17 +100,16 @@ map('n', '<leader>gl',  fzf_lua.git_blame)
 map('n', '<leader>gs',  builtin.git_status)
 map('n', '<leader>gt',  builtin.git_stash)
 -- j
-map('',  '<leader>ja',  ':Gitsigns stage_hunk<CR>')
+map('',  '<leader>ja',  gs.stage_hunk)
 map('',  '<leader>jr',  ':Gitsigns reset_hunk<CR>')
 map('n', '<leader>jS',  gs.stage_buffer)
-map('n', '<leader>ju',  gs.undo_stage_hunk)
 map('n', '<leader>jR',  gs.reset_buffer)
+map('n', '<leader>jh',  gs.preview_hunk_inline)
 map('n', '<leader>jp',  gs.preview_hunk)
 map('n', '<leader>jb',  function() gs.blame_line { full = true } end)
 map('n', '<leader>jtb', gs.toggle_current_line_blame)
 map('n', '<leader>jd',  gs.diffthis)
 map('n', '<leader>jD',  function() gs.diffthis('~') end)
-map('n', '<leader>jtd', gs.toggle_deleted)
 -- n
 map('n', '<leader>nd',  '<cmd>lua require("package-info").delete()<cr>', { silent = true, noremap = true })
 map('n', '<leader>nj',  ':lua require("ts-node-action").node_action<CR>')

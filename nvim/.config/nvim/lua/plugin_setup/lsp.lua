@@ -100,6 +100,9 @@ vim.lsp.config.ts_ls = {
   },
 }
 vim.lsp.enable "ts_ls"
+
+-- vim.lsp.enable "vtsls"
+
 -- lspconfig.vtsls.setup(default_setup)
 -- require("typescript").setup {
 --   server = {
@@ -132,9 +135,29 @@ vim.lsp.enable "ts_ls"
 --   }
 -- }
 
+local project_features_env = os.getenv("NVIM_RUST_FEATURES")
+local project_features = {}
+
+if project_features_env ~= nil and project_features_env ~= "" then
+  local function split(str, sep)
+    local result = {}
+    local regex = ("([^%s]+)"):format(sep)
+    for each in str:gmatch(regex) do
+      table.insert(result, each)
+    end
+    return result
+  end
+  project_features = split(project_features_env, ",")
+end
+
+
 vim.lsp.config.rust_analyzer = {
   settings = {
     ["rust-analyzer"] = {
+      cargo = {
+        -- features = project_features,
+        -- features = "all",
+      },
       installRustc = false,
       installCargo = false,
       rustfmt = {
@@ -144,8 +167,9 @@ vim.lsp.config.rust_analyzer = {
       check = {
         command = "clippy",
         allTargets = true,
-        features = "all",
         extraArgs = { "--", "-W", "clippy::needless_pass_by_value" },
+        -- features = "all",
+        -- features = project_features,
       }
     }
   }
@@ -279,7 +303,7 @@ none_ls.setup {
   end,
   sources = {
     none_ls.builtins.formatting.black,
-    require("none-ls.diagnostics.eslint_d").with({
+    require("none-ls.diagnostics.eslint").with({
       filetypes = { "javascript", "typescript", "vue", "svelte", "astro", "javascriptreact", "typescriptreact" },
       condition = function()
         return require "null-ls.utils".root_pattern(
@@ -358,10 +382,6 @@ vim.diagnostic.config {
     prefix = "",
   },
 }
-
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = "rounded",
-})
 
 vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
   border = "rounded",

@@ -12,6 +12,7 @@ blinking = "Always"
 # size = 11
 # BEGIN pc
 #size = 8
+## size = 10
 # END pc
 # BEGIN work-laptop
 #size = 8

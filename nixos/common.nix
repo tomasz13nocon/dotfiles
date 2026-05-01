@@ -113,13 +113,6 @@ in
     packages = with pkgs; [];
   };
 
-  environment.variables = {
-    # needed by rust openssl-sys
-    OPENSSL_NO_VENDOR = 1;
-    OPENSSL_DIR = pkgs.openssl.dev;
-    OPENSSL_LIB_DIR = "${pkgs.lib.getLib pkgs.openssl}/lib";
-  };
-
   # Required for trash in Nemo
   services.gvfs.enable = true;
 
@@ -216,7 +209,6 @@ in
       dina-font
       noto-fonts-cjk-sans
       noto-fonts-color-emoji
-      nerd-fonts.fira-code
       nerd-fonts.droid-sans-mono
       nerd-fonts.jetbrains-mono
       nerd-fonts.meslo-lg
@@ -235,10 +227,11 @@ in
     "beekeeper-studio-5.3.4"
   ];
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment.systemPackages = with unstable; [
-    neovim
+    (neovim.override {
+      withPython3 = true;
+    })
+    tree-sitter
     pkgs.polybar
     rofi
     sxhkd
@@ -255,7 +248,9 @@ in
     (pkgs.python3.withPackages(pypkgs: with pypkgs; [
       dbus-python # polybar-now-playing
       subliminal
+      pip
     ]))
+    uv
     ddcutil
     mpv
     brave
@@ -272,7 +267,6 @@ in
     lxappearance
     wmctrl
     duf
-    cava
     killall
     qbittorrent
     pulseaudio
@@ -282,7 +276,7 @@ in
     android-tools
     nodejs_24
     pnpm
-    # rustup
+    corepack
     rustc
     cargo
     cargo-update
@@ -291,12 +285,11 @@ in
     rustfmt
     clippy
     rust-analyzer
-    # gcc
     unzip
     dconf
     delta
     xclip
-    wineWowPackages.stable
+    wineWow64Packages.stable
     maim
     feh
     ranger
@@ -306,7 +299,6 @@ in
     nvd
     complete-alias
     kdePackages.kdeconnect-kde
-    unityhub
     mono
     dotnetCorePackages.dotnet_10.sdk
     obs-studio
@@ -337,8 +329,6 @@ in
     gcolor3
     gpick
     insomnia
-    openssl
-    openssl.dev
     libiconv
     pkg-config
     sublime-merge
@@ -349,7 +339,7 @@ in
     luajitPackages.jsregexp
     mir-qualia
     pkgs.linux-wifi-hotspot
-    xorg.xwininfo
+    xwininfo
     nodemon
     docker
     docker-compose
@@ -363,7 +353,7 @@ in
     loupe
     dcmtk
     gthumb
-    gleam
+    # gleam
     erlang
     xournalpp
     gearlever
@@ -392,12 +382,17 @@ in
     gtk-engine-murrine
     monero-gui
     opencode
-    claude-code
+    # claude-code
     pavucontrol
     mongosh
     jaq
     teams-for-linux
     devenv
     arandr
+    foliate
+    epiphany
+    rssguard
+    thunderbird
+    telegram-desktop
   ];
 }
