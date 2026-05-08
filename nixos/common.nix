@@ -382,6 +382,7 @@ in
     gtk-engine-murrine
     monero-gui
     opencode
+    opencode-desktop
     # claude-code
     pavucontrol
     mongosh

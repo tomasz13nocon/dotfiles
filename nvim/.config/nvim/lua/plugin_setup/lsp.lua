@@ -16,7 +16,6 @@ require 'mason-lspconfig'.setup {
     "yamlls",
     "pyright",
     "cssmodules_ls",
-    "prismals",
     "phpactor",
     "omnisharp",
     "ts_ls",
@@ -55,7 +54,6 @@ vim.lsp.config("*", {
 vim.lsp.enable "html"
 vim.lsp.enable "mdx_analyzer"
 vim.lsp.enable "phpactor"
-vim.lsp.enable "prismals"
 vim.lsp.enable "pyright"
 vim.lsp.enable "astro"
 
