@@ -1,13 +1,10 @@
 { config, pkgs, ... }:
 
-let
-  unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
-in
 {
   imports =
     [ # Include the results of the hardware scan.
-      /etc/nixos/hardware-configuration.nix
-      ./common.nix
+      ./hardware-configuration.nix
+      ../common.nix
     ];
 
   networking.hostName = "nixos-pc"; # Define your hostname.

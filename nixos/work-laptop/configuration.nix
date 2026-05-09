@@ -1,13 +1,10 @@
 { config, pkgs, ... }:
 
-let
-  unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
-in
 {
   imports =
     [ # Include the results of the hardware scan.
-      /etc/nixos/hardware-configuration.nix
-      ./common.nix
+      ./hardware-configuration.nix
+      ../common.nix
     ];
 
   networking.hostName = "nixos-work-laptop";
@@ -23,12 +20,12 @@ in
     extraGroups = [ "video" ];
   };
 
-  environment.systemPackages = with unstable; [
+  environment.systemPackages = with pkgs; [
     # ...
     brightnessctl
   ];
 
-  hardware.graphics.extraPackages = with unstable; [
+  hardware.graphics.extraPackages = with pkgs; [
     libgbm
     intel-vaapi-driver
     intel-media-driver

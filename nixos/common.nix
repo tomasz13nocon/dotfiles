@@ -2,11 +2,8 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, stable, ... }:
 
-let
-  unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
-in
 {
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -51,7 +48,7 @@ in
 
   services.mongodb = {
     enable = true;
-    package = pkgs.mongodb-ce;
+    package = stable.mongodb-ce;
     replSetName = "rs0";
   };
 
@@ -144,7 +141,7 @@ in
 
   system.activationScripts.usrShareZoneinfo = ''
     mkdir -p /usr/share
-    ln -sfn ${pkgs.tzdata}/share/zoneinfo /usr/share/zoneinfo
+    ln -sfn ${stable.tzdata}/share/zoneinfo /usr/share/zoneinfo
   '';
 
   # programs.npm.enable = true;
@@ -205,7 +202,7 @@ in
   nixpkgs.config.allowUnfree = true;
 
   fonts = {
-    packages = with pkgs; [
+    packages = with stable; [
       dina-font
       noto-fonts-cjk-sans
       noto-fonts-color-emoji
@@ -223,16 +220,16 @@ in
     };
   };
 
-  nixpkgs.config.permittedInsecurePackages = [
-    "beekeeper-studio-5.3.4"
-  ];
+  # nixpkgs.config.permittedInsecurePackages = [
+  #   "beekeeper-studio-5.3.4"
+  # ];
 
-  environment.systemPackages = with unstable; [
+  environment.systemPackages = with pkgs; [
     (neovim.override {
       withPython3 = true;
     })
     tree-sitter
-    pkgs.polybar
+    stable.polybar
     rofi
     sxhkd
     # alacritty
@@ -245,7 +242,7 @@ in
     qogir-theme
     papirus-icon-theme
     font-manager
-    (pkgs.python3.withPackages(pypkgs: with pypkgs; [
+    (stable.python3.withPackages(pypkgs: with pypkgs; [
       dbus-python # polybar-now-playing
       subliminal
       pip
@@ -333,19 +330,19 @@ in
     pkg-config
     sublime-merge
     just
-    pkgs.electrum
+    stable.electrum
     libreoffice-qt6
     gnumake
     luajitPackages.jsregexp
     mir-qualia
-    pkgs.linux-wifi-hotspot
+    stable.linux-wifi-hotspot
     xwininfo
     nodemon
     docker
     docker-compose
     nnn
     postgresql
-    pkgs.beekeeper-studio
+    beekeeper-studio
     # dbeaver-bin
     xsecurelock
     xss-lock
