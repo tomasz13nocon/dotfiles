@@ -8,6 +8,7 @@ require 'plugin_setup.gitsigns'
 require 'plugin_setup.lualine'
 require 'plugin_setup.conform'
 require 'plugin_setup.blink'
+require 'plugin_setup.render_markdown'
 -- require 'plugin_setup.cmp'
 require 'plugin_setup.lsp'
 -- require 'plugin_setup.lsp_inlayhints'
@@ -107,4 +108,3 @@ vim.cmd [[highlight def IlluminatedWordRead  guibg=#3e3e46 gui=NONE]]
 vim.cmd [[highlight def IlluminatedWordWrite guibg=#3e3e46 gui=NONE]]
 
 -- require'nvim_context_vt'.setup{}
-

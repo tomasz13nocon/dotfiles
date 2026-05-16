@@ -63,6 +63,7 @@ return packer.startup(function(use)
   use 'williamboman/mason-lspconfig.nvim'
   use {
     'nvim-treesitter/nvim-treesitter',
+    branch = "main",
     run = ':TSUpdate'
   }
   use 'windwp/nvim-ts-autotag'
@@ -218,6 +219,10 @@ return packer.startup(function(use)
     setup = function() vim.g.mkdp_filetypes = { "markdown" } end,
     ft = { "markdown" },
   })
+  use({
+    'MeanderingProgrammer/render-markdown.nvim',
+    after = { 'nvim-treesitter' },
+  })
   use 'mizlan/iswap.nvim'
   --------------------------------
 
@@ -225,4 +230,3 @@ return packer.startup(function(use)
     require('packer').sync()
   end
 end)
-
